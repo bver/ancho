@@ -1,0 +1,3 @@
+content trusted-ads       ./chrome/content/
+skin    trusted-ads       ./chrome/skin/
+locale  trusted-ads en-US ./chrome/locale/en-US/
