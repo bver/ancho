@@ -8,7 +8,7 @@
 
 window.require = window.require || function require(id, scriptUrlPath) {
   if (!scriptUrlPath) {
-    if ("extension" in chrome) {
+    if ('extension' in chrome) {
       // Content script
       frames = printStackTrace();
       // We are interested in the frame right below the first call to require().
@@ -18,15 +18,15 @@ window.require = window.require || function require(id, scriptUrlPath) {
         // The frame we are interested in should look something like:
         // require()@file:///path/to/require.js:8:11
         // or
-        // require("module")@file:///path/to/require.js:8:11
+        // require('module')@file:///path/to/require.js:8:11
         // or
         // require (file://path/to/require.js:8:11)
-        var match = frames[i].match("((([^ ]+) \\()|(([^@]+)\\([^)]*\\)@))(.*)\/.+\.js:");
+        var match = frames[i].match('((([^ ]+) \\()|(([^@]+)\\([^)]*\\)@))(.*)\/.+\.js:');
         if (foundRequireFrame && match) {
           scriptUrlPath = match[6];
           break;
         }
-        if (match && (match[3] == "require" || match[5] == "require")) {
+        if (match && (match[3] == 'require' || match[5] == 'require')) {
           foundRequireFrame = true;
         }
       }
@@ -42,36 +42,36 @@ window.require = window.require || function require(id, scriptUrlPath) {
       }
     }
     if (!scriptUrlPath) {
-      throw new Error("Cannot get the path of the current module");
+      throw new Error('Cannot get the path of the current module');
     }
   }
-  if (id[0] == "/") {
+  if (id[0] == '/') {
     // Separate the path and filename;
-    var pathInfo = id.match("/?(.*)/([^/]+)$");
+    var pathInfo = id.match('/?(.*)/([^/]+)$');
     var path = pathInfo[1];
     id = pathInfo[2];
 
     // Extract the part of the URL preceding the path, e.g.:
     // file:///path/to/ -> file://
     // http://server/path/to/ -> http://server
-    var urlPrefix = scriptUrlPath.match("([^:]+://[^/]*)/")[1];
+    var urlPrefix = scriptUrlPath.match('([^:]+://[^/]*)/')[1];
     // Turn the path into a URL
-    scriptUrlPath = urlPrefix + "/" + path;
+    scriptUrlPath = urlPrefix + '/' + path;
   }
-  var url = normalize(scriptUrlPath + "/" + id + ".js");
+  var url = normalize(scriptUrlPath + '/' + id + '.js');
   // Recalculate scriptUrlPath to be the full path based on the normalized URL.
-  scriptUrlPath = url.match("(.*)/[^/]+\.js")[1];
+  scriptUrlPath = url.match('(.*)/[^/]+\.js')[1];
 
   if (!(url in window.require._cache)) {
     try {
       var xhr = new XMLHttpRequest();
-      xhr.open("GET", url, false);
+      xhr.open('GET', url, false);
       xhr.send();
 
       var responseText = xhr.responseText;
     }
     catch(e) {
-      throw new Error("Cannot load module " + id + " (" + url + "): " + e.message);
+      throw new Error('Cannot load module ' + id + ' (' + url + '): ' + e.message);
     }
 
     // CommonJS modules expect three symbols to be available:
@@ -82,12 +82,12 @@ window.require = window.require || function require(id, scriptUrlPath) {
     // So we wrap the code in a function that takes these symbols as arguments.
     // For compatibility with Node.js, we create a header that defines global variables
     // that it provides to modules. Right now that means __dirname but we may want to add others.
-    var header = "var __dirname = '/" + scriptUrlPath.match(".*://[^/]*/(.*)")[1] + "';";
-    var func = new Function("require", "exports", "module", header + responseText);
+    var header = 'var __dirname = '/' + scriptUrlPath.match('.*://[^/]*/(.*)')[1] + '';';
+    var func = new Function('require', 'exports', 'module', header + responseText);
     var context = {};
     // jQuery is not a CommonJS module, include it in the context
     // if it was loaded already:
-    if (typeof(jQuery) != "undefined") {
+    if (typeof(jQuery) != 'undefined') {
       context.jQuery = jQuery;
       context.$ = jQuery;
     }
@@ -102,16 +102,16 @@ window.require = window.require || function require(id, scriptUrlPath) {
 
   // Normalize paths that contain . and .. segments
   function normalize(path) {
-    var segments = path.split("/");
+    var segments = path.split('/');
     var normalizedSegments = [];
     for (var i=0; i<segments.length; i++) {
       var segment = segments[i];
-      if (segment === ".") {
+      if (segment === '.') {
         continue;
       }
-      else if (segment === "..") {
+      else if (segment === '..') {
         if (normalizedSegments.length == 0) {
-          throw Error("Invalid path: " + path);
+          throw Error('Invalid path: ' + path);
         }
         normalizedSegments.pop();
       }
@@ -119,7 +119,7 @@ window.require = window.require || function require(id, scriptUrlPath) {
         normalizedSegments.push(segment);
       }
     }
-    return normalizedSegments.join("/");
+    return normalizedSegments.join('/');
   }
 };
 

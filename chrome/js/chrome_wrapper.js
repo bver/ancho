@@ -1,5 +1,5 @@
 window.addEventListener('load', function(event) {
-  var extensionId = chrome.i18n.getMessage("@@extension_id");
+  var extensionId = chrome.i18n.getMessage('@@extension_id');
   var hash = document.location.hash.substr(1);
   var path;
   if (hash.indexOf('chrome-extension://') === 0) {
@@ -21,8 +21,8 @@ window.addEventListener('load', function(event) {
     if ('resize' in event.data) {
       window.removeEventListener('message', arguments.callee, false);
       var html = document.getElementsByTagName('html')[0];
-      html.style.height = document.body.style.height = event.data.resize.height + "px";
-      html.style.width = document.body.style.width = event.data.resize.width + "px";
+      html.style.height = document.body.style.height = event.data.resize.height + 'px';
+      html.style.width = document.body.style.width = event.data.resize.width + 'px';
     }
   }, false);
 

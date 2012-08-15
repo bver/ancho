@@ -14,7 +14,7 @@ function createWindowUnloader(win) {
 }
 
 function windowLoaded(window) {
-  var browser = window.document.getElementById("content");
+  var browser = window.document.getElementById('content');
   if (browser) {
     var browserEvents = new BrowserEvents(browser, ExtensionState);
     ExtensionState.registerUnloader(window,
@@ -27,31 +27,31 @@ function windowLoaded(window) {
   }
 
   var windowUnloader = createWindowUnloader(window);
-  window.addEventListener("unload", windowUnloader, false);
+  window.addEventListener('unload', windowUnloader, false);
 
   // Make sure we remove the window unloader if the extension is unloaded
   // (disabled or removed) before the window is.
   ExtensionState.registerUnloader(window, function() {
-    window.removeEventListener("unload", windowUnloader, false);
+    window.removeEventListener('unload', windowUnloader, false);
   });
 }
 
 function watchOnWindowLoad(window) {
-  window.addEventListener("load", function(event) {
-    window.removeEventListener("load", arguments.callee, false);
+  window.addEventListener('load', function(event) {
+    window.removeEventListener('load', arguments.callee, false);
     windowLoaded(window);
   }, false);
 }
 
 function watchWindow(subject, topic) {
-  if (topic === "domwindowopened") {
+  if (topic === 'domwindowopened') {
     watchOnWindowLoad(subject);
   }
 }
 
 function createWindowWatcher() {
   // Watch the existing windows
-  var browserWindows = Services.wm.getEnumerator("navigator:browser");
+  var browserWindows = Services.wm.getEnumerator('navigator:browser');
 
   while (browserWindows.hasMoreElements()) {
     var browserWindow = browserWindows.getNext();
@@ -73,19 +73,19 @@ function releaseWindowWatcher() {
   Services.ww.unregisterNotification(watchWindow);
 }
 
-window.addEventListener("load", function(event) {
-  window.removeEventListener("load", arguments.callee, false);
+window.addEventListener('load', function(event) {
+  window.removeEventListener('load', arguments.callee, false);
 
   ExtensionState.backgroundWindow = window;
 
   createWindowWatcher();
 
   var browser = document.getElementById('content');
-  loadHtml(document, browser, "chrome://trusted-ads/content/html/background.html");
+  loadHtml(document, browser, 'chrome://trusted-ads/content/html/background.html');
 }, false);
 
-window.addEventListener("unload", function(event) {
-  window.removeEventListener("unload", arguments.callee, false);
+window.addEventListener('unload', function(event) {
+  window.removeEventListener('unload', arguments.callee, false);
 
   releaseWindowWatcher();
 

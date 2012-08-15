@@ -3,7 +3,7 @@
   // Tab ID is null if the popup is in a window that doesn't have tabs.
   // This is used to dispatch the message to close the popup to the right
   // tab (or to all windows).
-  // Used for "borderless popups" which are actually divs containing an iframe.
+  // Used for 'borderless popups' which are actually divs containing an iframe.
   var popups = {};
   var callbacks = {};
   var requestId = 1;
@@ -11,12 +11,12 @@
   const BORDERLESS_BASE_ID = 50000;
   var currentBorderlessId = BORDERLESS_BASE_ID;
 
-  if (typeof(chrome) === "undefined") {
+  if (typeof(chrome) === 'undefined') {
     return;
   }
 
   var dispatch = function(request, sender, callback) {
-    if (!("type" in request)) {
+    if (!('type' in request)) {
       // Not a dispatch command so must be a listener set by the background
       // script.
       if (onRequestListener) {
@@ -24,7 +24,7 @@
       }
       return;
     }
-    if (request.type === "IsPopup") {
+    if (request.type === 'IsPopup') {
       if (request.id >= BORDERLESS_BASE_ID) {
         callback(true);
       }
@@ -32,16 +32,16 @@
         callback(false);
       }
     }
-    else if (request.type === "RegisterPopup") {
+    else if (request.type === 'RegisterPopup') {
       var borderlessId = currentBorderlessId++;
-      if (("tab" in sender) && (sender.tab.id != -1)) {
+      if (('tab' in sender) && (sender.tab.id != -1)) {
         popups[borderlessId] = sender.tab.id;
       }
       callback(borderlessId);
     }
-    else if (request.type === "UnregisterPopup") {
+    else if (request.type === 'UnregisterPopup') {
       if (request.id >= BORDERLESS_BASE_ID) {
-        var closeRequest = { type: "ClosePopup", id: request.id };
+        var closeRequest = { type: 'ClosePopup', id: request.id };
         if (request.id in popups) {
           chrome.tabs.sendRequest(popups[request.id], closeRequest);
         }
@@ -55,7 +55,7 @@
         // TODO: Should be an error.
       }
     }
-    else if (request.type === "XMLHttpRequest") {
+    else if (request.type === 'XMLHttpRequest') {
       var xhr = new XMLHttpRequest();
       xhr.open(request.method, request.url);
       for (key in request.extraHeaders) {
@@ -76,7 +76,7 @@
       }
       xhr.send(request.data);
     }
-    else if (request.type === "GetLocalStorageData") {
+    else if (request.type === 'GetLocalStorageData') {
       var localStorage = {};
       for (var i=0; i<window.localStorage.length; i++) {
         var key = window.localStorage.key(i);
@@ -84,25 +84,25 @@
       }
       callback(localStorage);
     }
-    else if (request.type === "LocalStorageSet") {
+    else if (request.type === 'LocalStorageSet') {
       window.localStorage.setItem(request.data.key, request.data.value);
     }
-    else if (request.type === "LocalStorageRemove") {
+    else if (request.type === 'LocalStorageRemove') {
       window.localStorage.removeItem(request.data.key);
     }
-    else if (request.type === "APICallback") {
+    else if (request.type === 'APICallback') {
       if (request.callbackId in callbacks) {
         callbacks[request.callbackId].apply(window, request.args);
         delete callbacks[request.callbackId];
       }
     }
 
-    if (request.type !== "InvokeAPI") {
+    if (request.type !== 'InvokeAPI') {
       return;
     }
 
-    if ("name" in request.data) {
-      if (request.data.name === "extension.onRequest.addListener") {
+    if ('name' in request.data) {
+      if (request.data.name === 'extension.onRequest.addListener') {
         // Special handling since we can only have on message listener.
         onRequestListener = callback;
         return;
@@ -128,16 +128,16 @@
 
   chrome.extension.onRequest.addListener(dispatch);
 
-  window.addEventListener("message", function(event) {
+  window.addEventListener('message', function(event) {
     var request = event.data;
     var callback;
-    if ("id" in request) {
+    if ('id' in request) {
       var callbackId;
       callback = function() {
         var args = Array.prototype.slice.call(arguments);
         if (args.length > 0) {
           var lastArg = args.pop();
-          if (typeof(lastArg) === "function") {
+          if (typeof(lastArg) === 'function') {
             // Special processing since the callback in this case also has a callback.
             // For example, this might be an onMessage listener whose last parameter
             // is the sendResponse callback.
@@ -153,14 +153,14 @@
         if (callbackId) {
           response.callbackId = callbackId;
         }
-        event.source.postMessage(response, "*");
+        event.source.postMessage(response, '*');
       }
     }
 
     dispatch(request, null, callback);
   }, false);
 
-  if (typeof(exports) != "undefined") {
+  if (typeof(exports) != 'undefined') {
     exports.dispatch = dispatch;
   }
 }).call(this);

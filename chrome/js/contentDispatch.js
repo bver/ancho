@@ -4,7 +4,7 @@
   var listeners = [];
 
   function dispatch(request, sender, callback) {
-    if (request.type === "XMLHttpRequest") {
+    if (request.type === 'XMLHttpRequest') {
       var xhr = new XMLHttpRequest();
       xhr.open(request.method, request.url);
       for (key in request.extraHeaders) {
@@ -25,23 +25,23 @@
       }
       xhr.send(request.data);
     }
-    else if (request.type === "UpdateWindow") {
+    else if (request.type === 'UpdateWindow') {
       // Delegate to our parent since they are responsible for
       // dealing with borderless popups they created.
-      parent.postMessage(request, "*");
+      parent.postMessage(request, '*');
     }
-    else if (request.type === "APICallback") {
+    else if (request.type === 'APICallback') {
       if (request.callbackId in callbacks) {
         callbacks[request.callbackId].apply(window, request.args);
         delete callbacks[request.callbackId];
       }
     }
 
-    if (request.type !== "InvokeAPI") {
+    if (request.type !== 'InvokeAPI') {
       return;
     }
 
-    if ("name" in request.data) {
+    if ('name' in request.data) {
       var nameSegments = request.data.name.split('.');
 
       var api = chrome;
@@ -64,18 +64,18 @@
 
       var args = Array.prototype.slice.call(request.data.arguments);
 
-      if (request.data.name === "extension.onRequest.addListener") {
+      if (request.data.name === 'extension.onRequest.addListener') {
         // We manage the message listeners here as well so that we can dispatch
         // messages between frames of the same window.
         listeners.push(callback);
       }
-      else if (request.data.name === "extension.onRequest.removeListener") {
+      else if (request.data.name === 'extension.onRequest.removeListener') {
         var index = listeners.indexOf(callback);
         if (index != -1) {
           listeners.splice(index, 1);
         }
       }
-      else if (request.data.name === "extension.sendRequest") {
+      else if (request.data.name === 'extension.sendRequest') {
         for (var i=0; i<listeners.length; i++) {
           var requestArgs = [].concat(args);
           requestArgs.push(null); // sender
@@ -94,10 +94,10 @@
     }
   }
 
-  window.addEventListener("message", function(event) {
+  window.addEventListener('message', function(event) {
     var request = event.data;
     var callback;
-    if ("id" in request) {
+    if ('id' in request) {
       var callbackId;
       callback = function() {
         if (!event.source) {
@@ -107,7 +107,7 @@
         var args = Array.prototype.slice.call(arguments);
         if (args.length > 0) {
           var lastArg = args.pop();
-          if (typeof(lastArg) === "function") {
+          if (typeof(lastArg) === 'function') {
             // Special processing since the callback in this case also has a callback.
             // For example, this might be an onMessage listener whose last parameter
             // is the sendResponse callback.
@@ -123,7 +123,7 @@
         if (callbackId) {
           response.callbackId = callbackId;
         }
-        event.source.postMessage(response, "*");
+        event.source.postMessage(response, '*');
       }
     }
 
