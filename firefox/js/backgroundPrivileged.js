@@ -1,11 +1,16 @@
 const { classes: Cc, interfaces: Ci, utils: Cu } = Components;
 
 Cu.import('resource://gre/modules/Services.jsm');
-Cu.import('resource://trusted-ads/modules/State.jsm');
-Cu.import('resource://trusted-ads/modules/Utils.jsm');
-Cu.import('resource://trusted-ads/modules/Scripting.jsm');
-Cu.import('resource://trusted-ads/modules/BrowserEvents.jsm');
-Cu.import('resource://trusted-ads/modules/Toolbar.jsm');
+Cu.import('resource://{{SHORTNAME}}/modules/Require.jsm');
+
+var sandbox = Cu.Sandbox(window);
+var baseURI = Services.io.newURI('resource://{{SHORTNAME}}/modules/', '', null);
+var require = Require.createRequireForWindow(sandbox, baseURI);
+
+var ExtensionState = require('./state');
+var applyContentScripts = require('./scripting').applyContentScripts;
+var BrowserEvents = require('./browserEvents');
+var Toolbar = require('./toolbar');
 
 function createWindowUnloader(win) {
   return function(event) {

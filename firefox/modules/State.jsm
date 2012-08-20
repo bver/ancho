@@ -1,74 +1,78 @@
-EXPORTED_SYMBOLS = ['EventDispatcher', 'ExtensionState'];
+(function() {
+  var Cc = Components.classes;
+  var Ci = Components.interfaces;
+  var Cu = Components.utils;
 
-const { classes: Cc, interfaces: Ci, utils: Cu } = Components;
+  var getWindowId = require('./utils').getWindowId;
+  
+  const EXTENSION_ID = 'product@vendor.com';
 
-Cu.import('resource://trusted-ads/modules/Utils.jsm');
+  function EventDispatcher() {
+    this._listeners = {};
+  }
 
-const EXTENSION_ID = 'product@vendor.com';
+  EventDispatcher.prototype = {
+    addListener: function(type, callback) {
+      if (!(type in this._listeners)) {
+        this._listeners[type] = [];
+      }
+      this._listeners[type].push(callback);
+    },
 
-function EventDispatcher() {
-  this._listeners = {};
-}
+    removeListener: function(type, callback) {
+      if (type in this._listeners) {
+        var index = this._listeners[type].indexOf(callback);
+        if (index != -1) {
+          this._listeners[type].splice(index, 1);
+        }
+      }
+    },
 
-EventDispatcher.prototype = {
-  addListener: function(type, callback) {
-    if (!(type in this._listeners)) {
-      this._listeners[type] = [];
-    }
-    this._listeners[type].push(callback);
-  },
-
-  removeListener: function(type, callback) {
-    if (type in this._listeners) {
-      var index = this._listeners[type].indexOf(callback);
-      if (index != -1) {
-        this._listeners[type].splice(index, 1);
+    notifyListeners: function(type, targetTab, params) {
+      if (type in this._listeners) {
+        for (var i=0; i<this._listeners[type].length; i++) {
+          this._listeners[type][i](targetTab, params);
+        }
       }
     }
-  },
+  };
 
-  notifyListeners: function(type, targetTab, params) {
-    if (type in this._listeners) {
-      for (var i=0; i<this._listeners[type].length; i++) {
-        this._listeners[type][i](targetTab, params);
+  var ExtensionState = {
+    id: EXTENSION_ID,
+    backgroundWindow: null,
+    eventDispatcher: new EventDispatcher(),
+    _unloaders: {},
+
+    registerUnloader: function(win, unloader) {
+      var windowId = Utils.getWindowId(win);
+      if (!(windowId in this._unloaders)) {
+        this._unloaders[windowId] = [];
       }
-    }
-  }
-};
+      var unloaders = this._unloaders[windowId];
+      unloaders.push(unloader);
+    },
 
-var ExtensionState = {
-  id: EXTENSION_ID,
-  backgroundWindow: null,
-  eventDispatcher: new EventDispatcher(),
-  _unloaders: {},
+    unloadWindow: function(win) {
+      var windowId = Utils.getWindowId(win);
+      if (windowId in this._unloaders) {
+        this._unloadWindowId(windowId);
+      }
+    },
 
-  registerUnloader: function(win, unloader) {
-    var windowId = Utils.getWindowId(win);
-    if (!(windowId in this._unloaders)) {
-      this._unloaders[windowId] = [];
-    }
-    var unloaders = this._unloaders[windowId];
-    unloaders.push(unloader);
-  },
+    unloadAll: function() {
+      for (var windowId in this._unloaders) {
+        this._unloadWindowId(windowId);
+      }
+    },
 
-  unloadWindow: function(win) {
-    var windowId = Utils.getWindowId(win);
-    if (windowId in this._unloaders) {
-      this._unloadWindowId(windowId);
+    _unloadWindowId: function(windowId) {
+      var unloaders = this._unloaders[windowId];
+      for (var i=0; i<unloaders.length; i++) {
+        unloaders[i]();
+      }
+      delete this._unloaders[windowId];
     }
-  },
+  };
 
-  unloadAll: function() {
-    for (var windowId in this._unloaders) {
-      this._unloadWindowId(windowId);
-    }
-  },
-
-  _unloadWindowId: function(windowId) {
-    var unloaders = this._unloaders[windowId];
-    for (var i=0; i<unloaders.length; i++) {
-      unloaders[i]();
-    }
-    delete this._unloaders[windowId];
-  }
-};
+  module.exports = ExtensionState;
+}).call(this);

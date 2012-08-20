@@ -1,4 +1,5 @@
 const { classes: Cc, interfaces: Ci, utils: Cu } = Components;
+
 Cu.import('resource://gre/modules/Services.jsm');
 Cu.import('resource://gre/modules/AddonManager.jsm');
 
@@ -12,7 +13,7 @@ var xulWindow = null;
 function createBackground() {
   backgroundWindow = Services.ww.openWindow(
     null, // parent
-    'chrome://trusted-ads/content/background.xul', // url
+    'chrome://{{SHORTNAME}}/content/background.xul', // url
     null, // window name
     null, // features
     null  // extra arguments
@@ -64,16 +65,21 @@ function setResourceSubstitution(addon) {
 
 function loadConfig(addon) {
   // Load the manifest
-  Cu.import('resource://trusted-ads/modules/Config.jsm');
-  Cu.import('resource://trusted-ads/modules/Utils.jsm');
+  Cu.import('resource://{{SHORTNAME}}/modules/Require.jsm');
+  var baseURI = Services.io.newURI('resource://{{SHORTNAME}}/modules/', '', null);
+  var require = Require.createRequireForWindow(this, baseURI);
+
+  var contentScripts = require('./config').contentScripts;
+  var readStringFromUrl = require('./utils').readStringFromUrl;
+
   if (addon.hasResource('manifest.json')) {
     var manifestUrl = addon.getResourceURI('manifest.json');
-    var manifest = Utils.readStringFromUrl(manifestUrl);
+    var manifest = readStringFromUrl(manifestUrl);
     var config = JSON.parse(manifest);
     // Set the module search path if any
     if ('module_search_path' in config) {
       for (var i=0; i<config.module_search_path.length; i++) {
-        Config.MODULE_SEARCH_PATH.push(Services.io.newURI(config.module_search_path[i], '', manifestUrl));
+        Require.moduleSearchPath.push(Services.io.newURI(config.module_search_path[i], '', manifestUrl));
       }
     }
     if ('content_scripts' in config) {
@@ -90,7 +96,7 @@ function loadConfig(addon) {
           // (Otherwise the module path would be used.)
           js.push('./' + scriptInfo.js[j]);
         }
-        Config.contentScripts.push({
+        contentScripts.push({
           matches: matches,
           js: js
         });
@@ -100,13 +106,13 @@ function loadConfig(addon) {
 }
 
 function unloadBackgroundScripts() {
-  Config.contentScripts = [];
+  require('./config').contentScripts = [];
 }
 
 // When the extension is activated:
 //
 function startup(data, reason) {
-  dump('\nproduct: starting up ...\n\n');
+  dump('\Aji: starting up ...\n\n');
 
   // TODO: Set addon ID using preprocessor.
   AddonManager.getAddonByID('product@vendor.com', function(addon) {
@@ -121,19 +127,11 @@ function startup(data, reason) {
 // When the extension is deactivated:
 //
 function shutdown(data, reason) {
-  dump('\ntrusted-ads: shutting down ...\n\n');
+  dump('\nAji: shutting down ...\n\n');
 
   releaseBackground();
   unloadBackgroundScripts();
 
   // Unload the modules so that we will load new versions if the add-on is installed again.
-  // (Very useful for debugging purposes.)
-  Cu.unload('resource://trusted-ads/modules/Config.jsm');
-  Cu.unload('resource://trusted-ads/modules/Utils.jsm');
-  Cu.unload('resource://trusted-ads/modules/State.jsm');
-  Cu.unload('resource://trusted-ads/modules/Scripting.jsm');
-  Cu.unload('resource://trusted-ads/modules/BrowserEvents.jsm');
-  Cu.unload('resource://trusted-ads/modules/API.jsm');
-  Cu.unload('resource://trusted-ads/modules/Toolbar.jsm');
-  Cu.unload('resource://trusted-ads/modules/LocalStorage.jsm');
+  Cu.unload('resource://{{SHORTNAME}}/modules/Require.jsm');
 }
