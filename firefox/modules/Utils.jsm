@@ -1,4 +1,4 @@
-EXPORTED_SYMBOLS = ["Utils"];
+EXPORTED_SYMBOLS = ['Utils'];
 
 const { classes: Cc, interfaces: Ci, utils: Cu } = Components;
 
@@ -42,11 +42,11 @@ Utils.readStringFromUrl = function(url) {
   var channelInputStream = channel.open();
 
   // Get an intl-aware nsIConverterInputStream for the file
-  var is = Cc["@mozilla.org/intl/converter-input-stream;1"].createInstance(Ci.nsIConverterInputStream);
-  is.init(channelInputStream, "UTF-8", 1024, Ci.nsIConverterInputStream.DEFAULT_REPLACEMENT_CHARACTER);
+  var is = Cc['@mozilla.org/intl/converter-input-stream;1'].createInstance(Ci.nsIConverterInputStream);
+  is.init(channelInputStream, 'UTF-8', 1024, Ci.nsIConverterInputStream.DEFAULT_REPLACEMENT_CHARACTER);
 
   // Read the file into string via buffer
-  var data = "";
+  var data = '';
   var buffer = {};
   while (is.readString(4096, buffer) != 0) {
     data += buffer.value;

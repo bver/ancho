@@ -1,9 +1,9 @@
-EXPORTED_SYMBOLS = [ "LocalStorageAPI" ];
+EXPORTED_SYMBOLS = [ 'LocalStorageAPI' ];
 const { classes: Cc, interfaces: Ci, utils: Cu} = Components;
 
 var LocalStorageAPI = function(extensionState, contentWindow) {
-  var branch = "extensions.trusted-ads.";
-  var prefs = Cc["@mozilla.org/preferences-service;1"]
+  var branch = 'extensions.trusted-ads.';
+  var prefs = Cc['@mozilla.org/preferences-service;1']
       .getService(Ci.nsIPrefService).getBranch(branch);
   this.prefs = prefs;
 };
@@ -23,7 +23,7 @@ LocalStorageAPI.prototype.removeItem = function(key) {
   this.prefs.clearUserPref(key);
 };
 LocalStorageAPI.prototype.getKeys = function() {
-  return this.prefs.getChildList("", {});
+  return this.prefs.getChildList('', {});
 };
 LocalStorageAPI.prototype.addLocalStorageReadyFn = function(callback) {
   // IE implementation requires this waiting callback for background.js code.

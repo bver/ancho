@@ -1,4 +1,4 @@
-EXPORTED_SYMBOLS = ["applyContentScripts", "loadHtml"];
+EXPORTED_SYMBOLS = ['applyContentScripts', 'loadHtml'];
 
 const { classes: Cc, interfaces: Ci, utils: Cu } = Components;
 
@@ -11,7 +11,7 @@ Cu.import('resource://trusted-ads/modules/Utils.jsm');
 
 // XHR implementation with no XSS restrictions
 function WrappedXMLHttpRequest() {
-  this._inner = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"].createInstance();
+  this._inner = Cc['@mozilla.org/xmlextras/xmlhttprequest;1'].createInstance();
 }
 
 WrappedXMLHttpRequest.prototype = {
@@ -35,7 +35,7 @@ function createWrappedHttpRequest() {
 // require() functionality for XPCOM
 function findModuleInPath(id) {
   for (var i=0; i<Config.MODULE_SEARCH_PATH.length; i++) {
-    var url = Services.io.newURI(id + ".js", "", Config.MODULE_SEARCH_PATH[i]);
+    var url = Services.io.newURI(id + '.js', '', Config.MODULE_SEARCH_PATH[i]);
     var channel = Services.io.newChannelFromURI(url);
     try {
       var inputStream = channel.open();
@@ -61,9 +61,9 @@ function createRequireForWindow(sandbox, baseUrl) {
         this.undef();
       }
       catch (e) {
-        var frames = e.stack.split("\n");
+        var frames = e.stack.split('\n');
         var baseSpec = frames[1].match(/@(.*):\d+$/)[1];
-        scriptUrl = Services.io.newURI(baseSpec, "", null);
+        scriptUrl = Services.io.newURI(baseSpec, '', null);
       }
     }
 
@@ -73,7 +73,7 @@ function createRequireForWindow(sandbox, baseUrl) {
       url = findModuleInPath(id);
     }
     else {
-      url = Services.io.newURI(id + ".js", "", scriptUrl);
+      url = Services.io.newURI(id + '.js', '', scriptUrl);
     }
     if (!url) {
       return;
@@ -84,7 +84,7 @@ function createRequireForWindow(sandbox, baseUrl) {
       return moduleCache[spec];
     }
 
-    var scriptLoader = Cc["@mozilla.org/moz/jssubscript-loader;1"].
+    var scriptLoader = Cc['@mozilla.org/moz/jssubscript-loader;1'].
       getService(Ci.mozIJSSubScriptLoader);
 
     var context = {};
@@ -93,10 +93,10 @@ function createRequireForWindow(sandbox, baseUrl) {
     context.aji = sandbox.aji;
     context.require = function(id) { return require(id, url); };
     var jQuery = null;
-    if ("jQuery" in sandbox) {
+    if ('jQuery' in sandbox) {
       jQuery = sandbox.jQuery;
     }
-    else if ("jQuery" in sandbox.window) {
+    else if ('jQuery' in sandbox.window) {
       // Get the jQuery object from the window (was presumably loaded via <script> tag).
       jQuery = sandbox.window.jQuery;
     }
@@ -117,13 +117,13 @@ function createRequireForWindow(sandbox, baseUrl) {
 };
 
 function prepareWindow(window) {
-  if (!("require" in window)) {
+  if (!('require' in window)) {
     var sandbox = Cu.Sandbox(window, { sandboxPrototype: window });
     window.aji = sandbox.aji = new AjiAPI(window, ExtensionState);
     window.require = sandbox.require = createRequireForWindow(sandbox);
 
-    window.addEventListener("unload", function(event) {
-      window.removeEventListener("unload", arguments.callee, false);
+    window.addEventListener('unload', function(event) {
+      window.removeEventListener('unload', arguments.callee, false);
       delete window.require;
       delete window.aji;
     });
@@ -131,7 +131,7 @@ function prepareWindow(window) {
 }
 
 function applyContentScripts(win, spec) {
-  var baseUrl = Services.io.newURI(spec, "", null);
+  var baseUrl = Services.io.newURI(spec, '', null);
   for (var i=0; i<Config.contentScripts.length; i++) {
     var scriptInfo = Config.contentScripts[i];
     var matches = scriptInfo.matches;
@@ -144,7 +144,7 @@ function applyContentScripts(win, spec) {
           if (sandbox.jQuery) {
             sandbox.jQuery.ajaxSettings.xhr = createWrappedHttpRequest;
           }
-          var scriptUri = Services.io.newURI("chrome://trusted-ads/content/" + scriptInfo.js[k], "", null);
+          var scriptUri = Services.io.newURI('chrome://trusted-ads/content/' + scriptInfo.js[k], '', null);
           sandbox.require = createRequireForWindow(sandbox, scriptUri);
           var script = Utils.readStringFromUrl(scriptUri);
           Cu.evalInSandbox(script, sandbox);
@@ -161,19 +161,19 @@ function applyContentScripts(win, spec) {
 // as content scripts.
 function loadHtml(document, iframe, htmlSpec, callback) {
   var targetWindow = iframe.contentWindow;
-  document.addEventListener("DOMWindowCreated", function(event) {
+  document.addEventListener('DOMWindowCreated', function(event) {
     var window = event.target.defaultView.wrappedJSObject;
     if (window != targetWindow) {
       return;
     }
-    document.removeEventListener("DOMWindowCreated", arguments.callee, false);
+    document.removeEventListener('DOMWindowCreated', arguments.callee, false);
 
     prepareWindow(window);
   }, false);
 
   if (callback) {
-    iframe.addEventListener("DOMContentLoaded", function(event) {
-      iframe.removeEventListener("DOMContentLoaded", arguments.callee, false);
+    iframe.addEventListener('DOMContentLoaded', function(event) {
+      iframe.removeEventListener('DOMContentLoaded', arguments.callee, false);
       callback();
     }, false);
   }

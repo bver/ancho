@@ -1,8 +1,8 @@
-EXPORTED_SYMBOLS = ["BrowserEvents"];
+EXPORTED_SYMBOLS = ['BrowserEvents'];
 
 const { classes: Cc, interfaces: Ci, utils: Cu} = Components;
 
-Cu.import("resource://trusted-ads/modules/Utils.jsm");
+Cu.import('resource://trusted-ads/modules/Utils.jsm');
 
 function BrowserEvents(tabbrowser, extensionState) {
   this.init = function(contentLoadedCallback) {
@@ -19,33 +19,33 @@ function BrowserEvents(tabbrowser, extensionState) {
     }
 
     function unload() {
-      tabbrowser.removeEventListener("DOMContentLoaded", onContentLoaded, false);
-      container.removeEventListener("TabOpen", onTabOpen, false);
-      container.removeEventListener("TabClose", onTabClose, false);
-      container.removeEventListener("TabSelect", onTabSelect, false);
+      tabbrowser.removeEventListener('DOMContentLoaded', onContentLoaded, false);
+      container.removeEventListener('TabOpen', onTabOpen, false);
+      container.removeEventListener('TabClose', onTabClose, false);
+      container.removeEventListener('TabSelect', onTabSelect, false);
     }
 
     function onTabOpen(event) {
-      extensionState.eventDispatcher.notifyListeners("tabCreated", null,
+      extensionState.eventDispatcher.notifyListeners('tabCreated', null,
         [ { id: Utils.getWindowId(tabbrowser.getBrowserForTab(event.target).contentWindow) } ]);
     }
 
     function onTabClose(event) {
-      extensionState.eventDispatcher.notifyListeners("tabRemoved", null,
+      extensionState.eventDispatcher.notifyListeners('tabRemoved', null,
         [ Utils.getWindowId(tabbrowser.getBrowserForTab(event.target).contentWindow), {} ]);
     }
 
     function onTabSelect(event) {
-      extensionState.eventDispatcher.notifyListeners("tabActivated", null,
+      extensionState.eventDispatcher.notifyListeners('tabActivated', null,
         [ { tabId: Utils.getWindowId(tabbrowser.selectedBrowser.contentWindow) } ]);
     }
 
-    tabbrowser.addEventListener("DOMContentLoaded", onContentLoaded, false);
+    tabbrowser.addEventListener('DOMContentLoaded', onContentLoaded, false);
 
     var container = tabbrowser.tabContainer;
-    container.addEventListener("TabOpen", onTabOpen, false);
-    container.addEventListener("TabClose", onTabClose, false);
-    container.addEventListener("TabSelect", onTabSelect, false);
+    container.addEventListener('TabOpen', onTabOpen, false);
+    container.addEventListener('TabClose', onTabClose, false);
+    container.addEventListener('TabSelect', onTabSelect, false);
 
     // Trigger the content loaded callback on any tabs that are already open.
     if (contentLoadedCallback) {

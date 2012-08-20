@@ -1,10 +1,10 @@
-EXPORTED_SYMBOLS = ["EventDispatcher", "ExtensionState"];
+EXPORTED_SYMBOLS = ['EventDispatcher', 'ExtensionState'];
 
 const { classes: Cc, interfaces: Ci, utils: Cu } = Components;
 
-Cu.import("resource://trusted-ads/modules/Utils.jsm");
+Cu.import('resource://trusted-ads/modules/Utils.jsm');
 
-const EXTENSION_ID = "product@vendor.com";
+const EXTENSION_ID = 'product@vendor.com';
 
 function EventDispatcher() {
   this._listeners = {};

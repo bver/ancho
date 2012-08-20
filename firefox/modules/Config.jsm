@@ -1,4 +1,4 @@
-EXPORTED_SYMBOLS = ["Config"];
+EXPORTED_SYMBOLS = ['Config'];
 
 // When I tried to declare the Config properties inside the curly braces, Firefox told me:
 // *** Compartment mismatch 0x119390000 vs. 0x1178db000
