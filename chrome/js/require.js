@@ -1,6 +1,3 @@
-// (c) 2012 Salsita s.r.o.
-// Dual-licensed under MIT license and GPL v2.
-
 // Implementation of CommonJS require() for browser environments where synchronous
 // loading is approach (e.g. browser extension).
 

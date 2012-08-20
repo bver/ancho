@@ -144,17 +144,13 @@
     }
   }
 
-  salsita = {
+  aji = {
     extension: {
 
-      // salsita wrapper for
-      // chrome.extension.sendRequest(string extensionId, any request, function responseCallback)
       sendRequest: function () {
         HelperFunctions._invokeApi('extension.sendRequest', arguments);
       },
 
-      // salsita wrapper for
-      // chrome.extension.onRequest.addListener(function(any request, MessageSender sender, function sendResponse) {...});
       onRequest: {
         addListener: function () {
           HelperFunctions._invokeApi('extension.onRequest.addListener', arguments, true);
@@ -165,22 +161,16 @@
         }
       },
 
-      // salsita wrapper for
-      // chrome.extension.connect(string extensionId, object connectInfo)
       connect: function () {
         HelperFunctions._invokeApi('extension.connect', arguments);
       },
 
-      // salsita wrapper for
-      // chrome.extension.onConnect.addListener(function(Port port) {...});
       onConnect: {
         addListener: function () {
           HelperFunctions._invokeApi('extension.onConnect.addListener', arguments, true);
         }
       },
 
-      // salsita wrapper for
-      // string chrome.extension.getURL(string path)
       getURL: function (path) {
         if (!('extension' in chrome)) {
           // We're sandboxed so simulate this call.
@@ -213,40 +203,28 @@
         HelperFunctions._invokeBackgroundApi('tabs.getSelected', arguments);
       },
 
-      // salsita wrapper for
-      // chrome.tabs.create(object createProperties, function callback)
       create: function () {
         HelperFunctions._invokeBackgroundApi('tabs.create', arguments);
       },
 
-      // salsita wrapper for
-      // chrome.tabs.update(integer tabId, object updateProperties, function callback)
       update: function () {
         HelperFunctions._invokeBackgroundApi('tabs.update', arguments);
       },
 
-      // salsita wrapper for
-      // chrome.tabs.sendRequest(integer tabId, any request, function responseCallback)
       sendRequest: function () {
         HelperFunctions._invokeBackgroundApi('tabs.sendRequest', arguments);
       },
 
-      // salsita wrapper for
-      // chrome.tabs.executeScript(integer tabId, object executeScriptProperties, function responseCallback)
       executeScript: function () {
         HelperFunctions._invokeBackgroundApi('tabs.executeScript', arguments);
       },
 
-      // salsita wrapper for
-      // chrome.tabs.onRemoved.addListener(function(integer tabId, object removeInfo) {...});
       onActivated: {
         addListener: function () {
           HelperFunctions._invokeBackgroundApi('tabs.onActivated.addListener', arguments, true);
         }
       },
 
-      // salsita wrapper for
-      // chrome.tabs.onRemoved.addListener(function(integer tabId, object removeInfo) {...});
       onRemoved: {
         addListener: function () {
           HelperFunctions._invokeBackgroundApi('tabs.onRemoved.addListener', arguments);
@@ -277,7 +255,7 @@
         var self = this;
         if (createData.borderless) {
           // Tell the background window about the new popup and get the next free ID.
-          salsita.extension.sendRequest({ type: 'RegisterPopup' }, function(borderlessId) {
+          aji.extension.sendRequest({ type: 'RegisterPopup' }, function(borderlessId) {
             // Can't create borderless window using the chrome.windows.create API, so
             // we simulate using a floating div containing an iframe.
             var div = document.createElement('div');
@@ -330,8 +308,8 @@
                   div.style.top = self._screenToViewportY(updateInfo.top) + 'px';
                 }
                 // See comment in onUpdated. This belongs in the background window.
-                for (var i=0; i<salsita.windows.onUpdated._listeners.length; i++) {
-                  listener = salsita.windows.onUpdated._listeners[i];
+                for (var i=0; i<aji.windows.onUpdated._listeners.length; i++) {
+                  listener = aji.windows.onUpdated._listeners[i];
                   listener(winId, updateInfo);
                 }
               }
@@ -344,7 +322,7 @@
               document.body.removeEventListener('click', arguments.callee, false);
               // Tell the background window to unregister the popup.
               // This will cause it to be closed.
-              salsita.extension.sendRequest({ type: 'UnregisterPopup', id: div.id });
+              aji.extension.sendRequest({ type: 'UnregisterPopup', id: div.id });
             }, false);
 
             // Remember the popup so we can unregister it when we unload.
@@ -361,9 +339,9 @@
       },
 
       remove: function(id) {
-        salsita.extension.sendRequest({ type: 'IsPopup', id: id}, function(isPopup) {
+        aji.extension.sendRequest({ type: 'IsPopup', id: id}, function(isPopup) {
           if (isPopup) {
-            salsita.extension.sendRequest({ type: 'UnregisterPopup', id: id });
+            aji.extension.sendRequest({ type: 'UnregisterPopup', id: id });
           }
           else {
             HelperFunctions._invokeBackgroundApi('window.remove', arguments);
@@ -372,7 +350,7 @@
       },
 
       update: function(winId, updateInfo, callback) {
-        salsita.extension.sendRequest({ type: 'IsPopup', id: winId }, function(isPopup) {
+        aji.extension.sendRequest({ type: 'IsPopup', id: winId }, function(isPopup) {
           if (isPopup) {
             // TODO: Implement winId parameter.
             // Right now it only works for the current window.
@@ -406,12 +384,12 @@
         // We maintain our own list of listeners since Chrome doesn't support this event
         // currently.
         // Note that this will only alert the window that makes the windows.update() call
-        // since we are maintaining a separate list of listeners for each instance of the salsita
+        // since we are maintaining a separate list of listeners for each instance of the aji
         // object (i.e. each window).
         // The right solution is to have the background dispatcher maintain the list of listeners
         // and notify them when appropriate. This isn't entirely trivial since you can't pass
         // functions (like listeners) in requests between windows. I imagine we can fix this by
-        // having each salsita object register with the background and receive a request whenever
+        // having each aji object register with the background and receive a request whenever
         // there is a message it might be interested in.
         _listeners: [],
 
@@ -502,28 +480,28 @@
 
     toolbar: {
       show: function(options) {
-        salsita.browserAction.setPopup({ popup: 'html/chrome_wrapper.html#' + options.html });
+        aji.browserAction.setPopup({ popup: 'html/chrome_wrapper.html#' + options.html });
 
         if (options.icon) {
-          salsita.browserAction.setIcon({ path: options.icon });
+          aji.browserAction.setIcon({ path: options.icon });
         }
 
-        salsita.browserAction.setBadgeText({ text: '' });
+        aji.browserAction.setBadgeText({ text: '' });
 
         if (options.title) {
-          salsita.browserAction.setTitle({ title: options.title });
+          aji.browserAction.setTitle({ title: options.title });
         }
       },
 
       hide: function() {
-        salsita.browserAction.setPopup({ popup: '' });
+        aji.browserAction.setPopup({ popup: '' });
 
         var iconPath = '../images/action_none.png';
-        salsita.browserAction.setIcon({ path: iconPath });
+        aji.browserAction.setIcon({ path: iconPath });
 
-        salsita.browserAction.setBadgeText({ text: '' });
+        aji.browserAction.setBadgeText({ text: '' });
 
-        salsita.browserAction.setTitle({ title: ' ' }); // workaround for bug #31811409
+        aji.browserAction.setTitle({ title: ' ' }); // workaround for bug #31811409
       }
     },
 
@@ -543,13 +521,13 @@
   };
 
   if (typeof(exports) !== 'undefined') {
-    exports.salsita = salsita;
+    exports.aji = aji;
   }
   else if (typeof(window) != 'undefined') {
-    window.salsita = salsita;
+    window.aji = aji;
   }
 
-  salsita.extension.onRequest.addListener(function(request, sender) {
+  aji.extension.onRequest.addListener(function(request, sender) {
     if (('type' in request) && (request.type === 'ClosePopup')) {
       var element = document.getElementById(request.id);
       var index = popups.indexOf(element);
@@ -559,8 +537,8 @@
       if (element) {
         document.body.removeChild(element);
         // Alert listeners that the window has been removed.
-        for (var i=0; i<salsita.windows.onRemoved._listeners.length; i++) {
-          listener = salsita.windows.onRemoved._listeners[i];
+        for (var i=0; i<aji.windows.onRemoved._listeners.length; i++) {
+          listener = aji.windows.onRemoved._listeners[i];
           listener(request.id);
         }
       }
@@ -571,7 +549,7 @@
     // Unregister all the popups so the background window can free the associated
     // metadata.
     for (var index=0; index<popups.length; index++) {
-      salsita.extension.sendRequest({ type: 'UnregisterPopup', id: popups[index].id });
+      aji.extension.sendRequest({ type: 'UnregisterPopup', id: popups[index].id });
     }
 
     popups = null;

@@ -90,7 +90,7 @@ function createRequireForWindow(sandbox, baseUrl) {
     var context = {};
     context.window = sandbox.window;
     context.document = sandbox.window.document;
-    context.salsita = sandbox.salsita;
+    context.aji = sandbox.aji;
     context.require = function(id) { return require(id, url); };
     var jQuery = null;
     if ("jQuery" in sandbox) {
@@ -119,13 +119,13 @@ function createRequireForWindow(sandbox, baseUrl) {
 function prepareWindow(window) {
   if (!("require" in window)) {
     var sandbox = Cu.Sandbox(window, { sandboxPrototype: window });
-    window.salsita = sandbox.salsita = new SalsitaAPI(window, ExtensionState);
+    window.aji = sandbox.aji = new AjiAPI(window, ExtensionState);
     window.require = sandbox.require = createRequireForWindow(sandbox);
 
     window.addEventListener("unload", function(event) {
       window.removeEventListener("unload", arguments.callee, false);
       delete window.require;
-      delete window.salsita;
+      delete window.aji;
     });
   }
 }
@@ -137,7 +137,7 @@ function applyContentScripts(win, spec) {
     var matches = scriptInfo.matches;
     var principal = ExtensionState.backgroundWindow;
     var sandbox = Cu.Sandbox(principal, { sandboxPrototype: win });
-    sandbox.salsita = new SalsitaAPI(win, ExtensionState);
+    sandbox.aji = new AjiAPI(win, ExtensionState);
     for (var j=0; j<matches.length; j++) {
       if (spec.match(matches[j])) {
         for (var k=0; k<scriptInfo.js.length; k++) {
@@ -156,7 +156,7 @@ function applyContentScripts(win, spec) {
 }
 
 // When we load a privileged HTML page we want all scripts to load as content
-// scripts so that they have access to the require function and salsita.* APIs.
+// scripts so that they have access to the require function and aji.* APIs.
 // So we strip the <script> tags out of the document and load them separately
 // as content scripts.
 function loadHtml(document, iframe, htmlSpec, callback) {

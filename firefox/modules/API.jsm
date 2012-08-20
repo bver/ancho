@@ -1,4 +1,4 @@
-EXPORTED_SYMBOLS = ["SalsitaAPI"];
+EXPORTED_SYMBOLS = ["AjiAPI"];
 
 const { classes: Cc, interfaces: Ci, utils: Cu} = Components;
 
@@ -19,7 +19,7 @@ function getSender(extensionId, tabId) {
 // Event that keeps track of the target tab.
 // Most events are dispatched to all tabs, but this gives us the
 // option of dispatching them only to a specific tab
-// (e.g. salsita.tabs.sendRequest).
+// (e.g. aji.tabs.sendRequest).
 function Event(window, tabId, state, type) {
   var listeners = [];
 
@@ -353,7 +353,7 @@ ConsoleAPI.prototype = {
 };
 
 
-function SalsitaAPI(contentWindow, extensionState) {
+function AjiAPI(contentWindow, extensionState) {
   this.extension = new ExtensionAPI(extensionState, contentWindow);
   this.tabs = new TabsAPI(extensionState, contentWindow);
   this.windows = new WindowsAPI(extensionState, contentWindow);
