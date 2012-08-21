@@ -1,6 +1,6 @@
 EXPORTED_SYMBOLS = ['Require'];
 
-const { classes: Cc, interfaces: Ci, utils: Cu} = Components;
+const { classes: Cc, interfaces: Ci, utils: Cu } = Components;
 
 // XHR implementation with no XSS restrictions
 WrappedXMLHttpRequest() {
@@ -52,7 +52,8 @@ var Require = {
       if (!scriptUrl) {
         // No base URL available so we need to get it from the stacktrace.
         try {
-          this.undef();
+          // To get a stacktrace we have to thrown an exception.
+          throw new Error();
         }
         catch (e) {
           var frames = e.stack.split('\n');
@@ -70,6 +71,7 @@ var Require = {
         url = Services.io.newURI(id + '.js', '', scriptUrl);
       }
       if (!url) {
+        // TODO: Logging.
         return;
       }
 

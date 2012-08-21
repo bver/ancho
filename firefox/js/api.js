@@ -6,7 +6,7 @@
   Cu.import('resource://gre/modules/Services.jsm');
   
   var Utils = require('./utils');
-  var Scripting = require('./scripting);
+  var Scripting = require('./scripting');
   var LocalStorageAPI = require('./localStorageAPI');
   var Toolbar = require('./toolbar');
   var ExtensionState = require('./state');
