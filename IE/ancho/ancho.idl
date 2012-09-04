@@ -1,0 +1,38 @@
+// ancho.idl : IDL source for ancho
+//
+
+// This file will be processed by the MIDL tool to
+// produce the type library (ancho.tlb) and marshalling code.
+
+import "oaidl.idl";
+import "ocidl.idl";
+
+[
+	object,
+	uuid(06550FFB-49D7-4428-A5FF-2CC688A8001F),
+	oleautomation,
+	nonextensible,
+	helpstring("IAnchoAddon Interface"),
+	pointer_default(unique)
+]
+interface IAnchoAddon : IUnknown
+{
+};
+
+[
+	uuid(DBBBF00D-3AB6-45BA-BE51-B5D8EFECD127),
+	version(1.0),
+	helpstring("ancho 1.0 Type Library")
+]
+library anchoLib
+{
+	importlib("stdole2.tlb");
+	[
+		uuid(BC66BD3D-2AB6-4672-8EF3-DB2BD089CD60),
+		helpstring("AnchoAddon Class")
+	]
+	coclass AnchoAddon
+	{
+		[default] interface IAnchoAddon;
+	};
+};

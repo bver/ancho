@@ -1,0 +1,52 @@
+HKCR
+{
+	ancho.AnchoAddon.1 = s 'AnchoAddon Class'
+	{
+		CLSID = s '{BC66BD3D-2AB6-4672-8EF3-DB2BD089CD60}'
+	}
+	ancho.AnchoAddon = s 'AnchoAddon Class'
+	{
+		CLSID = s '{BC66BD3D-2AB6-4672-8EF3-DB2BD089CD60}'
+		CurVer = s 'ancho.AnchoAddon.1'
+	}
+	NoRemove CLSID
+	{
+		ForceRemove {BC66BD3D-2AB6-4672-8EF3-DB2BD089CD60} = s 'AnchoAddon Class'
+		{
+			ProgID = s 'ancho.AnchoAddon.1'
+			VersionIndependentProgID = s 'ancho.AnchoAddon'
+			InprocServer32 = s '%MODULE%'
+			{
+				val ThreadingModel = s 'Apartment'
+			}
+			'TypeLib' = s '{DBBBF00D-3AB6-45BA-BE51-B5D8EFECD127}'
+		}
+	}
+}
+
+HKLM
+{
+  NoRemove SOFTWARE
+  {
+    NoRemove Microsoft
+    {
+      NoRemove Windows
+      {
+        NoRemove CurrentVersion
+        {
+          NoRemove Explorer
+          {
+            NoRemove 'Browser Helper Objects'
+            {
+              ForceRemove '{BC66BD3D-2AB6-4672-8EF3-DB2BD089CD60}' = s 'Ancho Addon'
+              {
+                val 'NoExplorer' = d '1'
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
