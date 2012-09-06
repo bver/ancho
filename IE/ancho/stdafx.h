@@ -20,9 +20,13 @@
 #include <atlstr.h>
 #include <atlcom.h>
 #include <atlctl.h>
+#include <atlcoll.h>
 
 #include <shlguid.h>
 #include <exdispid.h>
+#include <activscp.h>
+
+#include <anchocommons.h>
 
 using namespace ATL;
 
@@ -42,6 +46,10 @@ using namespace MagpieLib;
 # import "..\Release\AnchoBgSrv.exe" named_guids no_smart_pointers raw_interfaces_only raw_native_types no_auto_exclude
 #endif
 using namespace AnchoBgSrvLib;
+
+// helper
+#include "libbhohelper.h"
+using namespace LIB_BhoHelper;
 
 #define _DEBUG_BREAK
 #ifdef _DEBUG_BREAK

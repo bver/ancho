@@ -1,117 +1,112 @@
-// AnchoAddon.cpp : Implementation of CAnchoAddon
+/****************************************************************************
+ * AnchoAddon.cpp : Implementation of CAnchoAddon
+ * Copyright 2012 Salsita software (http://www.salsitasoft.com).
+ * Author: Arne Seib <kontakt@seiberspace.de>
+ ****************************************************************************/
 
 #include "stdafx.h"
 #include "AnchoAddon.h"
 #include "dllmain.h"
 
-
-// CAnchoAddon
 extern class CanchoModule _AtlModule;
 
-// TODO: this has to go into the registry somehow
-LPCWSTR CAnchoAddon::s_ExtensionName = L"ancho-test.seiberspace.de";
+/*============================================================================
+ * class CAnchoAddon
+ */
 
-STDMETHODIMP CAnchoAddon::SetSite(IUnknown *pUnkSite)
+//----------------------------------------------------------------------------
+//  Init
+STDMETHODIMP CAnchoAddon::Init(LPCOLESTR lpsExtensionID, IAnchoAddonService * pService, IWebBrowser2 * pWebBrowser)
 {
-  HRESULT hr = IObjectWithSiteImpl<CAnchoAddon>::SetSite(pUnkSite);
-  IF_FAILED_RET(hr);
-  if (pUnkSite)
+  m_pWebBrowser = pWebBrowser;
+  m_pAnchoService = pService;
+  m_sExtensionName = lpsExtensionID;
+
+  // lookup ID in registry
+  CRegKey regKey;
+  CString sKey;
+  sKey.Format(_T("%s\\%s"), s_AnchoExtensionsRegistryKey, m_sExtensionName);
+  LONG res = regKey.Open(HKEY_CURRENT_USER, sKey, KEY_READ);
+  if (ERROR_SUCCESS != res)
   {
-    hr = InitAddon();
+    return HRESULT_FROM_WIN32(res);
   }
-  else
+
+  // get addon GUID
+  ULONG nChars = 37;  // length of a GUID + terminator
+  res = regKey.QueryStringValue(s_AnchoExtensionsRegistryEntryGUID, m_sExtensionID.GetBuffer(nChars), &nChars);
+  m_sExtensionID.ReleaseBuffer();
+  if (ERROR_SUCCESS != res)
   {
-    DestroyAddon();
+    return HRESULT_FROM_WIN32(res);
   }
-	return hr;
+
+  // get addon path
+  nChars = _MAX_PATH;
+  LPTSTR pst = m_sExtensionPath.GetBuffer(nChars+1);
+  res = regKey.QueryStringValue(s_AnchoExtensionsRegistryEntryPath, pst, &nChars);
+  pst[nChars] = 0;
+  PathAddBackslash(pst);
+  m_sExtensionPath.ReleaseBuffer();
+  if (ERROR_SUCCESS != res)
+  {
+    return HRESULT_FROM_WIN32(res);
+  }
+  if (!PathIsDirectory(m_sExtensionPath))
+  {
+    return HRESULT_FROM_WIN32(ERROR_INVALID_DATA);
+  }
+
+  // advise DWebBrowserEvents2
+  ATLASSERT(!m_dwAdviseSinkWebBrowser);
+  AtlAdvise(m_pWebBrowser, (IUnknown*)(DWebBrowserEvents2Ancho*)this, DIID_DWebBrowserEvents2, &m_dwAdviseSinkWebBrowser);
+
+  // get addon instance
+  IF_FAILED_RET(m_pAnchoService->GetExtension(CComBSTR(m_sExtensionName), &m_pAddonBackground));
+
+  // The addon can be a resource DLL or simply a folder in the filesystem.
+  // TODO: Load the DLL if there is any.
+
+  // create content script engine
+#ifdef MAGPIE_REGISTERED
+  IF_FAILED_RET(m_Magpie.CoCreateInstance(CLSID_MagpieApplication));
+#else
+  CComBSTR bs;
+  IF_FAILED_RET(m_pAnchoService->GetModulePath(&bs));
+
+  // Load magpie from the same path where this exe file is.
+  CString s(bs);
+  s += _T("Magpie.dll");
+  HMODULE hModMagpie = ::LoadLibrary(s);
+  if (!hModMagpie)
+  {
+    return E_FAIL;
+  }
+  fnCreateMagpieInstance CreateMagpieInstance = (fnCreateMagpieInstance)::GetProcAddress(hModMagpie, "CreateMagpieInstance");
+  if (!CreateMagpieInstance)
+  {
+    return E_FAIL;
+  }
+  IF_FAILED_RET(CreateMagpieInstance(&m_Magpie));
+#endif
+
+  // get console
+  m_pBackgroundConsole = m_pAddonBackground;
+  ATLASSERT(m_pBackgroundConsole);
+
+  // tell background we are there and get instance id
+  IF_FAILED_RET(m_pAddonBackground->AdviseInstance(&m_InstanceID));
+
+  // get content our API
+  IF_FAILED_RET(m_pAddonBackground->GetContentAPI(m_InstanceID, &m_pContentAPI));
+  return S_OK;
 }
 
-HRESULT CAnchoAddon::InitAddon()
+//----------------------------------------------------------------------------
+//  Shutdown
+STDMETHODIMP CAnchoAddon::Shutdown()
 {
-  HRESULT hrRet = E_FAIL;
-  do
-  {
-    ATLASSERT(m_spUnkSite);
-    // get IServiceProvider to get IWebBrowser2 and IOleWindow
-    CComQIPtr<IServiceProvider> pServiceProvider = m_spUnkSite;
-    if (!pServiceProvider)
-    {
-      return E_FAIL;
-    }
-
-    // get IWebBrowser2
-    pServiceProvider->QueryService(SID_SWebBrowserApp, IID_IWebBrowser2, (LPVOID*)&m_pWebBrowser.p);
-    if (!m_pWebBrowser)
-    {
-      return E_FAIL;
-    }
-
-    // advise DWebBrowserEvents2
-    ATLASSERT(!m_dwAdviseSinkWebBrowser);
-    AtlAdvise(m_pWebBrowser, (IUnknown*)(DWebBrowserEvents2Ancho*)this, DIID_DWebBrowserEvents2, &m_dwAdviseSinkWebBrowser);
-
-    // create scripting service object
-    IF_FAILED_BREAK(m_pAnchoService.CoCreateInstance(CLSID_AnchoAddonService), hrRet);
-
-    // get addon instance
-    IF_FAILED_BREAK(m_pAnchoService->GetExtension(CComBSTR(s_ExtensionName), &m_pAddonBackground), hrRet);
-
-    // The addon can be a resource DLL or simply a folder in the filesystem.
-    // TODO: Load the DLL if there is any.
-
-    // create content script engine
-  #ifdef MAGPIE_REGISTERED
-    IF_FAILED_BREAK(m_Magpie.CoCreateInstance(CLSID_MagpieApplication), hrRet);
-  #else
-    CComBSTR bs;
-    IF_FAILED_BREAK(m_pAnchoService->GetModulePath(&bs), hrRet);
-
-    // Load magpie from the same path where this exe file is.
-    CString s(bs);
-    s += _T("Magpie.dll");
-    HMODULE hModMagpie = ::LoadLibrary(s);
-    if (!hModMagpie)
-    {
-      return E_FAIL;
-    }
-    fnCreateMagpieInstance CreateMagpieInstance = (fnCreateMagpieInstance)::GetProcAddress(hModMagpie, "CreateMagpieInstance");
-    if (!CreateMagpieInstance)
-    {
-      return E_FAIL;
-    }
-    IF_FAILED_BREAK(CreateMagpieInstance(&m_Magpie), hrRet);
-  #endif
-    // TODO: handle resource DLLs
-  /*
-    // add a loader for scripts in the extension filesystem
-    IF_FAILED_BREAK(m_Magpie->AddFilesystemScriptLoader((LPWSTR)(LPCWSTR)sPath), hrRet);
-
-    // add a loder for scripts in this exe file
-    IF_FAILED_BREAK(m_Magpie->AddResourceScriptLoader((ULONG)_AtlModule.GetResourceHandle()), hrRet);
-
-    // advise logger
-    IF_FAILED_BREAK(AtlAdvise(m_Magpie, dynamic_cast<IUnknown*>(dynamic_cast<CAnchoAddonBackgroundLogger*>(this)), DIID__IMagpieLoggerEvents, &m_dwMagpieSinkCookie), hrRet);
-  */
-
-    // get console
-    m_pBackgroundConsole = m_pAddonBackground;
-    ATLASSERT(m_pBackgroundConsole);
-
-    // get content API
-    IF_FAILED_BREAK(m_pAddonBackground->AdviseInstance(&m_InstanceID), hrRet);
-    IF_FAILED_BREAK(m_pAddonBackground->GetContentAPI(m_InstanceID, &m_pContentAPI), hrRet);
-
-    hrRet = S_OK;
-  } while(0);
-  if (FAILED(hrRet))
-  {
-    DestroyAddon();
-  }
-  return hrRet;
-}
-
-void CAnchoAddon::DestroyAddon()
-{
+  // this method must be safe to be called multiple times
   m_pContentAPI.Release();
   m_pBackgroundConsole.Release();
   m_Magpie.Release();
@@ -133,32 +128,60 @@ void CAnchoAddon::DestroyAddon()
     }
     m_pWebBrowser.Release();
   }
+  return S_OK;
 }
 
-
+//----------------------------------------------------------------------------
+//  BrowserNavigateCompleteEvent
 STDMETHODIMP_(void) CAnchoAddon::BrowserNavigateCompleteEvent(IDispatch *pDisp, VARIANT *URL)
 {
   // content script handling happens here
-  // 
-  // if URL matches:
-  // get the content API
-  // inject content API
-  // load content scripts
-  // inject window object into magpie
-/*
-  if (!m_pMyObject)
-    return;
-  // get content API
-  CComPtr<IDispatch> pContentAPI;
-  HRESULT hr = m_pMyObject->GetContentAPI(&pContentAPI);
-  if (FAILED(hr))
-    return;
 
-  CIDispatchHelper script = CIDispatchHelper::GetScriptDispatch(m_pWebBrowser);
-  if (!script)
+  // no frame handling
+  // TODO: decide how to handle frames
+  if (!m_pWebBrowser.IsEqualObject(pDisp))
+  {
+    // pDisp is the webbrowser control of a frame
     return;
-  hr = script.SetProperty(L"ancho", CComVariant(pContentAPI));
-*/
-  int asd = 0;
+  }
+
+  if (!m_pContentAPI)
+  {
+    return;
+  }
+
+  // TODO: URL matching
+  // (re)initialize magpie for this page
+  m_Magpie->Shutdown();
+  HRESULT hr = m_Magpie->Init();
+  if (FAILED(hr))
+  {
+    return;
+  }
+
+  // add a loader for scripts in the extension filesystem
+  hr = m_Magpie->AddFilesystemScriptLoader((LPWSTR)(LPCWSTR)m_sExtensionPath);
+  if (FAILED(hr))
+  {
+    return;
+  }
+
+  // inject items: chrome, console and window with global members
+//  CComQIPtr<IDispatch> pDispConsole;
+  CComQIPtr<IWebBrowser2> pWebBrowser(pDisp);
+  CIDispatchHelper script = CIDispatchHelper::GetScriptDispatch(pWebBrowser);
+  if (!script)
+  {
+    return;
+  }
+
+  m_Magpie->AddNamedItem(L"chrome", m_pContentAPI, SCRIPTITEM_ISVISIBLE|SCRIPTITEM_CODEONLY);
+  //m_Magpie->AddNamedItem(L"console", pDispConsole, SCRIPTITEM_ISVISIBLE|SCRIPTITEM_CODEONLY);
+  m_Magpie->AddNamedItem(L"window", script.p, SCRIPTITEM_ISVISIBLE|SCRIPTITEM_GLOBALMEMBERS);
+
+  // TODO: get the name(s) of content scripts from manifest and run them in order
+  //       for now we run a hardcoded script "content.js"
+  // and run content script
+  m_Magpie->Run(L"content.js");
 }
 

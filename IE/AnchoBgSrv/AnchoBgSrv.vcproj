@@ -54,7 +54,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)Magpie\include&quot;;&quot;$(SolutionDir)libbhohelper\libbhohelper&quot;;&quot;$(SolutionDir)libprothandlers\include&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)Magpie\include&quot;;&quot;$(SolutionDir)libbhohelper\libbhohelper&quot;;&quot;$(SolutionDir)libprothandlers\include&quot;;&quot;$(SolutionDir)anchocommons&quot;"
 				PreprocessorDefinitions="WIN32;_WINDOWS;_DEBUG"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -78,9 +78,9 @@
 			<Tool
 				Name="VCLinkerTool"
 				IgnoreImportLibrary="true"
-				AdditionalDependencies="libbhohelper.lib libprothandlers.lib Wininet.lib"
+				AdditionalDependencies="libbhohelper.lib libprothandlers.lib Wininet.lib anchocommons.lib"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="&quot;$(SolutionDir)libbhohelper\$(ConfigurationName)&quot;;&quot;$(SolutionDir)libprothandlers\$(ConfigurationName)&quot;"
+				AdditionalLibraryDirectories="&quot;$(SolutionDir)libbhohelper\$(ConfigurationName)&quot;;&quot;$(SolutionDir)libprothandlers\$(ConfigurationName)&quot;;&quot;$(SolutionDir)anchocommons\$(ConfigurationName)&quot;"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				TargetMachine="1"
@@ -147,7 +147,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="2"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)Magpie\include&quot;;&quot;$(SolutionDir)libbhohelper\libbhohelper&quot;;&quot;$(SolutionDir)libprothandlers\include&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)Magpie\include&quot;;&quot;$(SolutionDir)libbhohelper\libbhohelper&quot;;&quot;$(SolutionDir)libprothandlers\include&quot;;&quot;$(SolutionDir)anchocommons&quot;"
 				PreprocessorDefinitions="WIN32;_WINDOWS;NDEBUG"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="2"
@@ -169,9 +169,9 @@
 			<Tool
 				Name="VCLinkerTool"
 				IgnoreImportLibrary="true"
-				AdditionalDependencies="libbhohelper.lib libprothandlers.lib Wininet.lib"
+				AdditionalDependencies="libbhohelper.lib libprothandlers.lib Wininet.lib anchocommons.lib"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="&quot;$(SolutionDir)libbhohelper\$(ConfigurationName)&quot;;&quot;$(SolutionDir)libprothandlers\$(ConfigurationName)&quot;"
+				AdditionalLibraryDirectories="&quot;$(SolutionDir)libbhohelper\$(ConfigurationName)&quot;;&quot;$(SolutionDir)libprothandlers\$(ConfigurationName)&quot;;&quot;$(SolutionDir)anchocommons\$(ConfigurationName)&quot;"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				OptimizeReferences="2"
@@ -252,10 +252,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\staticstrings.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\stdafx.cpp"
 				>
 				<FileConfiguration
@@ -315,10 +311,6 @@
 			</File>
 			<File
 				RelativePath=".\Resource.h"
-				>
-			</File>
-			<File
-				RelativePath=".\staticstrings.h"
 				>
 			</File>
 			<File

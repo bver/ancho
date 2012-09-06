@@ -42,6 +42,7 @@
 			<Tool
 				Name="VCMIDLTool"
 				PreprocessorDefinitions="_DEBUG"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)AnchoBgSrv\$(ConfigurationName)&quot;"
 				MkTypLibCompatible="false"
 				TargetEnvironment="1"
 				GenerateStublessProxies="true"
@@ -55,7 +56,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)Magpie\include&quot;;&quot;$(SolutionDir)libbhohelper\libbhohelper&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)Magpie\include&quot;;&quot;$(SolutionDir)libbhohelper\libbhohelper&quot;;&quot;$(SolutionDir)anchocommons&quot;"
 				PreprocessorDefinitions="WIN32;_WINDOWS;_DEBUG;_USRDLL"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -80,9 +81,9 @@
 				Name="VCLinkerTool"
 				RegisterOutput="true"
 				IgnoreImportLibrary="true"
-				AdditionalDependencies="libbhohelper.lib"
+				AdditionalDependencies="libbhohelper.lib anchocommons.lib"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="$(SolutionDir)libbhohelper\$(ConfigurationName)"
+				AdditionalLibraryDirectories="&quot;$(SolutionDir)libbhohelper\$(ConfigurationName)&quot;;&quot;$(SolutionDir)anchocommons\$(ConfigurationName)&quot;"
 				ModuleDefinitionFile=".\ancho.def"
 				GenerateDebugInformation="true"
 				SubSystem="2"
@@ -136,6 +137,7 @@
 			<Tool
 				Name="VCMIDLTool"
 				PreprocessorDefinitions="NDEBUG"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)AnchoBgSrv\$(ConfigurationName)&quot;"
 				MkTypLibCompatible="false"
 				TargetEnvironment="1"
 				GenerateStublessProxies="true"
@@ -149,7 +151,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="2"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)Magpie\include&quot;;&quot;$(SolutionDir)libbhohelper\libbhohelper&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)Magpie\include&quot;;&quot;$(SolutionDir)libbhohelper\libbhohelper&quot;;&quot;$(SolutionDir)anchocommons&quot;"
 				PreprocessorDefinitions="WIN32;_WINDOWS;NDEBUG;_USRDLL"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="2"
@@ -172,9 +174,9 @@
 				Name="VCLinkerTool"
 				RegisterOutput="true"
 				IgnoreImportLibrary="true"
-				AdditionalDependencies="libbhohelper.lib"
+				AdditionalDependencies="libbhohelper.lib anchocommons.lib"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="$(SolutionDir)libbhohelper\$(ConfigurationName)"
+				AdditionalLibraryDirectories="&quot;$(SolutionDir)libbhohelper\$(ConfigurationName)&quot;;&quot;$(SolutionDir)anchocommons\$(ConfigurationName)&quot;"
 				ModuleDefinitionFile=".\ancho.def"
 				GenerateDebugInformation="true"
 				SubSystem="2"
@@ -230,6 +232,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\AnchoRuntime.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\dllmain.cpp"
 				>
 				<FileConfiguration
@@ -282,6 +288,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\AnchoRuntime.h"
+				>
+			</File>
+			<File
 				RelativePath=".\dllmain.h"
 				>
 			</File>
@@ -312,7 +322,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\AnchoAddon.rgs"
+				RelativePath=".\AnchoRuntime.rgs"
 				>
 			</File>
 		</Filter>

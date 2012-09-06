@@ -32,7 +32,7 @@
 
 #include <Wininet.h>
 
-#include "staticstrings.h"
+#include <anchocommons.h>
 
 using namespace ATL;
 
