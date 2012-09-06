@@ -12,14 +12,14 @@
  */
 
 //----------------------------------------------------------------------------
-//  
+//
 void CAnchoAddonService::OnAddonFinalRelease(BSTR bsID)
 {
   m_Objects.RemoveKey(bsID);
 }
 
 //----------------------------------------------------------------------------
-//  
+//
 HRESULT CAnchoAddonService::FinalConstruct()
 {
   // Get and store the path, this will be used in some places (e.g. to load
@@ -29,11 +29,11 @@ HRESULT CAnchoAddonService::FinalConstruct()
   PathRemoveFileSpec(psc);
   PathAddBackslash(psc);
   m_sThisPath.ReleaseBuffer();
-	return S_OK;
+  return S_OK;
 }
 
 //----------------------------------------------------------------------------
-//  
+//
 void CAnchoAddonService::FinalRelease()
 {
   CAnchoAddonBackgroundComObject* pObject;
@@ -48,7 +48,7 @@ void CAnchoAddonService::FinalRelease()
 }
 
 //----------------------------------------------------------------------------
-//  
+//
 STDMETHODIMP CAnchoAddonService::GetExtension(BSTR bsID, IAnchoAddonBackground ** ppRet)
 {
   ENSURE_RETVAL(ppRet);
@@ -93,7 +93,7 @@ STDMETHODIMP CAnchoAddonService::GetExtension(BSTR bsID, IAnchoAddonBackground *
 }
 
 //----------------------------------------------------------------------------
-//  
+//
 STDMETHODIMP CAnchoAddonService::GetModulePath(BSTR * pbsPath)
 {
   ENSURE_RETVAL(pbsPath);

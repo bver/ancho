@@ -28,16 +28,16 @@ struct CAnchoAddonServiceCallback
  */
 class ATL_NO_VTABLE CAnchoAddonService :
   public CAnchoAddonServiceCallback,
-	public CComObjectRootEx<CComSingleThreadModel>,
-	public CComCoClass<CAnchoAddonService, &CLSID_AnchoAddonService>,
-	public IAnchoAddonService
+  public CComObjectRootEx<CComSingleThreadModel>,
+  public CComCoClass<CAnchoAddonService, &CLSID_AnchoAddonService>,
+  public IAnchoAddonService
 {
 public:
   // -------------------------------------------------------------------------
   // ctor
-	CAnchoAddonService()
-	{
-	}
+  CAnchoAddonService()
+  {
+  }
 
 public:
   // -------------------------------------------------------------------------
@@ -45,20 +45,20 @@ public:
   DECLARE_REGISTRY_RESOURCEID(IDR_SCRIPTSERVICE)
   DECLARE_CLASSFACTORY_SINGLETON(CAnchoAddonService)
   DECLARE_NOT_AGGREGATABLE(CAnchoAddonService)
-	DECLARE_PROTECT_FINAL_CONSTRUCT()
+  DECLARE_PROTECT_FINAL_CONSTRUCT()
 
 public:
   // -------------------------------------------------------------------------
   // COM interface map
   BEGIN_COM_MAP(CAnchoAddonService)
-	  COM_INTERFACE_ENTRY(IAnchoAddonService)
+    COM_INTERFACE_ENTRY(IAnchoAddonService)
   END_COM_MAP()
 
 public:
   // -------------------------------------------------------------------------
   // COM standard methods
-	HRESULT FinalConstruct();
-	void FinalRelease();
+  HRESULT FinalConstruct();
+  void FinalRelease();
 
 public:
   // -------------------------------------------------------------------------

@@ -3,13 +3,13 @@
 
 #ifndef USE_HTML_LOGWINDOW
 
-#define LOG_BGCOLOR					0x00ffffff
-#define LOG_DEFAULTCOLOR		0
-#define LOG_COLOR_LOG       0				
-#define LOG_COLOR_DEBUG			0x00f00000
-#define LOG_COLOR_INFO			0x00008000
-#define LOG_COLOR_WARN			0x000080a0
-#define LOG_COLOR_ERROR			0x000000d0
+#define LOG_BGCOLOR         0x00ffffff
+#define LOG_DEFAULTCOLOR    0
+#define LOG_COLOR_LOG       0
+#define LOG_COLOR_DEBUG     0x00f00000
+#define LOG_COLOR_INFO      0x00008000
+#define LOG_COLOR_WARN      0x000080a0
+#define LOG_COLOR_ERROR     0x000000d0
 
 LRESULT CLogView::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {

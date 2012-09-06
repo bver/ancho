@@ -20,8 +20,8 @@ void CLogWindow::OnFinalMessage(HWND)
 
 LRESULT CLogWindow::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
-	// remove old menu
-	SetMenu(NULL);
+  // remove old menu
+  SetMenu(NULL);
 
 #ifdef USE_HTML_LOGWINDOW
   CString s, sm;
@@ -36,19 +36,19 @@ LRESULT CLogWindow::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/
   // This AddRef call is paired with the Release call in OnFinalMessage
   // to keep the object alive as long as the window exists.
   AddRef();
-	return 0;
+  return 0;
 }
 
 LRESULT CLogWindow::OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
 {
-	bHandled = FALSE;
-	return 1;
+  bHandled = FALSE;
+  return 1;
 }
 
 LRESULT CLogWindow::OnClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
   ShowWindow(SW_SHOWMINIMIZED);
-	return 0;
+  return 0;
 }
 
 HRESULT CLogWindow::CreateLogWindow(CLogWindowComObject ** ppRet)

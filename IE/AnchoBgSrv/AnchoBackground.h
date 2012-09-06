@@ -29,8 +29,8 @@ struct CAnchoAddonServiceCallback;
  * class CAnchoAddonBackground
  */
 class ATL_NO_VTABLE CAnchoAddonBackground :
-	public CComObjectRootEx<CComSingleThreadModel>,
-	public CComCoClass<CAnchoAddonBackground, &CLSID_AnchoAddonBackground>,
+  public CComObjectRootEx<CComSingleThreadModel>,
+  public CComCoClass<CAnchoAddonBackground, &CLSID_AnchoAddonBackground>,
   public IAnchoAddonBackground,
   public IAnchoBackgroundConsole
 {
@@ -38,15 +38,15 @@ public:
   // -------------------------------------------------------------------------
   // ctor
   CAnchoAddonBackground() : m_NextInstanceID(1)
-	{
-	}
+  {
+  }
 
 public:
   // -------------------------------------------------------------------------
   // COM standard stuff
   DECLARE_NO_REGISTRY()
   DECLARE_NOT_AGGREGATABLE(CAnchoAddonBackground)
-	DECLARE_PROTECT_FINAL_CONSTRUCT()
+  DECLARE_PROTECT_FINAL_CONSTRUCT()
 
 public:
   // -------------------------------------------------------------------------
@@ -59,8 +59,8 @@ public:
 public:
   // -------------------------------------------------------------------------
   // COM standard methods
-	HRESULT FinalConstruct();
-	void FinalRelease();
+  HRESULT FinalConstruct();
+  void FinalRelease();
 
 public:
   // -------------------------------------------------------------------------

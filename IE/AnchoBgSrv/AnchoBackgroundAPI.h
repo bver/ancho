@@ -22,30 +22,30 @@ typedef IDispEventImpl<1, CAnchoBackgroundAPI, &DIID__IMagpieLoggerEvents, &LIBI
  * class CAnchoBackgroundAPI
  */
 class ATL_NO_VTABLE CAnchoBackgroundAPI :
-	public CComObjectRootEx<CComSingleThreadModel>,
-	public IDispatchImpl<IAnchoBackgroundAPI, &IID_IAnchoBackgroundAPI, &LIBID_AnchoBgSrvLib, /*wMajor =*/ 0xffff, /*wMinor =*/ 0xffff>,
+  public CComObjectRootEx<CComSingleThreadModel>,
+  public IDispatchImpl<IAnchoBackgroundAPI, &IID_IAnchoBackgroundAPI, &LIBID_AnchoBgSrvLib, /*wMajor =*/ 0xffff, /*wMinor =*/ 0xffff>,
   public CAnchoAddonBackgroundLogger
 {
 public:
   // -------------------------------------------------------------------------
   // ctor
   CAnchoBackgroundAPI() : m_dwMagpieSinkCookie(0)
-	{
-	}
+  {
+  }
 
 public:
   // -------------------------------------------------------------------------
   // COM standard stuff
   DECLARE_NO_REGISTRY()
   DECLARE_NOT_AGGREGATABLE(CAnchoBackgroundAPI)
-	DECLARE_PROTECT_FINAL_CONSTRUCT()
+  DECLARE_PROTECT_FINAL_CONSTRUCT()
 
 public:
   // -------------------------------------------------------------------------
   // COM interface map
   BEGIN_COM_MAP(CAnchoBackgroundAPI)
-	  COM_INTERFACE_ENTRY(IDispatch)
-	  COM_INTERFACE_ENTRY(IAnchoBackgroundAPI)
+    COM_INTERFACE_ENTRY(IDispatch)
+    COM_INTERFACE_ENTRY(IAnchoBackgroundAPI)
   END_COM_MAP()
 
   BEGIN_SINK_MAP(CAnchoBackgroundAPI)
@@ -67,8 +67,8 @@ public:
 public:
   // -------------------------------------------------------------------------
   // COM standard methods
-	HRESULT FinalConstruct();
-	void FinalRelease();
+  HRESULT FinalConstruct();
+  void FinalRelease();
 
 public:
   // -------------------------------------------------------------------------

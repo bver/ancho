@@ -39,15 +39,15 @@ LRESULT CBackgroundWindow::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*l
   // This AddRef call is paired with the Release call in OnFinalMessage
   // to keep the object alive as long as the window exists.
   AddRef();
-	return 0;
+  return 0;
 }
 
 LRESULT CBackgroundWindow::OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
 {
-	bHandled = FALSE;
+  bHandled = FALSE;
   m_pWebBrowser.Release();
   m_pDispApiJS.Release();
-	return 1;
+  return 1;
 }
 
 HRESULT CBackgroundWindow::CreateBackgroundWindow(IDispatch * pDispApiJS, LPCWSTR lpszURL, CBackgroundWindowComObject ** ppRet)

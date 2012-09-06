@@ -21,16 +21,16 @@ typedef IDispEventImpl<1, CAnchoAddon, &DIID_DWebBrowserEvents2, &LIBID_SHDocVw,
 typedef CComObject<CAnchoAddon> CAnchoAddonComObject;
 
 class ATL_NO_VTABLE CAnchoAddon :
-	public CComObjectRootEx<CComSingleThreadModel>,
+  public CComObjectRootEx<CComSingleThreadModel>,
   public DWebBrowserEvents2Ancho,
-	public IAnchoAddon
+  public IAnchoAddon
 {
 public:
   // -------------------------------------------------------------------------
   // ctor
   CAnchoAddon() : m_InstanceID(0), m_dwAdviseSinkWebBrowser(0)
-	{
-	}
+  {
+  }
 
   // -------------------------------------------------------------------------
   // COM standard stuff
@@ -41,7 +41,7 @@ public:
   // -------------------------------------------------------------------------
   // COM interface map
   BEGIN_COM_MAP(CAnchoAddon)
-	  COM_INTERFACE_ENTRY(IAnchoAddon)
+    COM_INTERFACE_ENTRY(IAnchoAddon)
   END_COM_MAP()
 
   // -------------------------------------------------------------------------
@@ -52,15 +52,15 @@ public:
 
   // -------------------------------------------------------------------------
   // COM standard methods
-	HRESULT FinalConstruct()
-	{
-		return S_OK;
-	}
+  HRESULT FinalConstruct()
+  {
+    return S_OK;
+  }
 
-	void FinalRelease()
-	{
+  void FinalRelease()
+  {
     Shutdown();
-	}
+  }
 
 public:
   // -------------------------------------------------------------------------

@@ -18,17 +18,17 @@
  * class CAnchoRuntime
  */
 class ATL_NO_VTABLE CAnchoRuntime :
-	public CComObjectRootEx<CComSingleThreadModel>,
-	public CComCoClass<CAnchoRuntime, &CLSID_AnchoRuntime>,
-	public IObjectWithSiteImpl<CAnchoRuntime>,
-	public IAnchoRuntime
+  public CComObjectRootEx<CComSingleThreadModel>,
+  public CComCoClass<CAnchoRuntime, &CLSID_AnchoRuntime>,
+  public IObjectWithSiteImpl<CAnchoRuntime>,
+  public IAnchoRuntime
 {
 public:
   // -------------------------------------------------------------------------
   // ctor
   CAnchoRuntime()
-	{
-	}
+  {
+  }
 
   // -------------------------------------------------------------------------
   // COM standard stuff
@@ -39,26 +39,26 @@ public:
   // -------------------------------------------------------------------------
   // COM interface map
   BEGIN_COM_MAP(CAnchoRuntime)
-	  COM_INTERFACE_ENTRY(IAnchoRuntime)
-	  COM_INTERFACE_ENTRY(IObjectWithSite)
+    COM_INTERFACE_ENTRY(IAnchoRuntime)
+    COM_INTERFACE_ENTRY(IObjectWithSite)
   END_COM_MAP()
 
   // -------------------------------------------------------------------------
   // COM standard methods
-	HRESULT FinalConstruct()
-	{
-		return S_OK;
-	}
+  HRESULT FinalConstruct()
+  {
+    return S_OK;
+  }
 
-	void FinalRelease()
-	{
+  void FinalRelease()
+  {
     DestroyAddons();
-	}
+  }
 
 public:
   // -------------------------------------------------------------------------
   // IObjectWithSiteImpl methods
-	STDMETHOD(SetSite)(IUnknown *pUnkSite);
+  STDMETHOD(SetSite)(IUnknown *pUnkSite);
 
 private:
   // -------------------------------------------------------------------------

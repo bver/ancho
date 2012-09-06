@@ -102,6 +102,6 @@ STDMETHODIMP CAnchoRuntime::SetSite(IUnknown *pUnkSite)
   {
     DestroyAddons();
   }
-	return hr;
+  return hr;
 }
 
