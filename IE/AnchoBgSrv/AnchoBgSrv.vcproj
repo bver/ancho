@@ -27,7 +27,9 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine=""
+				Description="Copying files..."
+				CommandLine="xcopy /D &quot;$(SolutionDir)Magpie\$(ConfigurationName)\Magpie.dll&quot; &quot;$(OutDir)&quot;"
+				ExcludedFromBuild="false"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -105,8 +107,8 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				Description="Copying files, performing registration"
-				CommandLine="copy &quot;$(SolutionDir)Magpie\$(ConfigurationName)\Magpie.dll&quot; &quot;$(OutDir)&quot;&#x0D;&#x0A;&quot;$(TargetPath)&quot; /RegServer /s&#x0D;&#x0A;"
+				Description="Performing registration"
+				CommandLine="&quot;$(TargetPath)&quot; /RegServer /s&#x0D;&#x0A;"
 			/>
 		</Configuration>
 		<Configuration
@@ -120,7 +122,8 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine=""
+				Description="Copying files..."
+				CommandLine="xcopy /D &quot;$(SolutionDir)Magpie\$(ConfigurationName)\Magpie.dll&quot; &quot;$(OutDir)&quot;"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -198,8 +201,8 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				Description="Copying files, performing registration"
-				CommandLine="copy &quot;$(SolutionDir)Magpie\$(ConfigurationName)\Magpie.dll&quot; &quot;$(OutDir)&quot;&#x0D;&#x0A;&quot;$(TargetPath)&quot; /RegServer /s&#x0D;&#x0A;"
+				Description="Performing registration"
+				CommandLine="&quot;$(TargetPath)&quot; /RegServer /s&#x0D;&#x0A;"
 			/>
 		</Configuration>
 	</Configurations>
