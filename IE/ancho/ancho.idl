@@ -1,0 +1,54 @@
+// ancho.idl : IDL source for ancho
+//
+
+// This file will be processed by the MIDL tool to
+// produce the type library (ancho.tlb) and marshalling code.
+
+import "oaidl.idl";
+import "ocidl.idl";
+import "exdisp.idl";
+
+[
+	object,
+	uuid(06550FFB-49D7-4428-A5FF-2CC688A8001F),
+	oleautomation,
+	nonextensible,
+	helpstring("IAnchoRuntime Interface"),
+	pointer_default(unique)
+]
+interface IAnchoRuntime : IUnknown
+{
+};
+
+[
+	uuid(DBBBF00D-3AB6-45BA-BE51-B5D8EFECD127),
+	version(1.0),
+	helpstring("ancho 1.0 Type Library")
+]
+library anchoLib
+{
+	importlib("stdole2.tlb");
+  importlib("AnchoBgSrv.tlb");
+
+  [
+	  object,
+	  uuid(2E63BFC0-E51B-4317-A814-601A606E7C4C),
+	  nonextensible,
+	  helpstring("IAnchoAddon Interface"),
+	  pointer_default(unique)
+  ]
+  interface IAnchoAddon : IUnknown
+  {
+    HRESULT Init([in] LPCOLESTR lpsExtensionID, [in] IAnchoAddonService * pService, [in] IWebBrowser2 * pWebBrowser);
+    HRESULT Shutdown();
+  };
+
+	[
+		uuid(BC66BD3D-2AB6-4672-8EF3-DB2BD089CD60),
+		helpstring("AnchoRuntime Class")
+	]
+	coclass AnchoRuntime
+	{
+		[default] interface IAnchoRuntime;
+	};
+};

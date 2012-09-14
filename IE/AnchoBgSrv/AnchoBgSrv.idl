@@ -1,0 +1,143 @@
+/****************************************************************************
+ * AnchoBgSrv.idl : IDL source for Ancho background service
+ * Copyright 2012 Salsita software (http://www.salsitasoft.com).
+ * Author: Arne Seib <kontakt@seiberspace.de>
+ ****************************************************************************/
+
+import "oaidl.idl";
+import "ocidl.idl";
+
+// forwards
+interface IAnchoAddonBackground;
+
+/*==========================================================================*/
+[
+	object,
+	uuid(DA08F068-BA41-431A-94BB-5EB3C46767A2),
+	oleautomation,
+	nonextensible,
+	helpstring("IAnchoAddonService Interface"),
+	pointer_default(unique)
+]
+interface IAnchoAddonService : IUnknown
+{
+  HRESULT GetExtension([in] BSTR bsID, [out, retval] IAnchoAddonBackground ** ppRet);
+  HRESULT GetModulePath([out, retval] BSTR * pbsPath);
+};
+
+/*==========================================================================*/
+[
+  object,
+  uuid(921C5C5B-3353-42d1-B9D3-BE7FFA912F2A),
+  oleautomation,
+  nonextensible,
+  helpstring("IAnchoAddonBackground Interface"),
+  pointer_default(unique)
+]
+interface IAnchoAddonBackground : IUnknown
+{
+  HRESULT AdviseInstance([out, retval] ULONG * pInstanceID);
+  HRESULT UnadviseInstance([in] ULONG ulInstanceID);
+  HRESULT GetContentAPI([in] ULONG ulInstanceID, [out, retval] LPDISPATCH* ppDisp);
+//  HRESULT GetManifest([out, retval] LPDISPATCH* ppDisp);
+};
+
+/*==========================================================================*/
+[
+	uuid(E010DD54-F388-4292-9BAE-C962B22F17BD),
+	version(1.0),
+	helpstring("AnchoBgSrv 1.0 Type Library")
+]
+library AnchoBgSrvLib
+{
+	importlib("stdole2.tlb");
+
+/*==========================================================================*/
+  [
+	  object,
+	  uuid(C501AEAC-8839-4EB5-956A-1826EE6B2FF7),
+	  dual,
+	  nonextensible,
+	  helpstring("IAnchoBackgroundAPI Interface"),
+	  pointer_default(unique)
+  ]
+  interface IAnchoBackgroundAPI : IDispatch
+  {
+    [propget, id(1), helpstring(
+      "Property id. The addon's ID."
+    )]
+    HRESULT id([out, retval] BSTR * pVal);
+
+    [propget, id(2), helpstring(
+      "Property guid. The addon's GUID."
+    )]
+    HRESULT guid([out, retval] BSTR * pVal);
+
+    [id(100), helpstring(
+      "Method startBackgroundWindow. Loads the background window and"
+      "runs scripts inside"
+    )]
+    HRESULT startBackgroundWindow([in] BSTR bsPartialURL);
+
+  };
+
+/*==========================================================================*/
+  [
+	  helpstring(
+      "IAnchoBackgroundConsole interface"
+    ),
+	  object,
+	  uuid(5FF52F47-7CEC-45a9-979F-2F214ACAED1B),
+    oleautomation,
+    nonextensible,
+	  pointer_default(unique)
+  ]
+  interface IAnchoBackgroundConsole : IUnknown
+  {
+    [id(1), helpstring(
+      "Method log"
+    )]
+    HRESULT log([in] BSTR bsSource, [in] BSTR bsModuleID, [in] VARIANT val);
+
+    [id(2), helpstring(
+      "Method debug"
+    )]
+    HRESULT debug([in] BSTR bsSource, [in] BSTR bsModuleID, [in] VARIANT val);
+
+    [id(3), helpstring(
+      "Method info"
+    )]
+    HRESULT info([in] BSTR bsSource, [in] BSTR bsModuleID, [in] VARIANT val);
+
+    [id(4), helpstring(
+      "Method warn"
+    )]
+    HRESULT warn([in] BSTR bsSource, [in] BSTR bsModuleID, [in] VARIANT val);
+
+    [id(5), helpstring(
+      "Method error"
+    )]
+    HRESULT error([in] BSTR bsSource, [in] BSTR bsModuleID, [in] VARIANT val);
+  };
+
+/*==========================================================================*/
+  [
+		uuid(2620B92E-09AC-4C35-8164-0BDF33951278),
+		helpstring("AnchoAddonService Class")
+	]
+	coclass AnchoAddonService
+	{
+		[default] interface IAnchoAddonService;
+	};
+
+/*==========================================================================*/
+  [
+		uuid(EAFE9780-A951-4282-9C8A-39672B406357),
+		helpstring("AnchoAddonBackground Class")
+	]
+	coclass AnchoAddonBackground
+	{
+		[default] interface IAnchoAddonBackground;
+	};
+
+};

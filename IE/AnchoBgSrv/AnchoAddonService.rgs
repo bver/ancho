@@ -1,0 +1,35 @@
+HKCR
+{
+	AnchoBgSrv.AnchoAddonService.1 = s 'AnchoAddonService Class'
+	{
+		CLSID = s '{2620B92E-09AC-4C35-8164-0BDF33951278}'
+	}
+	AnchoBgSrv.AnchoAddonService = s 'AnchoAddonService Class'
+	{
+		CLSID = s '{2620B92E-09AC-4C35-8164-0BDF33951278}'
+		CurVer = s 'AnchoBgSrv.AnchoAddonService.1'
+	}
+	NoRemove CLSID
+	{
+		ForceRemove {2620B92E-09AC-4C35-8164-0BDF33951278} = s 'AnchoAddonService Class'
+		{
+			ProgID = s 'AnchoBgSrv.AnchoAddonService.1'
+			VersionIndependentProgID = s 'AnchoBgSrv.AnchoAddonService'
+			ForceRemove 'Programmable'
+			LocalServer32 = s '%MODULE%'
+			'TypeLib' = s '{E010DD54-F388-4292-9BAE-C962B22F17BD}'
+		}
+	}
+}
+HKCU
+{
+	NoRemove Software
+	{
+	  NoRemove Salsita
+	  {
+	    AnchoAddonService
+	    {
+	    }
+	  }
+	}
+}
