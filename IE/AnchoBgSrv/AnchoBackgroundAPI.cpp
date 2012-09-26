@@ -262,14 +262,21 @@ STDMETHODIMP CAnchoBackgroundAPI::startBackgroundWindow(BSTR bsPartialURL)
   CComPtr<IDispatch> mainModuleExports;
   IF_FAILED_RET(mainModule->GetExportsObject(&mainModuleExports));
 
-  CComVariant vt;
-  IF_FAILED_RET(mainModuleExports.GetPropertyByName(s_AnchoBackgroundPageAPIName, &vt));
-  if (vt.vt != VT_DISPATCH)
+  CComVariant chromeVT;
+  IF_FAILED_RET(mainModuleExports.GetPropertyByName(s_AnchoBackgroundPageAPIName, &chromeVT));
+  if (chromeVT.vt != VT_DISPATCH)
   {
     return E_FAIL;
   }
 
-  IF_FAILED_RET(CBackgroundWindow::CreateBackgroundWindow(vt.pdispVal, sURL, &m_BackgroundWindow.p));
+  CComVariant consoleVT;
+  IF_FAILED_RET(mainModuleExports.GetPropertyByName(s_AnchoBackgroundConsoleObjectName, &consoleVT));
+  if (consoleVT.vt != VT_DISPATCH)
+  {
+    return E_FAIL;
+  }
+
+  IF_FAILED_RET(CBackgroundWindow::CreateBackgroundWindow(chromeVT.pdispVal, consoleVT.pdispVal, sURL, &m_BackgroundWindow.p));
   return S_OK;
 }
 

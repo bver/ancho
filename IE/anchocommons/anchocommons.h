@@ -8,5 +8,6 @@ extern const wchar_t * s_AnchoProtocolHandlerScheme;
 extern const wchar_t * s_AnchoGlobalAPIObjectName;
 extern const wchar_t * s_AnchoBackgroundAPIObjectName;
 extern const wchar_t * s_AnchoBackgroundPageAPIName;
+extern const wchar_t * s_AnchoBackgroundConsoleObjectName;
 extern const wchar_t * s_AnchoFnGetContentAPI;
 extern const wchar_t * s_AnchoFnReleaseContentAPI;

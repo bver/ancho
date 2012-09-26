@@ -55,6 +55,7 @@ exports.chrome = {};
   chrome.windows = require("windows.js");
 })(exports.chrome)
 
+exports.console = console;
 //------------------------------------------------------------------------------
 // CONTENT API
 //------------------------------------------------------------------------------

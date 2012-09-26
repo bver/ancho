@@ -37,6 +37,9 @@ const wchar_t * s_AnchoBackgroundAPIObjectName =
 const wchar_t * s_AnchoBackgroundPageAPIName =
     L"chrome";
 
+const wchar_t * s_AnchoBackgroundConsoleObjectName =
+    L"console";
+
 // name of the exported function for getting a content API
 const wchar_t * s_AnchoFnGetContentAPI =
     L"getContentAPI";
