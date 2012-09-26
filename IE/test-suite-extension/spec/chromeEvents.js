@@ -1,7 +1,7 @@
 ﻿
 define(function() {
-
-
+ 
+    
   describe('chrome.events API', function() {
     var event;
     var listener = function(){};

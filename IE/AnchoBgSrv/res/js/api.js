@@ -32,6 +32,7 @@ exports.chrome = {};
   chrome.contentSettings = require("contentSettings.js");
   chrome.contextMenus = require("contextMenus.js");
   chrome.cookies = require("cookies.js");
+  chrome.events = require("event.js");
   chrome.extension = require("extension.js");
   chrome.fileBrowserHandler = require("fileBrowserHandler.js");
   chrome.history = require("history.js");
