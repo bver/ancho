@@ -6,7 +6,7 @@ define(function() {
     var event;
     var listener = function(){};
     beforeEach(function() {
-      event = new chrome.events.Event();
+      event = new chrome.events.Event('test.event',0);
     });
 
     it('has whole event listener API available', function() {

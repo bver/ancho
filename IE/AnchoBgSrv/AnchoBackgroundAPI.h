@@ -11,6 +11,10 @@
 #include "LogWindow.h"
 #include "BackgroundWindow.h"
 
+#include <list>
+#include <map>
+#include <string>
+
 #if defined(_WIN32_WCE) && !defined(_CE_DCOM) && !defined(_CE_ALLOW_SINGLE_THREADED_OBJECTS_IN_MTA)
 #error "Single-threaded COM objects are not properly supported on Windows CE platform, such as the Windows Mobile platforms that do not include full DCOM support. Define _CE_ALLOW_SINGLE_THREADED_OBJECTS_IN_MTA to force ATL to support creating single-thread COM object's and allow use of it's single-threaded COM object implementations. The threading model in your rgs file was set to 'Free' as that is the only threading model supported in non DCOM Windows CE platforms."
 #endif
@@ -95,6 +99,9 @@ public:
   STDMETHOD(get_guid)(BSTR * pVal);
   STDMETHOD(startBackgroundWindow)(BSTR bsPartialURL);
 
+  STDMETHOD(addEventObject)(BSTR aEventName, INT aInstanceId, LPDISPATCH aListener);
+  STDMETHOD(removeEventObject)(BSTR aEventName, INT aInstanceId);
+
   // -------------------------------------------------------------------------
   // _IMagpieLoggerEvents methods
   STDMETHOD_(void, OnLog)(VARIANT val, BSTR bsModuleID);
@@ -103,6 +110,18 @@ public:
   STDMETHOD_(void, OnWarn)(VARIANT val, BSTR bsModuleID);
   STDMETHOD_(void, OnError)(VARIANT val, BSTR bsModuleID);
 
+  struct EventObjectRecord
+  {
+    EventObjectRecord(const std::wstring &aEventName, INT aInstanceId, LPDISPATCH aListener)
+      : eventName(aEventName), instanceID(aInstanceId), listener(aListener)
+    {}
+    std::wstring eventName;
+    int instanceID;
+    CIDispatchHelper listener;
+  };
+  typedef std::list<EventObjectRecord> EventObjectList;
+  typedef std::map<std::wstring, EventObjectList> EventObjectMap;
+  
 private:
   // -------------------------------------------------------------------------
   // Private member functions
@@ -135,5 +154,7 @@ private:
 
   CComPtr<CBackgroundWindowComObject>
                                 m_BackgroundWindow;
+
+  EventObjectMap       m_EventObjects;
 };
 

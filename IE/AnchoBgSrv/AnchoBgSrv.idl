@@ -79,6 +79,9 @@ library AnchoBgSrvLib
     )]
     HRESULT startBackgroundWindow([in] BSTR bsPartialURL);
 
+    HRESULT addEventObject([in]BSTR aEventName, [in] INT aInstanceId, [in] LPDISPATCH aListener);
+    HRESULT removeEventObject([in]BSTR aEventName, [in] INT aInstanceId);
+
   };
 
 /*==========================================================================*/

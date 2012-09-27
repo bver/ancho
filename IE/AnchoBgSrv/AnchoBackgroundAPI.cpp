@@ -281,6 +281,47 @@ STDMETHODIMP CAnchoBackgroundAPI::startBackgroundWindow(BSTR bsPartialURL)
 }
 
 //----------------------------------------------------------------------------
+//  
+STDMETHODIMP CAnchoBackgroundAPI::addEventObject(BSTR aEventName, INT aInstanceId, LPDISPATCH aListener)
+{
+  try {
+    std::wstring eventName(aEventName, SysStringLen(aEventName));
+
+    EventObjectList &managers = m_EventObjects[eventName];
+    managers.push_back(EventObjectRecord(eventName, aInstanceId, aListener));
+  } catch (...) {
+    ATLTRACE(L"Adding event object %s::%d failed", aEventName, aInstanceId);
+    return E_FAIL;
+  }
+  return S_OK;
+}
+
+//----------------------------------------------------------------------------
+//  
+struct RemoveEventFtor
+{
+  RemoveEventFtor(int aInstanceId): instanceId(aInstanceId) {}
+  int instanceId;
+  bool operator()(const CAnchoBackgroundAPI::EventObjectRecord &aRec) {
+    return aRec.instanceID == instanceId;
+  }
+};
+STDMETHODIMP CAnchoBackgroundAPI::removeEventObject(BSTR aEventName, INT aInstanceId)
+{
+  try {
+    std::wstring eventName(aEventName, SysStringLen(aEventName));
+    EventObjectMap::iterator it = m_EventObjects.find(eventName);
+    if (it == m_EventObjects.end()) {
+      return S_OK;
+    }
+    it->second.remove_if(RemoveEventFtor(aInstanceId));
+  } catch (...) {
+    ATLTRACE(L"Removing event object %s::%d failed", aEventName, aInstanceId);
+    return E_FAIL;
+  }
+  return S_OK;
+}
+//----------------------------------------------------------------------------
 //  _IMagpieLoggerEvents methods
 //----------------------------------------------------------------------------
 

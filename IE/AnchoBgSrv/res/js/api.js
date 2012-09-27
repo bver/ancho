@@ -25,7 +25,7 @@ console.info("Loading extension [" + addonAPI.id + "] [" + addonAPI.guid + "]");
 exports.chrome = {};
 
 // create and initialize the background API
-(function(chrome){
+(function(chrome, instanceID) {
   chrome.bookmarks = require("bookmarks.js");
   chrome.browserAction = require("browserAction.js");
   chrome.browsingData = require("browsingData.js");
@@ -33,7 +33,7 @@ exports.chrome = {};
   chrome.contextMenus = require("contextMenus.js");
   chrome.cookies = require("cookies.js");
   chrome.events = require("event.js");
-  chrome.extension = require("extension.js");
+  chrome.extension = require("extension.js").createAPI(instanceID);
   chrome.fileBrowserHandler = require("fileBrowserHandler.js");
   chrome.history = require("history.js");
   chrome.i18n = require("i18n.js");
@@ -54,7 +54,7 @@ exports.chrome = {};
   chrome.webRequest = require("webRequest.js");
   chrome.webstore = require("webstore.js");
   chrome.windows = require("windows.js");
-})(exports.chrome)
+})(exports.chrome,0)
 
 exports.console = console;
 //------------------------------------------------------------------------------
@@ -66,12 +66,13 @@ exports.console = console;
 var contentInstances = {};
 
 // Content API constructor
-function contentAPI(instanceID) {
-  console.debug("Content API created: [" + instanceID + "]");
-}
 // the content API gets composed here. Decide which methods and objects should
 // be part of the content API.
-contentAPI.prototype.extension = exports.chrome.extension;
+function contentAPI(instanceID) {
+  this.extension = require("extension.js").createAPI(instanceID);
+  
+  console.debug("Content API created: [" + instanceID + "]");
+}
 
 //------------------------------------------------------------------------------
 // INTERNAL API
