@@ -11,7 +11,8 @@ var Event = require("Event.js").Event;
   
 //******************************************************************************
 //* main closure
-(function(me){
+exports.createAPI = function(instanceID) {
+  return new (function() {
   //============================================================================
   // private variables
   
@@ -21,42 +22,46 @@ var Event = require("Event.js").Event;
     
   //----------------------------------------------------------------------------
   // aji.cookies.get
-  me.get = function(details, callback) {
+  this.get = function(details, callback) {
     console.debug("cookies.get(..) called");
   };
 
   //----------------------------------------------------------------------------
   // aji.cookies.getAll
-  me.getAll = function(details, callback) {
+  this.getAll = function(details, callback) {
     console.debug("cookies.getAll(..) called");
   };
 
   //----------------------------------------------------------------------------
   // aji.cookies.getAllCookieStores
-  me.getAllCookieStores = function(callback) {
+  this.getAllCookieStores = function(callback) {
     console.debug("cookies.getAllCookieStores(..) called");
   };
 
   //----------------------------------------------------------------------------
   // aji.cookies.remove
-  me.remove = function(details, callback) {
+  this.remove = function(details, callback) {
     console.debug("cookies.remove(..) called");
   };
 
   //----------------------------------------------------------------------------
   // aji.cookies.set
-  me.set = function(details, callback) {
+  this.set = function(details, callback) {
     console.debug("cookies.set(..) called");
   };
 
   //============================================================================
   // events
     
-  me.onChanged = new Event();
+  this.onChanged = new Event('cookies.onChanged', instanceID);
 
   //============================================================================
   //============================================================================
   // main initialization
 
+})();
+}
 
-}).call(this, exports);
+exports.releaseAPI = function(instanceID) {
+  addonAPI.removeEventObject('cookies.onChanged', instanceID);  
+}

@@ -4,31 +4,37 @@
  * Implements aji.storage
  * Copyright 2012 Salsita software (http://www.salsitasoft.com).
  ******************************************************************************/
-  
+
 //******************************************************************************
 //* requires
 var Event = require("Event.js").Event;
-  
+
 //******************************************************************************
 //* main closure
-(function(me){
+exports.createAPI = function(instanceID) {
+  return new (function() {
   //============================================================================
   // private variables
-  
+
 
   //============================================================================
   // public properties
-    
-  me.sync = null;
-  me.local = null;
+
+  this.sync = null;
+  this.local = null;
   //============================================================================
   // events
-    
-  me.onChanged = new Event();
+
+  this.onChanged = new Event('storage.onChanged', instanceID);
 
   //============================================================================
   //============================================================================
   // main initialization
 
 
-}).call(this, exports);
+})();
+}
+
+exports.releaseAPI = function(instanceID) {
+  addonAPI.removeEventObject('storage.onChanged', instanceID);
+}

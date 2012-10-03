@@ -26,34 +26,34 @@ exports.chrome = {};
 
 // create and initialize the background API
 (function(chrome, instanceID) {
-  chrome.bookmarks = require("bookmarks.js");
-  chrome.browserAction = require("browserAction.js");
+  chrome.bookmarks = require("bookmarks.js").createAPI(instanceID);
+  chrome.browserAction = require("browserAction.js").createAPI(instanceID);
   chrome.browsingData = require("browsingData.js");
   chrome.contentSettings = require("contentSettings.js");
   chrome.contextMenus = require("contextMenus.js");
-  chrome.cookies = require("cookies.js");
+  chrome.cookies = require("cookies.js").createAPI(instanceID);
   chrome.events = require("event.js");
   chrome.extension = require("extension.js").createAPI(instanceID);
-  chrome.fileBrowserHandler = require("fileBrowserHandler.js");
-  chrome.history = require("history.js");
+  chrome.fileBrowserHandler = require("fileBrowserHandler.js").createAPI(instanceID);
+  chrome.history = require("history.js").createAPI(instanceID);
   chrome.i18n = require("i18n.js");
-  chrome.idle = require("idle.js");
-  chrome.management = require("management.js");
-  chrome.omnibox = require("omnibox.js");
-  chrome.pageAction = require("pageAction.js");
+  chrome.idle = require("idle.js").createAPI(instanceID);
+  chrome.management = require("management.js").createAPI(instanceID);
+  chrome.omnibox = require("omnibox.js").createAPI(instanceID);
+  chrome.pageAction = require("pageAction.js").createAPI(instanceID);
   chrome.pageCapture = require("pageCapture.js");
-  chrome.permissions = require("permissions.js");
+  chrome.permissions = require("permissions.js").createAPI(instanceID);
   chrome.privacy = require("privacy.js");
-  chrome.proxy = require("proxy.js");
-  chrome.storage = require("storage.js");
-  chrome.tabs = require("tabs.js");
+  chrome.proxy = require("proxy.js").createAPI(instanceID);
+  chrome.storage = require("storage.js").createAPI(instanceID);
+  chrome.tabs = require("tabs.js").createAPI(instanceID);
   chrome.topSites = require("topSites.js");
   chrome.tts = require("tts.js");
-  chrome.ttsEngine = require("ttsEngine.js");
-  chrome.webNavigation = require("webNavigation.js");
-  chrome.webRequest = require("webRequest.js");
+  chrome.ttsEngine = require("ttsEngine.js").createAPI(instanceID);
+  chrome.webNavigation = require("webNavigation.js").createAPI(instanceID);
+  chrome.webRequest = require("webRequest.js").createAPI(instanceID);
   chrome.webstore = require("webstore.js");
-  chrome.windows = require("windows.js");
+  chrome.windows = require("windows.js").createAPI(instanceID); ;
 })(exports.chrome,0)
 
 exports.console = console;
@@ -70,7 +70,7 @@ var contentInstances = {};
 // be part of the content API.
 function contentAPI(instanceID) {
   this.extension = require("extension.js").createAPI(instanceID);
-  
+
   console.debug("Content API created: [" + instanceID + "]");
 }
 
@@ -94,6 +94,7 @@ exports.getContentAPI = function(instanceID) {
 exports.releaseContentAPI = function(instanceID) {
   console.debug("Content API release requested for [" + instanceID + "]");
   if (contentInstances[instanceID]) {
+    require("extension.js").releaseAPI(instanceID)
     delete contentInstances[instanceID];
     console.debug("Content API FOUND and released: [" + instanceID + "]");
   }

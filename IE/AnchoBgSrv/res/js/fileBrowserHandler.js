@@ -11,18 +11,23 @@ var Event = require("Event.js").Event;
   
 //******************************************************************************
 //* main closure
-(function(me){
+exports.createAPI = function(instanceID) {
+  return new (function() {
   //============================================================================
   // private variables
   
   //============================================================================
   // events
-    
-  me.onExecute = new Event();
+
+  this.onExecute = new Event('fileBrowserHandler.onExecute', instanceID);
 
   //============================================================================
   //============================================================================
   // main initialization
 
+})();
+}
 
-}).call(this, exports);
+exports.releaseAPI = function(instanceID) {
+  addonAPI.removeEventObject('fileBrowserHandler.onExecute', instanceID);
+}

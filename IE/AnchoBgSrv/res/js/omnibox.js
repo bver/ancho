@@ -11,7 +11,8 @@ var Event = require("Event.js").Event;
   
 //******************************************************************************
 //* main closure
-(function(me){
+exports.createAPI = function(instanceID) {
+  return new (function() {
   //============================================================================
   // private variables
   
@@ -21,21 +22,28 @@ var Event = require("Event.js").Event;
     
   //----------------------------------------------------------------------------
   // aji.omnibox.setDefaultSuggestion
-  me.setDefaultSuggestion = function(suggestion) {
+  this.setDefaultSuggestion = function(suggestion) {
     console.debug("omnibox.setDefaultSuggestion(..) called");
   };
 
   //============================================================================
   // events
-    
-  me.onInputCancelled = new Event();
-  me.onInputChanged = new Event();
-  me.onInputEntered = new Event();
-  me.onInputStarted = new Event();
+
+  this.onInputCancelled = new Event('omnibox.onInputCancelled', instanceID);
+  this.onInputChanged = new Event('omnibox.onInputChanged', instanceID);
+  this.onInputEntered = new Event('omnibox.onInputEntered', instanceID);
+  this.onInputStarted = new Event('omnibox.onInputStarted', instanceID);
 
   //============================================================================
   //============================================================================
   // main initialization
 
+  })();
+}
 
-}).call(this, exports);
+exports.releaseAPI = function(instanceID) {
+  addonAPI.removeEventObject('omnibox.onInputCancelled', instanceID);
+  addonAPI.removeEventObject('omnibox.onInputChanged', instanceID);
+  addonAPI.removeEventObject('omnibox.onInputEntered', instanceID);
+  addonAPI.removeEventObject('omnibox.onInputStarted', instanceID);
+}

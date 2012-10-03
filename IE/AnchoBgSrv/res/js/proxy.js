@@ -4,30 +4,36 @@
  * Implements aji.proxy
  * Copyright 2012 Salsita software (http://www.salsitasoft.com).
  ******************************************************************************/
-  
+
 //******************************************************************************
 //* requires
 var Event = require("Event.js").Event;
-  
+
 //******************************************************************************
 //* main closure
-(function(me){
+exports.createAPI = function(instanceID) {
+  return new (function() {
   //============================================================================
   // private variables
-  
+
 
   //============================================================================
   // public properties
-    
-  me.settings = null;
+
+  this.settings = null;
   //============================================================================
   // events
-    
-  me.onProxyError = new Event();
+
+  this.onProxyError = new Event('proxy.onProxyError', instanceID);
 
   //============================================================================
   //============================================================================
   // main initialization
 
 
-}).call(this, exports);
+})();
+}
+
+exports.releaseAPI = function(instanceID) {
+  addonAPI.removeEventObject('proxy.onProxyError', instanceID);
+}

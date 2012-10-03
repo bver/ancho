@@ -11,19 +11,26 @@ var Event = require("Event.js").Event;
   
 //******************************************************************************
 //* main closure
-(function(me){
+exports.createAPI = function(instanceID) {
+  return new (function() {
   //============================================================================
   // private variables
   
   //============================================================================
   // events
     
-  me.onSpeak = new Event();
-  me.onStop = new Event();
+  this.onSpeak = new Event('ttsEngine.onSpeak', instanceID);
+  this.onStop = new Event('ttsEngine.onStop', instanceID);
 
   //============================================================================
   //============================================================================
   // main initialization
 
 
-}).call(this, exports);
+})();
+}
+
+exports.releaseAPI = function(instanceID) {
+  addonAPI.removeEventObject('ttsEngine.onSpeak', instanceID);
+  addonAPI.removeEventObject('ttsEngine.onStop', instanceID);
+}

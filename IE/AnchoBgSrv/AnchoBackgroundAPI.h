@@ -121,10 +121,12 @@ public:
   };
   typedef std::list<EventObjectRecord> EventObjectList;
   typedef std::map<std::wstring, EventObjectList> EventObjectMap;
-  
+
 private:
   // -------------------------------------------------------------------------
   // Private member functions
+  STDMETHOD(invokeEvent)(BSTR aEventName, VARIANT *aVarParams, int aParamCount);
+
   HRESULT GetMainModuleExportsScript(CIDispatchHelper & script);
 
 private:

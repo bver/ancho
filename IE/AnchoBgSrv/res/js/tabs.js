@@ -11,7 +11,8 @@ var Event = require("Event.js").Event;
   
 //******************************************************************************
 //* main closure
-(function(me){
+exports.createAPI = function(instanceID) {
+  return new (function() {
   //============================================================================
   // private variables
   
@@ -21,110 +22,121 @@ var Event = require("Event.js").Event;
     
   //----------------------------------------------------------------------------
   // aji.tabs.captureVisibleTab
-  me.captureVisibleTab = function(windowId, options, callback) {
+  this.captureVisibleTab = function(windowId, options, callback) {
     console.debug("tabs.captureVisibleTab(..) called");
   };
 
   //----------------------------------------------------------------------------
   // aji.tabs.connect
   //   returns   Port
-  me.connect = function(tabId, connectInfo) {
+  this.connect = function(tabId, connectInfo) {
     console.debug("tabs.connect(..) called");
   };
 
   //----------------------------------------------------------------------------
   // aji.tabs.create
-  me.create = function(createProperties, callback) {
+  this.create = function(createProperties, callback) {
     console.debug("tabs.create(..) called");
   };
 
   //----------------------------------------------------------------------------
   // aji.tabs.detectLanguage
-  me.detectLanguage = function(tabId, callback) {
+  this.detectLanguage = function(tabId, callback) {
     console.debug("tabs.detectLanguage(..) called");
   };
 
   //----------------------------------------------------------------------------
   // aji.tabs.executeScript
-  me.executeScript = function(tabId, details, callback) {
+  this.executeScript = function(tabId, details, callback) {
     console.debug("tabs.executeScript(..) called");
   };
 
   //----------------------------------------------------------------------------
   // aji.tabs.get
-  me.get = function(tabId, callback) {
+  this.get = function(tabId, callback) {
     console.debug("tabs.get(..) called");
   };
 
   //----------------------------------------------------------------------------
   // aji.tabs.getCurrent
-  me.getCurrent = function(callback) {
+  this.getCurrent = function(callback) {
     console.debug("tabs.getCurrent(..) called");
   };
 
   //----------------------------------------------------------------------------
   // aji.tabs.highlight
-  me.highlight = function(highlightInfo, callback) {
+  this.highlight = function(highlightInfo, callback) {
     console.debug("tabs.highlight(..) called");
   };
 
   //----------------------------------------------------------------------------
   // aji.tabs.insertCSS
-  me.insertCSS = function(tabId, details, callback) {
+  this.insertCSS = function(tabId, details, callback) {
     console.debug("tabs.insertCSS(..) called");
   };
 
   //----------------------------------------------------------------------------
   // aji.tabs.move
-  me.move = function(tabIds, moveProperties, callback) {
+  this.move = function(tabIds, moveProperties, callback) {
     console.debug("tabs.move(..) called");
   };
 
   //----------------------------------------------------------------------------
   // aji.tabs.query
-  me.query = function(queryInfo, callback) {
+  this.query = function(queryInfo, callback) {
     console.debug("tabs.query(..) called");
   };
 
   //----------------------------------------------------------------------------
   // aji.tabs.reload
-  me.reload = function(tabId, reloadProperties, callback) {
+  this.reload = function(tabId, reloadProperties, callback) {
     console.debug("tabs.reload(..) called");
   };
 
   //----------------------------------------------------------------------------
   // aji.tabs.remove
-  me.remove = function(tabIds, callback) {
+  this.remove = function(tabIds, callback) {
     console.debug("tabs.remove(..) called");
   };
 
   //----------------------------------------------------------------------------
   // aji.tabs.sendMessage
-  me.sendMessage = function(tabId, message, responseCallback) {
+  this.sendMessage = function(tabId, message, responseCallback) {
     console.debug("tabs.sendMessage(..) called");
   };
 
   //----------------------------------------------------------------------------
   // aji.tabs.update
-  me.update = function(tabId, updateProperties, callback) {
+  this.update = function(tabId, updateProperties, callback) {
     console.debug("tabs.update(..) called");
   };
 
   //============================================================================
   // events
-    
-  me.onActivated = new Event();
-  me.onAttached = new Event();
-  me.onCreated = new Event();
-  me.onDetached = new Event();
-  me.onHighlighted = new Event();
-  me.onMoved = new Event();
-  me.onRemoved = new Event();
-  me.onUpdated = new Event();
+
+  this.onActivated = new Event('tabs.onActivated', instanceID);
+  this.onAttached = new Event('tabs.onAttached', instanceID);
+  this.onCreated = new Event('tabs.onCreated', instanceID);
+  this.onDetached = new Event('tabs.onDetached', instanceID);
+  this.onHighlighted = new Event('tabs.onHighlighted', instanceID);
+  this.onMoved = new Event('tabs.onMoved', instanceID);
+  this.onRemoved = new Event('tabs.onRemoved', instanceID);
+  this.onUpdated = new Event('tabs.onUpdated', instanceID);
 
   //============================================================================
   //============================================================================
   // main initialization
 
+  })();
+}
 
-}).call(this, exports);
+exports.releaseAPI = function(instanceID) {
+  addonAPI.removeEventObject('tabs.onActivated', instanceID);
+  addonAPI.removeEventObject('tabs.onAttached', instanceID);
+  addonAPI.removeEventObject('tabs.onCreated', instanceID);
+  addonAPI.removeEventObject('tabs.onDetached', instanceID);
+  addonAPI.removeEventObject('tabs.onHighlighted', instanceID);
+  addonAPI.removeEventObject('tabs.onMoved', instanceID);
+  addonAPI.removeEventObject('tabs.onRemoved', instanceID);
+  addonAPI.removeEventObject('tabs.onUpdated', instanceID);
+}

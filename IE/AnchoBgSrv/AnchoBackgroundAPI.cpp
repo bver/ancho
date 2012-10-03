@@ -9,6 +9,8 @@
 #include "AnchoAddonService.h"
 //#include "AnchoBackgroundConsole.h"
 
+#include <algorithm>
+
 /*============================================================================
  * class CAnchoBackgroundAPI
  */
@@ -96,21 +98,21 @@ HRESULT CAnchoBackgroundAPI::Init(LPCTSTR lpszThisPath, LPCTSTR lpszRootURL, BST
 }
 
 //----------------------------------------------------------------------------
-//  
+//
 HRESULT CAnchoBackgroundAPI::FinalConstruct()
 {
   return S_OK;
 }
 
 //----------------------------------------------------------------------------
-//  
+//
 void CAnchoBackgroundAPI::FinalRelease()
 {
   UnInit();
 }
 
 //----------------------------------------------------------------------------
-//  
+//
 void CAnchoBackgroundAPI::UnInit()
 {
   if (m_BackgroundWindow)
@@ -136,7 +138,7 @@ void CAnchoBackgroundAPI::UnInit()
 }
 
 //----------------------------------------------------------------------------
-//  
+//
 HRESULT CAnchoBackgroundAPI::GetLogWindow(CLogWindowComObject * & pLogWindow)
 {
   if (!m_LogWindow)
@@ -147,7 +149,7 @@ HRESULT CAnchoBackgroundAPI::GetLogWindow(CLogWindowComObject * & pLogWindow)
 }
 
 //----------------------------------------------------------------------------
-//  
+//
 HRESULT CAnchoBackgroundAPI::GetContentAPI(ULONG ulInstanceID, LPDISPATCH* ppDisp)
 {
   ENSURE_RETVAL(ppDisp);
@@ -170,7 +172,7 @@ HRESULT CAnchoBackgroundAPI::GetContentAPI(ULONG ulInstanceID, LPDISPATCH* ppDis
 }
 
 //----------------------------------------------------------------------------
-//  
+//
 HRESULT CAnchoBackgroundAPI::ReleaseContentAPI(ULONG ulInstanceID)
 {
   if (!m_Magpie)
@@ -189,7 +191,7 @@ HRESULT CAnchoBackgroundAPI::ReleaseContentAPI(ULONG ulInstanceID)
 }
 
 //----------------------------------------------------------------------------
-//  
+//
 BOOL CAnchoBackgroundAPI::GetURL(CStringW & sURL)
 {
   CString s;
@@ -204,7 +206,7 @@ BOOL CAnchoBackgroundAPI::GetURL(CStringW & sURL)
 }
 
 //----------------------------------------------------------------------------
-//  
+//
 HRESULT CAnchoBackgroundAPI::GetMainModuleExportsScript(CIDispatchHelper & script)
 {
   // get the main api module
@@ -223,7 +225,7 @@ HRESULT CAnchoBackgroundAPI::GetMainModuleExportsScript(CIDispatchHelper & scrip
 //----------------------------------------------------------------------------
 
 //----------------------------------------------------------------------------
-//  
+//
 STDMETHODIMP CAnchoBackgroundAPI::get_id(BSTR * pVal)
 {
   ENSURE_RETVAL(pVal);
@@ -231,7 +233,7 @@ STDMETHODIMP CAnchoBackgroundAPI::get_id(BSTR * pVal)
 }
 
 //----------------------------------------------------------------------------
-//  
+//
 STDMETHODIMP CAnchoBackgroundAPI::get_guid(BSTR * pVal)
 {
   ENSURE_RETVAL(pVal);
@@ -240,7 +242,7 @@ STDMETHODIMP CAnchoBackgroundAPI::get_guid(BSTR * pVal)
 }
 
 //----------------------------------------------------------------------------
-//  
+//
 STDMETHODIMP CAnchoBackgroundAPI::startBackgroundWindow(BSTR bsPartialURL)
 {
   // it's safe to call this method multiple times, anyhow the window
@@ -281,7 +283,7 @@ STDMETHODIMP CAnchoBackgroundAPI::startBackgroundWindow(BSTR bsPartialURL)
 }
 
 //----------------------------------------------------------------------------
-//  
+//
 STDMETHODIMP CAnchoBackgroundAPI::addEventObject(BSTR aEventName, INT aInstanceId, LPDISPATCH aListener)
 {
   try {
@@ -322,11 +324,38 @@ STDMETHODIMP CAnchoBackgroundAPI::removeEventObject(BSTR aEventName, INT aInstan
   return S_OK;
 }
 //----------------------------------------------------------------------------
+//
+struct InvokeEventFtor
+{
+  InvokeEventFtor(VARIANT *aVarParams, int aParamCount): mVarParams(aVarParams), mParamCount(aParamCount) {}
+  VARIANT *mVarParams;
+  int mParamCount;
+  void operator()(CAnchoBackgroundAPI::EventObjectRecord &aRec) {
+    aRec.listener.InvokeN((DISPID)0, mVarParams, mParamCount, 0);
+  }
+};
+STDMETHODIMP CAnchoBackgroundAPI::invokeEvent(BSTR aEventName, VARIANT *aVarParams, int aParamCount)
+{
+  try {
+    std::wstring eventName(aEventName, SysStringLen(aEventName));
+    EventObjectMap::iterator it = m_EventObjects.find(eventName);
+    if (it == m_EventObjects.end()) {
+      return S_OK;
+    }
+    std::for_each(it->second.begin(), it->second.end(), InvokeEventFtor(aVarParams, aParamCount));
+  } catch (...) {
+    ATLTRACE(L"Invoking event objects %s failed", aEventName);
+    return E_FAIL;
+  }
+  return S_OK;
+}
+
+//----------------------------------------------------------------------------
 //  _IMagpieLoggerEvents methods
 //----------------------------------------------------------------------------
 
 //----------------------------------------------------------------------------
-//  
+//
 STDMETHODIMP_(void) CAnchoBackgroundAPI::OnLog(VARIANT val, BSTR bsModuleID)
 {
   if (m_LogWindow)
@@ -336,7 +365,7 @@ STDMETHODIMP_(void) CAnchoBackgroundAPI::OnLog(VARIANT val, BSTR bsModuleID)
 }
 
 //----------------------------------------------------------------------------
-//  
+//
 STDMETHODIMP_(void) CAnchoBackgroundAPI::OnDebug(VARIANT val, BSTR bsModuleID)
 {
   if (m_LogWindow)
@@ -346,7 +375,7 @@ STDMETHODIMP_(void) CAnchoBackgroundAPI::OnDebug(VARIANT val, BSTR bsModuleID)
 }
 
 //----------------------------------------------------------------------------
-//  
+//
 STDMETHODIMP_(void) CAnchoBackgroundAPI::OnInfo(VARIANT val, BSTR bsModuleID)
 {
   if (m_LogWindow)
@@ -356,7 +385,7 @@ STDMETHODIMP_(void) CAnchoBackgroundAPI::OnInfo(VARIANT val, BSTR bsModuleID)
 }
 
 //----------------------------------------------------------------------------
-//  
+//
 STDMETHODIMP_(void) CAnchoBackgroundAPI::OnWarn(VARIANT val, BSTR bsModuleID)
 {
   if (m_LogWindow)
@@ -366,7 +395,7 @@ STDMETHODIMP_(void) CAnchoBackgroundAPI::OnWarn(VARIANT val, BSTR bsModuleID)
 }
 
 //----------------------------------------------------------------------------
-//  
+//
 STDMETHODIMP_(void) CAnchoBackgroundAPI::OnError(VARIANT val, BSTR bsModuleID)
 {
   if (m_LogWindow)

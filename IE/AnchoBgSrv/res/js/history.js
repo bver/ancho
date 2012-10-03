@@ -11,7 +11,8 @@ var Event = require("Event.js").Event;
   
 //******************************************************************************
 //* main closure
-(function(me){
+exports.createAPI = function(instanceID) {
+  return new (function() {
   //============================================================================
   // private variables
   
@@ -21,49 +22,54 @@ var Event = require("Event.js").Event;
     
   //----------------------------------------------------------------------------
   // aji.history.addUrl
-  me.addUrl = function(details, callback) {
+  this.addUrl = function(details, callback) {
     console.debug("history.addUrl(..) called");
   };
 
   //----------------------------------------------------------------------------
   // aji.history.deleteAll
-  me.deleteAll = function(callback) {
+  this.deleteAll = function(callback) {
     console.debug("history.deleteAll(..) called");
   };
 
   //----------------------------------------------------------------------------
   // aji.history.deleteRange
-  me.deleteRange = function(range, callback) {
+  this.deleteRange = function(range, callback) {
     console.debug("history.deleteRange(..) called");
   };
 
   //----------------------------------------------------------------------------
   // aji.history.deleteUrl
-  me.deleteUrl = function(details, callback) {
+  this.deleteUrl = function(details, callback) {
     console.debug("history.deleteUrl(..) called");
   };
 
   //----------------------------------------------------------------------------
   // aji.history.getVisits
-  me.getVisits = function(details, callback) {
+  this.getVisits = function(details, callback) {
     console.debug("history.getVisits(..) called");
   };
 
   //----------------------------------------------------------------------------
   // aji.history.search
-  me.search = function(query, callback) {
+  this.search = function(query, callback) {
     console.debug("history.search(..) called");
   };
 
   //============================================================================
   // events
-    
-  me.onVisitRemoved = new Event();
-  me.onVisited = new Event();
+
+  this.onVisitRemoved = new Event('history.onVisitRemoved', instanceID);
+  this.onVisited = new Event('history.onVisited', instanceID);
 
   //============================================================================
   //============================================================================
   // main initialization
 
+})();
+}
 
-}).call(this, exports);
+exports.releaseAPI = function(instanceID) {
+  addonAPI.removeEventObject('history.onVisitRemoved', instanceID);
+  addonAPI.removeEventObject('history.onVisited', instanceID);
+}

@@ -11,7 +11,8 @@ var Event = require("Event.js").Event;
   
 //******************************************************************************
 //* main closure
-(function(me){
+exports.createAPI = function(instanceID) {
+  return new (function() {
   //============================================================================
   // private variables
   
@@ -21,30 +22,40 @@ var Event = require("Event.js").Event;
     
   //----------------------------------------------------------------------------
   // aji.webNavigation.getAllFrames
-  me.getAllFrames = function(details, callback) {
+  this.getAllFrames = function(details, callback) {
     console.debug("webNavigation.getAllFrames(..) called");
   };
 
   //----------------------------------------------------------------------------
   // aji.webNavigation.getFrame
-  me.getFrame = function(details, callback) {
+  this.getFrame = function(details, callback) {
     console.debug("webNavigation.getFrame(..) called");
   };
 
   //============================================================================
   // events
-    
-  me.onBeforeNavigate = new Event();
-  me.onCommitted = new Event();
-  me.onCompleted = new Event();
-  me.onCreatedNavigationTarget = new Event();
-  me.onDOMContentLoaded = new Event();
-  me.onErrorOccurred = new Event();
-  me.onReferenceFragmentUpdated = new Event();
+
+  this.onBeforeNavigate = new Event('webNavigation.onBeforeNavigate', instanceID);
+  this.onCommitted = new Event('webNavigation.onCommitted', instanceID);
+  this.onCompleted = new Event('webNavigation.onCompleted', instanceID);
+  this.onCreatedNavigationTarget = new Event('webNavigation.onCreatedNavigationTarget', instanceID);
+  this.onDOMContentLoaded = new Event('webNavigation.onDOMContentLoaded', instanceID);
+  this.onErrorOccurred = new Event('webNavigation.onErrorOccurred', instanceID);
+  this.onReferenceFragmentUpdated = new Event('webNavigation.onReferenceFragmentUpdated', instanceID);
 
   //============================================================================
   //============================================================================
   // main initialization
 
+  })();
+}
 
-}).call(this, exports);
+exports.releaseAPI = function(instanceID) {
+  addonAPI.removeEventObject('webNavigation.onBeforeNavigate', instanceID);
+  addonAPI.removeEventObject('webNavigation.onCommitted', instanceID);
+  addonAPI.removeEventObject('webNavigation.onCompleted', instanceID);
+  addonAPI.removeEventObject('webNavigation.onCreatedNavigationTarget', instanceID);
+  addonAPI.removeEventObject('webNavigation.onDOMContentLoaded', instanceID);
+  addonAPI.removeEventObject('webNavigation.onErrorOccurred', instanceID);
+  addonAPI.removeEventObject('webNavigation.onReferenceFragmentUpdated', instanceID);
+}
