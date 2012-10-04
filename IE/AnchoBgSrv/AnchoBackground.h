@@ -78,6 +78,8 @@ public:
   // destroy everything here, so cleanup is done in FinalRelease().
   void AddonServiceLost();
 
+  STDMETHOD(invokeExternalEventObject)(BSTR aExtensionId, BSTR aEventName, LPDISPATCH aArgs);
+
 public:
   // -------------------------------------------------------------------------
   // IAnchoAddonBackground methods. See .idl for description.

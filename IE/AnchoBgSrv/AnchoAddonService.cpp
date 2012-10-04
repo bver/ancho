@@ -20,6 +20,19 @@ void CAnchoAddonService::OnAddonFinalRelease(BSTR bsID)
 
 //----------------------------------------------------------------------------
 //
+HRESULT CAnchoAddonService::invokeExternalEventObject(BSTR aExtensionId, BSTR aEventName, LPDISPATCH aArgs)
+{
+  CAnchoAddonBackgroundComObject* pObject = NULL;
+
+  if (m_Objects.Lookup(aExtensionId, pObject))
+  {
+    return pObject->invokeExternalEventObject(aExtensionId, aEventName, aArgs);
+  }
+  return S_OK;
+}
+
+//----------------------------------------------------------------------------
+//
 HRESULT CAnchoAddonService::FinalConstruct()
 {
   // Get and store the path, this will be used in some places (e.g. to load

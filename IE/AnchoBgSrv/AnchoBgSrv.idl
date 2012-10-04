@@ -82,6 +82,9 @@ library AnchoBgSrvLib
     HRESULT addEventObject([in]BSTR aEventName, [in] INT aInstanceId, [in] LPDISPATCH aListener);
     HRESULT removeEventObject([in]BSTR aEventName, [in] INT aInstanceId);
 
+    HRESULT invokeEventObject([in] BSTR aEventName, [in] INT aSkipInstance, [in] LPDISPATCH aArgs);
+    HRESULT invokeExternalEventObject([in] BSTR aExtensionId, [in] BSTR aEventName, [in] LPDISPATCH aArgs);
+
   };
 
 /*==========================================================================*/

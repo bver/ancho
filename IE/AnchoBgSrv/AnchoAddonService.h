@@ -21,6 +21,7 @@
 struct CAnchoAddonServiceCallback
 {
   virtual void OnAddonFinalRelease(BSTR bsID) = 0;
+  virtual HRESULT invokeExternalEventObject(BSTR aExtensionId, BSTR aEventName, LPDISPATCH aArgs) = 0;
 };
 
 /*============================================================================
@@ -67,6 +68,8 @@ public:
 
   // CAnchoAddonServiceCallback implementation
   virtual void OnAddonFinalRelease(BSTR bsID);
+
+  HRESULT invokeExternalEventObject(BSTR aExtensionId, BSTR aEventName, LPDISPATCH aArgs);
 
 public:
   // -------------------------------------------------------------------------

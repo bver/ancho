@@ -70,7 +70,7 @@ var contentInstances = {};
 // be part of the content API.
 function contentAPI(instanceID) {
   this.extension = require("extension.js").createAPI(instanceID);
-
+  this.console = console;// TODO: remove
   console.debug("Content API created: [" + instanceID + "]");
 }
 

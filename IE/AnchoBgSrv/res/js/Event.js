@@ -14,17 +14,7 @@
     var _eventName = eventName;
     var _instanceID = instanceID;
     console.debug('Created new event: ' + eventName + ' [' + instanceID + ']');
-
     var self = this;
-    addonAPI.addEventObject(eventName, instanceID, function() {
-      _fire.apply(self, arguments);
-    });
-
-    function _fire() {
-      for (var i = 0; i < _listeners.length; ++i) {
-        _listeners[i].apply(_listeners[i], arguments);
-      }
-    }
 
     function _findListener(listener) {
       for (var i = 0; i < _listeners.length; ++i) {
@@ -33,6 +23,13 @@
         }
       }
       return -1;
+    }
+
+    this.fire = function() {
+      //console.debug('Fire event ' + _eventName + ' - ' + _listeners.length + ' instance:' + _instanceID);
+      for (var i = 0; i < _listeners.length; ++i) {
+        _listeners[i].apply(_listeners[i], arguments);
+      }
     }
 
     this.addListener = function(callback) {
@@ -56,6 +53,12 @@
 
     this.hasListeners = function() {
       return _listeners.length > 0;
+    }
+
+    if (instanceID != undefined) { //register only events with assigned instanceID
+      addonAPI.addEventObject(eventName, instanceID, function() {
+        self.fire.apply(self, arguments);
+      });
     }
   };
 

@@ -25,7 +25,7 @@ LPCTSTR CAnchoBackgroundAPI::s_BackgroundLogIdentifyer = _T("background");
 
 //----------------------------------------------------------------------------
 //  Init
-HRESULT CAnchoBackgroundAPI::Init(LPCTSTR lpszThisPath, LPCTSTR lpszRootURL, BSTR bsID, LPCTSTR lpszGUID, LPCTSTR lpszPath)
+HRESULT CAnchoBackgroundAPI::Init(LPCTSTR lpszThisPath, LPCTSTR lpszRootURL, BSTR bsID, LPCTSTR lpszGUID, LPCTSTR lpszPath, CAnchoAddonServiceCallback *pAddonServiceCallback)
 {
   // set our ID
   m_bsID = bsID;
@@ -34,6 +34,9 @@ HRESULT CAnchoBackgroundAPI::Init(LPCTSTR lpszThisPath, LPCTSTR lpszRootURL, BST
   m_sRootURL = lpszRootURL;
 
   CString sPath(lpszPath);
+
+  // set service callback
+  m_pAddonServiceCallback = pAddonServiceCallback;
 
   // create logger window
   IF_FAILED_RET(CLogWindow::CreateLogWindow(&m_LogWindow.p));
@@ -316,23 +319,90 @@ STDMETHODIMP CAnchoBackgroundAPI::removeEventObject(BSTR aEventName, INT aInstan
 }
 //----------------------------------------------------------------------------
 //
-struct InvokeEventFunctor
+STDMETHODIMP CAnchoBackgroundAPI::invokeExternalEventObject(BSTR aExtensionId, BSTR aEventName, LPDISPATCH aArgs)
 {
-  InvokeEventFunctor(VARIANT *aVarParams, int aParamCount): mVarParams(aVarParams), mParamCount(aParamCount) {}
-  VARIANT *mVarParams;
-  int mParamCount;
+  return m_pAddonServiceCallback->invokeExternalEventObject(aExtensionId, aEventName, aArgs);
+}
+//----------------------------------------------------------------------------
+//
+STDMETHODIMP CAnchoBackgroundAPI::invokeEventObject(BSTR aEventName, INT aSkipInstance, LPDISPATCH aArgs)
+{
+  ArgumentVector args;
+
+  HRESULT hr = constructArgumentVector(aArgs, args);
+  if (FAILED(hr))
+      return hr;
+
+  return invokeEvent(aEventName, aSkipInstance, args);
+}
+//----------------------------------------------------------------------------
+//
+struct InvokeEventFtor
+{
+  InvokeEventFtor(CAnchoBackgroundAPI::ArgumentVector &aArgs, int aSkipInstance): mArgs(aArgs), mSkipInstance(aSkipInstance) { }
+  CAnchoBackgroundAPI::ArgumentVector &mArgs;
+  int mSkipInstance;
   void operator()(CAnchoBackgroundAPI::EventObjectRecord &aRec) {
-    aRec.listener.InvokeN((DISPID)0, mVarParams, mParamCount, 0);
+    if (aRec.instanceID != mSkipInstance) {
+      aRec.listener.InvokeN((DISPID)0, mArgs.size()>0? &(mArgs[0]): NULL, mArgs.size(), 0);
+    }
   }
 };
-STDMETHODIMP CAnchoBackgroundAPI::invokeEvent(BSTR aEventName, VARIANT *aVarParams, int aParamCount)
+
+STDMETHODIMP CAnchoBackgroundAPI::invokeEvent(BSTR aEventName, INT aSkipInstance, CAnchoBackgroundAPI::ArgumentVector &aArgs)
 {
   std::wstring eventName(aEventName, SysStringLen(aEventName));
   EventObjectMap::iterator it = m_EventObjects.find(eventName);
   if (it == m_EventObjects.end()) {
     return S_OK;
   }
-  std::for_each(it->second.begin(), it->second.end(), InvokeEventFunctor(aVarParams, aParamCount));
+  std::for_each(it->second.begin(), it->second.end(), InvokeEventFtor(aArgs, aSkipInstance));
+  return S_OK;
+}
+
+HRESULT CAnchoBackgroundAPI::constructArgumentVector(LPDISPATCH aArgsDispatch, ArgumentVector &aArgsVector)
+{
+  CComQIPtr<IDispatchEx> dispexArray(aArgsDispatch);
+  if (!dispexArray)
+      return E_NOINTERFACE;
+
+  // Get array length DISPID
+  DISPID dispidLength;
+  CComBSTR bstrLength(L"length");
+  HRESULT hr = dispexArray->GetDispID(bstrLength, fdexNameCaseSensitive, &dispidLength);
+  if (FAILED(hr))
+      return hr;
+
+   // Get length value using InvokeEx()
+  CComVariant varLength;
+  DISPPARAMS dispParamsNoArgs = {0};
+  hr = dispexArray->InvokeEx(dispidLength, LOCALE_USER_DEFAULT, DISPATCH_PROPERTYGET, &dispParamsNoArgs, &varLength, NULL, NULL);
+  if (FAILED(hr))
+      return hr;
+
+  ATLASSERT(varLength.vt == VT_I4);
+  const int count = varLength.intVal;
+
+  // For each element in source array:
+  for (int i = count-1; i >= 0; --i) //values are reverted
+  {
+      CString strIndex;
+      strIndex.Format(L"%d", i);
+
+      // Convert to BSTR, as GetDispID() wants BSTR's
+      CComBSTR bstrIndex(strIndex);
+      DISPID dispidIndex;
+      hr = dispexArray->GetDispID(bstrIndex, fdexNameCaseSensitive, &dispidIndex);
+      if (FAILED(hr))
+          break;
+
+      // Get array item value using InvokeEx()
+      CComVariant varItem;
+      hr = dispexArray->InvokeEx(dispidIndex, LOCALE_USER_DEFAULT, DISPATCH_PROPERTYGET, &dispParamsNoArgs, &varItem, NULL, NULL);
+      if (FAILED(hr))
+          break;
+      aArgsVector.push_back(varItem);
+  }
   return S_OK;
 }
 

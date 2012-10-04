@@ -11,19 +11,30 @@
   }
   </script>
   <script src="./vendor/require.js"></script>
-  <script src="./background.js"></script>
   <script src="./ConsoleReporter.js"></script>
 </head>
 <body>
 
 <script>
-  require([
-    'spec/chromeEvents'
-  ], function() {
-    jasmine.getEnv().addReporter(new jasmine.ConsoleReporter());
+  require(
+  [
+    'spec/chromeEvents',
+    'spec/chromeExtension'
+  ],
+  function() {
+    jasmine.getEnv().addReporter(new ConsoleReporter(console));
     jasmine.getEnv().execute();
   });
+  
+  console.log('Adding listener to chrome.extension.onMessage');
+  chrome.extension.onMessage.addListener( function(msg, sender, sendResponse){
+      console.log('Message received : ' + msg );
+      if (sendResponse) {
+        sendResponse(); 
+      }
+  });
 </script>
+
 
 </body>
 </html>

@@ -73,7 +73,7 @@ HRESULT CAnchoAddonBackground::Init(
     RegisterTemporaryFolderHandler(s_AnchoProtocolHandlerScheme, m_bsID, sPath));
 
   // init API
-  IF_FAILED_RET(m_BackgroundAPI.Init(lpszThisPath, sRootURL, bsID, sGUID, sPath));
+  IF_FAILED_RET(m_BackgroundAPI.Init(lpszThisPath, sRootURL, bsID, sGUID, sPath, pAddonServiceCallback));
 
   return S_OK;
 }
@@ -108,6 +108,12 @@ void CAnchoAddonBackground::AddonServiceLost()
   m_pAddonServiceCallback = NULL;
 }
 
+//----------------------------------------------------------------------------
+//
+STDMETHODIMP CAnchoAddonBackground::invokeExternalEventObject(BSTR aExtensionId, BSTR aEventName, LPDISPATCH aArgs)
+{
+  return m_BackgroundAPI.invokeEventObject(aEventName, -1, aArgs);
+}
 //----------------------------------------------------------------------------
 //  IAnchoAddonBackground methods
 //----------------------------------------------------------------------------
