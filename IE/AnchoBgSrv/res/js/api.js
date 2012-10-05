@@ -54,7 +54,7 @@ exports.chrome = {};
   chrome.webRequest = require("webRequest.js").createAPI(instanceID);
   chrome.webstore = require("webstore.js");
   chrome.windows = require("windows.js").createAPI(instanceID); ;
-})(exports.chrome,0)
+})(exports.chrome, 0)
 
 exports.console = console;
 //------------------------------------------------------------------------------
@@ -99,7 +99,7 @@ exports.releaseContentAPI = function(instanceID) {
     console.debug("Content API FOUND and released: [" + instanceID + "]");
   }
 };
-console.log('asdas        ' + exports.chrome.bookmarks.onChanged);
+
 //------------------------------------------------------------------------------
 // MAIN
 //------------------------------------------------------------------------------
