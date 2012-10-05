@@ -247,13 +247,11 @@ STDMETHODIMP CAnchoBackgroundAPI::startBackgroundWindow(BSTR bsPartialURL)
 {
   // it's safe to call this method multiple times, anyhow the window
   // will be created only once
-  if (m_BackgroundWindow)
-  {
+  if (m_BackgroundWindow) {
     return S_OK;
   }
   CStringW sURL(bsPartialURL);
-  if (!GetURL(sURL))
-  {
+  if (!GetURL(sURL)) {
     return E_FAIL;
   }
 
@@ -266,15 +264,13 @@ STDMETHODIMP CAnchoBackgroundAPI::startBackgroundWindow(BSTR bsPartialURL)
 
   CComVariant chromeVT;
   IF_FAILED_RET(mainModuleExports.GetPropertyByName(s_AnchoBackgroundPageAPIName, &chromeVT));
-  if (chromeVT.vt != VT_DISPATCH)
-  {
+  if (chromeVT.vt != VT_DISPATCH) {
     return E_FAIL;
   }
 
   CComVariant consoleVT;
   IF_FAILED_RET(mainModuleExports.GetPropertyByName(s_AnchoBackgroundConsoleObjectName, &consoleVT));
-  if (consoleVT.vt != VT_DISPATCH)
-  {
+  if (consoleVT.vt != VT_DISPATCH) {
     return E_FAIL;
   }
 
@@ -291,18 +287,18 @@ STDMETHODIMP CAnchoBackgroundAPI::addEventObject(BSTR aEventName, INT aInstanceI
 
     EventObjectList &managers = m_EventObjects[eventName];
     managers.push_back(EventObjectRecord(eventName, aInstanceId, aListener));
-  } catch (...) {
-    ATLTRACE(L"Adding event object %s::%d failed", aEventName, aInstanceId);
+  } catch (std::bad_alloc &) {
+    ATLTRACE(L"Adding event object %s::%d failed : %s", aEventName, aInstanceId);
     return E_FAIL;
   }
   return S_OK;
 }
 
 //----------------------------------------------------------------------------
-//  
-struct RemoveEventFtor
+//
+struct FindEventByInstanceIdFunctor
 {
-  RemoveEventFtor(int aInstanceId): instanceId(aInstanceId) {}
+  FindEventByInstanceIdFunctor(int aInstanceId): instanceId(aInstanceId) {}
   int instanceId;
   bool operator()(const CAnchoBackgroundAPI::EventObjectRecord &aRec) {
     return aRec.instanceID == instanceId;
@@ -310,24 +306,19 @@ struct RemoveEventFtor
 };
 STDMETHODIMP CAnchoBackgroundAPI::removeEventObject(BSTR aEventName, INT aInstanceId)
 {
-  try {
-    std::wstring eventName(aEventName, SysStringLen(aEventName));
-    EventObjectMap::iterator it = m_EventObjects.find(eventName);
-    if (it == m_EventObjects.end()) {
-      return S_OK;
-    }
-    it->second.remove_if(RemoveEventFtor(aInstanceId));
-  } catch (...) {
-    ATLTRACE(L"Removing event object %s::%d failed", aEventName, aInstanceId);
-    return E_FAIL;
+  std::wstring eventName(aEventName, SysStringLen(aEventName));
+  EventObjectMap::iterator it = m_EventObjects.find(eventName);
+  if (it == m_EventObjects.end()) {
+    return S_OK;
   }
+  it->second.remove_if(FindEventByInstanceIdFunctor(aInstanceId));
   return S_OK;
 }
 //----------------------------------------------------------------------------
 //
-struct InvokeEventFtor
+struct InvokeEventFunctor
 {
-  InvokeEventFtor(VARIANT *aVarParams, int aParamCount): mVarParams(aVarParams), mParamCount(aParamCount) {}
+  InvokeEventFunctor(VARIANT *aVarParams, int aParamCount): mVarParams(aVarParams), mParamCount(aParamCount) {}
   VARIANT *mVarParams;
   int mParamCount;
   void operator()(CAnchoBackgroundAPI::EventObjectRecord &aRec) {
@@ -336,17 +327,12 @@ struct InvokeEventFtor
 };
 STDMETHODIMP CAnchoBackgroundAPI::invokeEvent(BSTR aEventName, VARIANT *aVarParams, int aParamCount)
 {
-  try {
-    std::wstring eventName(aEventName, SysStringLen(aEventName));
-    EventObjectMap::iterator it = m_EventObjects.find(eventName);
-    if (it == m_EventObjects.end()) {
-      return S_OK;
-    }
-    std::for_each(it->second.begin(), it->second.end(), InvokeEventFtor(aVarParams, aParamCount));
-  } catch (...) {
-    ATLTRACE(L"Invoking event objects %s failed", aEventName);
-    return E_FAIL;
+  std::wstring eventName(aEventName, SysStringLen(aEventName));
+  EventObjectMap::iterator it = m_EventObjects.find(eventName);
+  if (it == m_EventObjects.end()) {
+    return S_OK;
   }
+  std::for_each(it->second.begin(), it->second.end(), InvokeEventFunctor(aVarParams, aParamCount));
   return S_OK;
 }
 

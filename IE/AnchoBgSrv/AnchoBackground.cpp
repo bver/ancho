@@ -79,7 +79,7 @@ HRESULT CAnchoAddonBackground::Init(
 }
 
 //----------------------------------------------------------------------------
-//  
+//
 HRESULT CAnchoAddonBackground::FinalConstruct()
 {
   m_pAddonServiceCallback = NULL;
@@ -87,7 +87,7 @@ HRESULT CAnchoAddonBackground::FinalConstruct()
 }
 
 //----------------------------------------------------------------------------
-//  
+//
 void CAnchoAddonBackground::FinalRelease()
 {
   m_BackgroundAPI.UnInit();
@@ -102,7 +102,7 @@ void CAnchoAddonBackground::FinalRelease()
 }
 
 //----------------------------------------------------------------------------
-//  
+//
 void CAnchoAddonBackground::AddonServiceLost()
 {
   m_pAddonServiceCallback = NULL;
@@ -113,7 +113,7 @@ void CAnchoAddonBackground::AddonServiceLost()
 //----------------------------------------------------------------------------
 
 //----------------------------------------------------------------------------
-//  
+//
 STDMETHODIMP CAnchoAddonBackground::AdviseInstance(ULONG * pulInstanceID)
 {
   ENSURE_RETVAL(pulInstanceID);
@@ -122,21 +122,21 @@ STDMETHODIMP CAnchoAddonBackground::AdviseInstance(ULONG * pulInstanceID)
 }
 
 //----------------------------------------------------------------------------
-//  
+//
 STDMETHODIMP CAnchoAddonBackground::UnadviseInstance(ULONG ulInstanceID)
 {
   return m_BackgroundAPI.ReleaseContentAPI(ulInstanceID);
 }
 
 //----------------------------------------------------------------------------
-//  
+//
 STDMETHODIMP CAnchoAddonBackground::GetContentAPI(ULONG ulInstanceID, LPDISPATCH* ppDisp)
 {
   return m_BackgroundAPI.GetContentAPI(ulInstanceID, ppDisp);
 }
 
 //----------------------------------------------------------------------------
-//  
+//
 STDMETHODIMP CAnchoAddonBackground::GetManifest(LPDISPATCH* ppDisp)
 {
   ENSURE_RETVAL(ppDisp);
@@ -148,7 +148,7 @@ STDMETHODIMP CAnchoAddonBackground::GetManifest(LPDISPATCH* ppDisp)
 //----------------------------------------------------------------------------
 
 //----------------------------------------------------------------------------
-//  
+//
 STDMETHODIMP CAnchoAddonBackground::log(BSTR bsSource, BSTR bsModuleID, VARIANT val)
 {
   CComPtr<CLogWindowComObject> logWindow;
@@ -157,7 +157,7 @@ STDMETHODIMP CAnchoAddonBackground::log(BSTR bsSource, BSTR bsModuleID, VARIANT 
 }
 
 //----------------------------------------------------------------------------
-//  
+//
 STDMETHODIMP CAnchoAddonBackground::debug(BSTR bsSource, BSTR bsModuleID, VARIANT val)
 {
   CComPtr<CLogWindowComObject> logWindow;
@@ -166,7 +166,7 @@ STDMETHODIMP CAnchoAddonBackground::debug(BSTR bsSource, BSTR bsModuleID, VARIAN
 }
 
 //----------------------------------------------------------------------------
-//  
+//
 STDMETHODIMP CAnchoAddonBackground::info(BSTR bsSource, BSTR bsModuleID, VARIANT val)
 {
   CComPtr<CLogWindowComObject> logWindow;
@@ -175,7 +175,7 @@ STDMETHODIMP CAnchoAddonBackground::info(BSTR bsSource, BSTR bsModuleID, VARIANT
 }
 
 //----------------------------------------------------------------------------
-//  
+//
 STDMETHODIMP CAnchoAddonBackground::warn(BSTR bsSource, BSTR bsModuleID, VARIANT val)
 {
   CComPtr<CLogWindowComObject> logWindow;
@@ -184,7 +184,7 @@ STDMETHODIMP CAnchoAddonBackground::warn(BSTR bsSource, BSTR bsModuleID, VARIANT
 }
 
 //----------------------------------------------------------------------------
-//  
+//
 STDMETHODIMP CAnchoAddonBackground::error(BSTR bsSource, BSTR bsModuleID, VARIANT val)
 {
   CComPtr<CLogWindowComObject> logWindow;

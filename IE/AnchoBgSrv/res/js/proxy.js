@@ -1,14 +1,17 @@
 /******************************************************************************
  * proxy.js
  * Part of Ancho browser extension framework
- * Implements aji.proxy
+ * Implements chrome.proxy
  * Copyright 2012 Salsita software (http://www.salsitasoft.com).
  ******************************************************************************/
 
 //******************************************************************************
 //* requires
 var Event = require("Event.js").Event;
+var EventFactory = require("utils.js").EventFactory;
 
+var EVENT_LIST = ['onProxyError'];
+var API_NAME = 'proxy';
 //******************************************************************************
 //* main closure
 exports.createAPI = function(instanceID) {
@@ -24,7 +27,7 @@ exports.createAPI = function(instanceID) {
   //============================================================================
   // events
 
-  this.onProxyError = new Event('proxy.onProxyError', instanceID);
+  EventFactory.createEvents(this, instanceID, API_NAME, EVENT_LIST);
 
   //============================================================================
   //============================================================================
@@ -35,5 +38,5 @@ exports.createAPI = function(instanceID) {
 }
 
 exports.releaseAPI = function(instanceID) {
-  addonAPI.removeEventObject('proxy.onProxyError', instanceID);
+  EventFactory.releaseEvents(instanceID, API_NAME, EVENT_LIST);
 }

@@ -37,36 +37,37 @@ IDR_SCRIPTSERVICE       REGISTRY                "AnchoAddonService.rgs"
 //
 
 API.JS                  HTML                    "res\\js\\api.js"
-bookmarks.js                  HTML                    "res\\js\\bookmarks.js"
-Event.js                  HTML                    "res\\js\\Event.js"
-browserAction.js                  HTML                    "res\\js\\browserAction.js"
-browsingData.js                  HTML                    "res\\js\\browsingData.js"
-contentSettings.js                  HTML                    "res\\js\\contentSettings.js"
-contextMenus.js                  HTML                    "res\\js\\contextMenus.js"
-cookies.js                  HTML                    "res\\js\\cookies.js"
-extension.js                  HTML                    "res\\js\\extension.js"
-fileBrowserHandler.js                  HTML                    "res\\js\\fileBrowserHandler.js"
-history.js                  HTML                    "res\\js\\history.js"
-i18n.js                  HTML                    "res\\js\\i18n.js"
-idle.js                  HTML                    "res\\js\\idle.js"
-management.js                  HTML                    "res\\js\\management.js"
-omnibox.js                  HTML                    "res\\js\\omnibox.js"
-pageAction.js                  HTML                    "res\\js\\pageAction.js"
-pageCapture.js                  HTML                    "res\\js\\pageCapture.js"
-permissions.js                  HTML                    "res\\js\\permissions.js"
-privacy.js                  HTML                    "res\\js\\privacy.js"
-proxy.js                  HTML                    "res\\js\\proxy.js"
-storage.js                  HTML                    "res\\js\\storage.js"
-tabs.js                  HTML                    "res\\js\\tabs.js"
-topSites.js                  HTML                    "res\\js\\topSites.js"
-tts.js                  HTML                    "res\\js\\tts.js"
-ttsEngine.js                  HTML                    "res\\js\\ttsEngine.js"
-webNavigation.js                  HTML                    "res\\js\\webNavigation.js"
-webRequest.js                  HTML                    "res\\js\\webRequest.js"
-webstore.js                  HTML                    "res\\js\\webstore.js"
-windows.js                  HTML                    "res\\js\\windows.js"
+BOOKMARKS.JS            HTML                    "res\\js\\bookmarks.js"
+EVENT.JS                HTML                    "res\\js\\Event.js"
+BROWSERACTION.JS        HTML                    "res\\js\\browserAction.js"
+BROWSINGDATA.JS         HTML                    "res\\js\\browsingData.js"
+CONTENTSETTINGS.JS      HTML                    "res\\js\\contentSettings.js"
+CONTEXTMENUS.JS         HTML                    "res\\js\\contextMenus.js"
+COOKIES.JS              HTML                    "res\\js\\cookies.js"
+EXTENSION.JS            HTML                    "res\\js\\extension.js"
+FILEBROWSERHANDLER.JS   HTML                    "res\\js\\fileBrowserHandler.js"
+HISTORY.JS              HTML                    "res\\js\\history.js"
+I18N.JS                 HTML                    "res\\js\\i18n.js"
+IDLE.JS                 HTML                    "res\\js\\idle.js"
+MANAGEMENT.JS           HTML                    "res\\js\\management.js"
+OMNIBOX.JS              HTML                    "res\\js\\omnibox.js"
+PAGEACTION.JS           HTML                    "res\\js\\pageAction.js"
+PAGECAPTURE.JS          HTML                    "res\\js\\pageCapture.js"
+PERMISSIONS.JS          HTML                    "res\\js\\permissions.js"
+PRIVACY.JS              HTML                    "res\\js\\privacy.js"
+PROXY.JS                HTML                    "res\\js\\proxy.js"
+STORAGE.JS              HTML                    "res\\js\\storage.js"
+TABS.JS                 HTML                    "res\\js\\tabs.js"
+TOPSITES.JS             HTML                    "res\\js\\topSites.js"
+TTS.JS                  HTML                    "res\\js\\tts.js"
+TTSENGINE.JS            HTML                    "res\\js\\ttsEngine.js"
+WEBNAVIGATION.JS        HTML                    "res\\js\\webNavigation.js"
+WEBREQUEST.JS           HTML                    "res\\js\\webRequest.js"
+WEBSTORE.JS             HTML                    "res\\js\\webstore.js"
+WINDOWS.JS              HTML                    "res\\js\\windows.js"
 JQUERY.JS               HTML                    "res\\logwindow\\jquery.js"
 LOG.HTML                HTML                    "res\\logwindow\\log.html"
+UTILS.JS                HTML                    "res\\js\\utils.js"
 #endif    // German (Germany) resources
 /////////////////////////////////////////////////////////////////////////////
 
@@ -85,7 +86,7 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 // REGISTRY
 //
 
-IDR_ANCHOBGSRV            REGISTRY                "AnchoBgSrv.rgs"
+IDR_ANCHOBGSRV          REGISTRY                "AnchoBgSrv.rgs"
 
 #ifdef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
@@ -93,12 +94,12 @@ IDR_ANCHOBGSRV            REGISTRY                "AnchoBgSrv.rgs"
 // TEXTINCLUDE
 //
 
-1 TEXTINCLUDE
+1 TEXTINCLUDE 
 BEGIN
     "resource.h\0"
 END
 
-2 TEXTINCLUDE
+2 TEXTINCLUDE 
 BEGIN
     "#ifndef APSTUDIO_INVOKED\r\n"
     "#include ""targetver.h""\r\n"
@@ -107,7 +108,7 @@ BEGIN
     "\0"
 END
 
-3 TEXTINCLUDE
+3 TEXTINCLUDE 
 BEGIN
     "1 TYPELIB ""AnchoBgSrv.tlb""\r\n"
     "\0"
@@ -160,7 +161,7 @@ END
 // String Table
 //
 
-STRINGTABLE
+STRINGTABLE 
 BEGIN
     IDS_PROJNAME            "AnchoBgSrv"
     IDR_MAINFRAME           "Log"

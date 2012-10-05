@@ -1,63 +1,68 @@
 /******************************************************************************
  * management.js
  * Part of Ancho browser extension framework
- * Implements aji.management
+ * Implements chrome.management
  * Copyright 2012 Salsita software (http://www.salsitasoft.com).
  ******************************************************************************/
-  
+
 //******************************************************************************
 //* requires
 var Event = require("Event.js").Event;
-  
+var EventFactory = require("utils.js").EventFactory;
+
+var EVENT_LIST = ['onDisabled',
+                  'onEnabled',
+                  'onInstalled',
+                  'onUninstalled'];
+var API_NAME = 'management';
 //******************************************************************************
 //* main closure
-exports.createAPI = function(instanceID) {
-  return new (function() {
+var Management = function(instanceID) {
   //============================================================================
   // private variables
-  
+
 
   //============================================================================
   // public methods
-    
+
   //----------------------------------------------------------------------------
-  // aji.management.get
+  // chrome.management.get
   this.get = function(id, callback) {
     console.debug("management.get(..) called");
   };
 
   //----------------------------------------------------------------------------
-  // aji.management.getAll
+  // chrome.management.getAll
   this.getAll = function(callback) {
     console.debug("management.getAll(..) called");
   };
 
   //----------------------------------------------------------------------------
-  // aji.management.getPermissionWarningsById
+  // chrome.management.getPermissionWarningsById
   this.getPermissionWarningsById = function(id, callback) {
     console.debug("management.getPermissionWarningsById(..) called");
   };
 
   //----------------------------------------------------------------------------
-  // aji.management.getPermissionWarningsByManifest
+  // chrome.management.getPermissionWarningsByManifest
   this.getPermissionWarningsByManifest = function(manifestStr, callback) {
     console.debug("management.getPermissionWarningsByManifest(..) called");
   };
 
   //----------------------------------------------------------------------------
-  // aji.management.launchApp
+  // chrome.management.launchApp
   this.launchApp = function(id, callback) {
     console.debug("management.launchApp(..) called");
   };
 
   //----------------------------------------------------------------------------
-  // aji.management.setEnabled
+  // chrome.management.setEnabled
   this.setEnabled = function(id, enabled, callback) {
     console.debug("management.setEnabled(..) called");
   };
 
   //----------------------------------------------------------------------------
-  // aji.management.uninstall
+  // chrome.management.uninstall
   this.uninstall = function(id, callback) {
     console.debug("management.uninstall(..) called");
   };
@@ -65,20 +70,18 @@ exports.createAPI = function(instanceID) {
   //============================================================================
   // events
 
-  this.onDisabled = new Event('management.onDisabled', instanceID);
-  this.onEnabled = new Event('management.onEnabled', instanceID);
-  this.onInstalled = new Event('management.onInstalled', instanceID);
-  this.onUninstalled = new Event('management.onUninstalled', instanceID);
+  EventFactory.createEvents(this, instanceID, API_NAME, EVENT_LIST);
 
   //============================================================================
   //============================================================================
   // main initialization
-  })();
+
+}
+
+exports.createAPI = function(instanceID) {
+  return new Management(instanceID);
 }
 
 exports.releaseAPI = function(instanceID) {
-  addonAPI.removeEventObject('management.onDisabled', instanceID);
-  addonAPI.removeEventObject('management.onEnabled', instanceID);
-  addonAPI.removeEventObject('management.onInstalled', instanceID);
-  addonAPI.removeEventObject('management.onUninstalled', instanceID);
+  EventFactory.releaseEvents(instanceID, API_NAME, EVENT_LIST);
 }

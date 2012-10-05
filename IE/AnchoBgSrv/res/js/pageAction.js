@@ -8,11 +8,13 @@
 //******************************************************************************
 //* requires
 var Event = require("Event.js").Event;
+var EventFactory = require("utils.js").EventFactory;
 
+var EVENT_LIST = ['onClicked'];
+var API_NAME = 'pageAction';
 //******************************************************************************
 //* main closure
-exports.createAPI = function(instanceID) {
-  return new (function() {
+var PageAction = function(instanceID) {
   //============================================================================
   // private variables
 
@@ -21,43 +23,43 @@ exports.createAPI = function(instanceID) {
   // public methods
 
   //----------------------------------------------------------------------------
-  // aji.pageAction.getPopup
+  // chrome.pageAction.getPopup
   this.getPopup = function(details, callback) {
     console.debug("pageAction.getPopup(..) called");
   };
 
   //----------------------------------------------------------------------------
-  // aji.pageAction.getTitle
+  // chrome.pageAction.getTitle
   this.getTitle = function(details, callback) {
     console.debug("pageAction.getTitle(..) called");
   };
 
   //----------------------------------------------------------------------------
-  // aji.pageAction.hide
+  // chrome.pageAction.hide
   this.hide = function(tabId) {
     console.debug("pageAction.hide(..) called");
   };
 
   //----------------------------------------------------------------------------
-  // aji.pageAction.setIcon
+  // chrome.pageAction.setIcon
   this.setIcon = function(details) {
     console.debug("pageAction.setIcon(..) called");
   };
 
   //----------------------------------------------------------------------------
-  // aji.pageAction.setPopup
+  // chrome.pageAction.setPopup
   this.setPopup = function(details) {
     console.debug("pageAction.setPopup(..) called");
   };
 
   //----------------------------------------------------------------------------
-  // aji.pageAction.setTitle
+  // chrome.pageAction.setTitle
   this.setTitle = function(details) {
     console.debug("pageAction.setTitle(..) called");
   };
 
   //----------------------------------------------------------------------------
-  // aji.pageAction.show
+  // chrome.pageAction.show
   this.show = function(tabId) {
     console.debug("pageAction.show(..) called");
   };
@@ -65,15 +67,18 @@ exports.createAPI = function(instanceID) {
   //============================================================================
   // events
 
-  this.onClicked = new Event('pageAction.onClicked', instanceID);
+  EventFactory.createEvents(this, instanceID, API_NAME, EVENT_LIST);
 
   //============================================================================
   //============================================================================
   // main initialization
 
-})();
+}
+
+exports.createAPI = function(instanceID) {
+  return new PageAction(instanceID);
 }
 
 exports.releaseAPI = function(instanceID) {
-  addonAPI.removeEventObject('pageAction.onClicked', instanceID);
+  EventFactory.releaseEvents(instanceID, API_NAME, EVENT_LIST);
 }

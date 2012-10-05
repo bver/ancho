@@ -1,57 +1,59 @@
 /******************************************************************************
  * history.js
  * Part of Ancho browser extension framework
- * Implements aji.history
+ * Implements chrome.history
  * Copyright 2012 Salsita software (http://www.salsitasoft.com).
  ******************************************************************************/
-  
+
 //******************************************************************************
 //* requires
 var Event = require("Event.js").Event;
-  
+var EventFactory = require("utils.js").EventFactory;
+
+var EVENT_LIST = ['onVisitRemoved', 'onVisited'];
+var API_NAME = 'history';
 //******************************************************************************
 //* main closure
-exports.createAPI = function(instanceID) {
-  return new (function() {
+var History = function(instanceID) {
   //============================================================================
   // private variables
-  
+
 
   //============================================================================
   // public methods
-    
+
   //----------------------------------------------------------------------------
-  // aji.history.addUrl
+  // chrome.history.addUrl
   this.addUrl = function(details, callback) {
     console.debug("history.addUrl(..) called");
   };
 
   //----------------------------------------------------------------------------
-  // aji.history.deleteAll
+  // chrome.history.deleteAll
   this.deleteAll = function(callback) {
     console.debug("history.deleteAll(..) called");
   };
 
   //----------------------------------------------------------------------------
-  // aji.history.deleteRange
+  // chrome.history.deleteRange
   this.deleteRange = function(range, callback) {
     console.debug("history.deleteRange(..) called");
   };
 
   //----------------------------------------------------------------------------
-  // aji.history.deleteUrl
+  // chrome.history.deleteUrl
   this.deleteUrl = function(details, callback) {
     console.debug("history.deleteUrl(..) called");
   };
 
   //----------------------------------------------------------------------------
-  // aji.history.getVisits
+  // chrome.history.getVisits
   this.getVisits = function(details, callback) {
     console.debug("history.getVisits(..) called");
   };
 
   //----------------------------------------------------------------------------
-  // aji.history.search
+  // chrome.history.search
   this.search = function(query, callback) {
     console.debug("history.search(..) called");
   };
@@ -59,17 +61,18 @@ exports.createAPI = function(instanceID) {
   //============================================================================
   // events
 
-  this.onVisitRemoved = new Event('history.onVisitRemoved', instanceID);
-  this.onVisited = new Event('history.onVisited', instanceID);
+  EventFactory.createEvents(this, instanceID, API_NAME, EVENT_LIST);
 
   //============================================================================
   //============================================================================
   // main initialization
 
-})();
+}
+
+exports.createAPI = function(instanceID) {
+  return new History(instanceID);
 }
 
 exports.releaseAPI = function(instanceID) {
-  addonAPI.removeEventObject('history.onVisitRemoved', instanceID);
-  addonAPI.removeEventObject('history.onVisited', instanceID);
+  EventFactory.releaseEvents(instanceID, API_NAME, EVENT_LIST);
 }

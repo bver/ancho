@@ -1,7 +1,7 @@
 /******************************************************************************
  * Event.js
- * Part of Aji browser extension framework
- * Implements aji.windows
+ * Part of Ancho browser extension framework
+ * Implements chrome.events
  * Copyright 2012 Salsita software (http://www.salsitasoft.com).
  ******************************************************************************/
 

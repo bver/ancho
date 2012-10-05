@@ -99,7 +99,7 @@ exports.releaseContentAPI = function(instanceID) {
     console.debug("Content API FOUND and released: [" + instanceID + "]");
   }
 };
-
+console.log('asdas        ' + exports.chrome.bookmarks.onChanged);
 //------------------------------------------------------------------------------
 // MAIN
 //------------------------------------------------------------------------------

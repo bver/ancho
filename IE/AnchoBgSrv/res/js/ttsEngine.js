@@ -1,26 +1,28 @@
 /******************************************************************************
  * ttsEngine.js
  * Part of Ancho browser extension framework
- * Implements aji.ttsEngine
+ * Implements chrome.ttsEngine
  * Copyright 2012 Salsita software (http://www.salsitasoft.com).
  ******************************************************************************/
-  
+
 //******************************************************************************
 //* requires
 var Event = require("Event.js").Event;
-  
+var EventFactory = require("utils.js").EventFactory;
+
+var EVENT_LIST = ['onSpeak', 'onStop'];
+var API_NAME = 'ttsEngine';
 //******************************************************************************
 //* main closure
 exports.createAPI = function(instanceID) {
   return new (function() {
   //============================================================================
   // private variables
-  
+
   //============================================================================
   // events
-    
-  this.onSpeak = new Event('ttsEngine.onSpeak', instanceID);
-  this.onStop = new Event('ttsEngine.onStop', instanceID);
+
+  EventFactory.createEvents(this, instanceID, API_NAME, EVENT_LIST);
 
   //============================================================================
   //============================================================================
@@ -31,6 +33,5 @@ exports.createAPI = function(instanceID) {
 }
 
 exports.releaseAPI = function(instanceID) {
-  addonAPI.removeEventObject('ttsEngine.onSpeak', instanceID);
-  addonAPI.removeEventObject('ttsEngine.onStop', instanceID);
+  EventFactory.releaseEvents(instanceID, API_NAME, EVENT_LIST);
 }

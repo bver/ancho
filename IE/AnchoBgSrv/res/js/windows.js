@@ -4,18 +4,22 @@
  * Implements aji.windows
  * Copyright 2012 Salsita software (http://www.salsitasoft.com).
  ******************************************************************************/
-  
+
 //******************************************************************************
 //* requires
 var Event = require("Event.js").Event;
-  
+var EventFactory = require("utils.js").EventFactory;
+
+var EVENT_LIST = ['onCreated',
+                  'onFocusChanged',
+                  'onRemoved'];
+var API_NAME = 'windows';
 //******************************************************************************
 //* main closure
-exports.createAPI = function(instanceID) {
-  return new (function() {
+var Windows = function(instanceID) {
   //============================================================================
   // private variables
-  
+
 
   //============================================================================
   // public properties
@@ -25,65 +29,63 @@ exports.createAPI = function(instanceID) {
 
   //============================================================================
   // public methods
-    
+
   //----------------------------------------------------------------------------
-  // aji.windows.create
+  // chrome.windows.create
   this.create = function(createData, callback) {
     console.debug("windows.create(..) called");
   };
 
   //----------------------------------------------------------------------------
-  // aji.windows.get
+  // chrome.windows.get
   this.get = function(windowId, getInfo, callback) {
     console.debug("windows.get(..) called");
   };
 
   //----------------------------------------------------------------------------
-  // aji.windows.getAll
+  // chrome.windows.getAll
   this.getAll = function(getInfo, callback) {
     console.debug("windows.getAll(..) called");
   };
 
   //----------------------------------------------------------------------------
-  // aji.windows.getCurrent
+  // chrome.windows.getCurrent
   this.getCurrent = function(getInfo, callback) {
     console.debug("windows.getCurrent(..) called");
   };
 
   //----------------------------------------------------------------------------
-  // aji.windows.getLastFocused
+  // chrome.windows.getLastFocused
   this.getLastFocused = function(getInfo, callback) {
     console.debug("windows.getLastFocused(..) called");
   };
 
   //----------------------------------------------------------------------------
-  // aji.windows.remove
+  // chrome.windows.remove
   this.remove = function(windowId, callback) {
     console.debug("windows.remove(..) called");
   };
 
   //----------------------------------------------------------------------------
-  // aji.windows.update
+  // chrome.windows.update
   this.update = function(windowId, updateInfo, callback) {
     console.debug("windows.update(..) called");
   };
 
   //============================================================================
   // events
-    
-  this.onCreated = new Event('windows.onCreated', instanceID);
-  this.onFocusChanged = new Event('windows.onFocusChanged', instanceID);
-  this.onRemoved = new Event('windows.onRemoved', instanceID);
 
+  EventFactory.createEvents(this, instanceID, API_NAME, EVENT_LIST);
   //============================================================================
   //============================================================================
   // main initialization
-  
-})();
+
+}
+
+exports.createAPI = function(instanceID) {
+  return new Windows(instanceID);
 }
 
 exports.releaseAPI = function(instanceID) {
-  addonAPI.removeEventObject('windows.onCreated', instanceID);
-  addonAPI.removeEventObject('windows.onFocusChanged', instanceID);
-  addonAPI.removeEventObject('windows.onRemoved', instanceID);
+  EventFactory.releaseEvents(instanceID, API_NAME, EVENT_LIST);
 }

@@ -1,116 +1,115 @@
 /******************************************************************************
  * bookmarks.js
  * Part of Ancho browser extension framework
- * Implements aji.bookmarks
+ * Implements chrome.bookmarks
  * Copyright 2012 Salsita software (http://www.salsitasoft.com).
  ******************************************************************************/
-  
+
 //******************************************************************************
 //* requires
 var Event = require("Event.js").Event;
-  
+
+var EventFactory = require("utils.js").EventFactory;
+
+var EVENT_LIST = ['onChanged',
+                    'onChildrenReordered',
+                    'onCreated',
+                    'onImportBegan',
+                    'onImportEnded',
+                    'onMoved',
+                    'onRemoved'];
+var API_NAME = 'bookmarks';
+
 //******************************************************************************
 //* main closure
-exports.createAPI = function(instanceID) {
-  return new (function() {
+var Bookmarks = function(instanceID) {
   //============================================================================
   // private variables
-  
+
 
   //============================================================================
   // public methods
-    
+
   //----------------------------------------------------------------------------
-  // aji.bookmarks.create
+  // ancho.bookmarks.create
   this.create = function(bookmark, callback) {
     console.debug("bookmarks.create(..) called");
   };
 
   //----------------------------------------------------------------------------
-  // aji.bookmarks.get
+  // ancho.bookmarks.get
   this.get = function(idOrIdList, callback) {
     console.debug("bookmarks.get(..) called");
   };
 
   //----------------------------------------------------------------------------
-  // aji.bookmarks.getChildren
+  // ancho.bookmarks.getChildren
   this.getChildren = function(id, callback) {
     console.debug("bookmarks.getChildren(..) called");
   };
 
   //----------------------------------------------------------------------------
-  // aji.bookmarks.getRecent
+  // ancho.bookmarks.getRecent
   this.getRecent = function(numberOfItems, callback) {
     console.debug("bookmarks.getRecent(..) called");
   };
 
   //----------------------------------------------------------------------------
-  // aji.bookmarks.getSubTree
+  // chrome.bookmarks.getSubTree
   this.getSubTree = function(id, callback) {
     console.debug("bookmarks.getSubTree(..) called");
   };
 
   //----------------------------------------------------------------------------
-  // aji.bookmarks.getTree
+  // chrome.bookmarks.getTree
   this.getTree = function(callback) {
     console.debug("bookmarks.getTree(..) called");
   };
 
   //----------------------------------------------------------------------------
-  // aji.bookmarks.move
+  // chrome.bookmarks.move
   this.move = function(id, destination, callback) {
     console.debug("bookmarks.move(..) called");
   };
 
   //----------------------------------------------------------------------------
-  // aji.bookmarks.remove
+  // chrome.bookmarks.remove
   this.remove = function(id, callback) {
     console.debug("bookmarks.remove(..) called");
   };
 
   //----------------------------------------------------------------------------
-  // aji.bookmarks.removeTree
+  // chrome.bookmarks.removeTree
   this.removeTree = function(id, callback) {
     console.debug("bookmarks.removeTree(..) called");
   };
 
   //----------------------------------------------------------------------------
-  // aji.bookmarks.search
+  // chrome.bookmarks.search
   this.search = function(query, callback) {
     console.debug("bookmarks.search(..) called");
   };
 
   //----------------------------------------------------------------------------
-  // aji.bookmarks.update
+  // chrome.bookmarks.update
   this.update = function(id, changes, callback) {
     console.debug("bookmarks.update(..) called");
   };
 
   //============================================================================
   // events
-
-  this.onChanged = new Event('bookmarks.onChanged', instanceID);
-  this.onChildrenReordered = new Event('bookmarks.onChildrenReordered', instanceID);
-  this.onCreated = new Event('bookmarks.onCreated', instanceID);
-  this.onImportBegan = new Event('bookmarks.onImportBegan', instanceID);
-  this.onImportEnded = new Event('bookmarks.onImportEnded', instanceID);
-  this.onMoved = new Event('bookmarks.onMoved', instanceID);
-  this.onRemoved = new Event('bookmarks.onRemoved', instanceID);
+  EventFactory.createEvents(this, instanceID, API_NAME, EVENT_LIST);
 
   //============================================================================
   //============================================================================
   // main initialization
 
+}
 
-})();
+exports.createAPI = function(instanceID) {
+  return new Bookmarks(instanceID);
 }
 
 exports.releaseAPI = function(instanceID) {
-  addonAPI.removeEventObject('bookmarks.onChanged', instanceID);
-  addonAPI.removeEventObject('bookmarks.onChildrenReordered', instanceID);
-  addonAPI.removeEventObject('bookmarks.onCreated', instanceID);
-  addonAPI.removeEventObject('bookmarks.onImportBegan', instanceID);
-  addonAPI.removeEventObject('bookmarks.onImportEnded', instanceID);
-  addonAPI.removeEventObject('bookmarks.onMoved', instanceID);
-  addonAPI.removeEventObject('bookmarks.onRemoved', instanceID);
+  EventFactory.releaseEvents(instanceID, 'bookmarks', EVENT_LIST);
 }

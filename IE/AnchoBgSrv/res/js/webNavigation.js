@@ -1,25 +1,34 @@
 /******************************************************************************
  * webNavigation.js
  * Part of Ancho browser extension framework
- * Implements aji.webNavigation
+ * Implements chrome.webNavigation
  * Copyright 2012 Salsita software (http://www.salsitasoft.com).
  ******************************************************************************/
-  
+
 //******************************************************************************
 //* requires
 var Event = require("Event.js").Event;
-  
+var EventFactory = require("utils.js").EventFactory;
+
+var EVENT_LIST = ['onBeforeNavigate',
+                  'onCommitted',
+                  'onCompleted',
+                  'onCreatedNavigationTarget',
+                  'onDOMContentLoaded',
+                  'onErrorOccurred',
+                  'onReferenceFragmentUpdated'];
+var API_NAME = 'webNavigation';
 //******************************************************************************
 //* main closure
 exports.createAPI = function(instanceID) {
   return new (function() {
   //============================================================================
   // private variables
-  
+
 
   //============================================================================
   // public methods
-    
+
   //----------------------------------------------------------------------------
   // aji.webNavigation.getAllFrames
   this.getAllFrames = function(details, callback) {
@@ -35,13 +44,7 @@ exports.createAPI = function(instanceID) {
   //============================================================================
   // events
 
-  this.onBeforeNavigate = new Event('webNavigation.onBeforeNavigate', instanceID);
-  this.onCommitted = new Event('webNavigation.onCommitted', instanceID);
-  this.onCompleted = new Event('webNavigation.onCompleted', instanceID);
-  this.onCreatedNavigationTarget = new Event('webNavigation.onCreatedNavigationTarget', instanceID);
-  this.onDOMContentLoaded = new Event('webNavigation.onDOMContentLoaded', instanceID);
-  this.onErrorOccurred = new Event('webNavigation.onErrorOccurred', instanceID);
-  this.onReferenceFragmentUpdated = new Event('webNavigation.onReferenceFragmentUpdated', instanceID);
+  EventFactory.createEvents(this, instanceID, API_NAME, EVENT_LIST);
 
   //============================================================================
   //============================================================================
@@ -51,11 +54,5 @@ exports.createAPI = function(instanceID) {
 }
 
 exports.releaseAPI = function(instanceID) {
-  addonAPI.removeEventObject('webNavigation.onBeforeNavigate', instanceID);
-  addonAPI.removeEventObject('webNavigation.onCommitted', instanceID);
-  addonAPI.removeEventObject('webNavigation.onCompleted', instanceID);
-  addonAPI.removeEventObject('webNavigation.onCreatedNavigationTarget', instanceID);
-  addonAPI.removeEventObject('webNavigation.onDOMContentLoaded', instanceID);
-  addonAPI.removeEventObject('webNavigation.onErrorOccurred', instanceID);
-  addonAPI.removeEventObject('webNavigation.onReferenceFragmentUpdated', instanceID);
+  EventFactory.releaseEvents(instanceID, API_NAME, EVENT_LIST);
 }

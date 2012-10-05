@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
+	Version="9.00"
 	Name="AnchoBgSrv"
 	ProjectGUID="{B955A8E6-B44F-4AAF-8659-27668A1ED0FE}"
 	RootNamespace="AnchoBgSrv"
@@ -379,7 +379,131 @@
 			>
 		</File>
 		<File
+			RelativePath=".\res\js\bookmarks.js"
+			>
+		</File>
+		<File
+			RelativePath=".\res\js\browserAction.js"
+			>
+		</File>
+		<File
+			RelativePath=".\res\js\browsingData.js"
+			>
+		</File>
+		<File
+			RelativePath=".\res\js\contentSettings.js"
+			>
+		</File>
+		<File
+			RelativePath=".\res\js\contextMenus.js"
+			>
+		</File>
+		<File
+			RelativePath=".\res\js\cookies.js"
+			>
+		</File>
+		<File
+			RelativePath=".\res\js\Event.js"
+			>
+		</File>
+		<File
+			RelativePath=".\res\js\extension.js"
+			>
+		</File>
+		<File
+			RelativePath=".\res\js\fileBrowserHandler.js"
+			>
+		</File>
+		<File
+			RelativePath=".\res\js\history.js"
+			>
+		</File>
+		<File
+			RelativePath=".\res\js\i18n.js"
+			>
+		</File>
+		<File
+			RelativePath=".\res\js\idle.js"
+			>
+		</File>
+		<File
+			RelativePath=".\res\logwindow\jquery.js"
+			>
+		</File>
+		<File
+			RelativePath=".\res\logwindow\log.html"
+			>
+		</File>
+		<File
+			RelativePath=".\res\js\management.js"
+			>
+		</File>
+		<File
+			RelativePath=".\res\js\omnibox.js"
+			>
+		</File>
+		<File
+			RelativePath=".\res\js\pageAction.js"
+			>
+		</File>
+		<File
+			RelativePath=".\res\js\pageCapture.js"
+			>
+		</File>
+		<File
+			RelativePath=".\res\js\permissions.js"
+			>
+		</File>
+		<File
+			RelativePath=".\res\js\privacy.js"
+			>
+		</File>
+		<File
+			RelativePath=".\res\js\proxy.js"
+			>
+		</File>
+		<File
 			RelativePath=".\ReadMe.txt"
+			>
+		</File>
+		<File
+			RelativePath=".\res\js\storage.js"
+			>
+		</File>
+		<File
+			RelativePath=".\res\js\tabs.js"
+			>
+		</File>
+		<File
+			RelativePath=".\res\js\topSites.js"
+			>
+		</File>
+		<File
+			RelativePath=".\res\js\tts.js"
+			>
+		</File>
+		<File
+			RelativePath=".\res\js\ttsEngine.js"
+			>
+		</File>
+		<File
+			RelativePath=".\res\js\utils.js"
+			>
+		</File>
+		<File
+			RelativePath=".\res\js\webNavigation.js"
+			>
+		</File>
+		<File
+			RelativePath=".\res\js\webRequest.js"
+			>
+		</File>
+		<File
+			RelativePath=".\res\js\webstore.js"
+			>
+		</File>
+		<File
+			RelativePath=".\res\js\windows.js"
 			>
 		</File>
 	</Files>

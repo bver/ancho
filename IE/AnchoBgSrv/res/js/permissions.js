@@ -1,18 +1,20 @@
 /******************************************************************************
  * permissions.js
  * Part of Ancho browser extension framework
- * Implements aji.permissions
+ * Implements chrome.permissions
  * Copyright 2012 Salsita software (http://www.salsitasoft.com).
  ******************************************************************************/
 
 //******************************************************************************
 //* requires
 var Event = require("Event.js").Event;
+var EventFactory = require("utils.js").EventFactory;
 
+var EVENT_LIST = ['onAdded', 'onRemoved'];
+var API_NAME = 'permissions';
 //******************************************************************************
 //* main closure
-exports.createAPI = function(instanceID) {
-  return new (function() {
+var Permissions = function(instanceID) {
   //============================================================================
   // private variables
 
@@ -21,25 +23,25 @@ exports.createAPI = function(instanceID) {
   // public methods
 
   //----------------------------------------------------------------------------
-  // aji.permissions.contains
+  // chrome.permissions.contains
   this.contains = function(permissions, callback) {
     console.debug("permissions.contains(..) called");
   };
 
   //----------------------------------------------------------------------------
-  // aji.permissions.getAll
+  // chrome.permissions.getAll
   this.getAll = function(callback) {
     console.debug("permissions.getAll(..) called");
   };
 
   //----------------------------------------------------------------------------
-  // aji.permissions.remove
+  // chrome.permissions.remove
   this.remove = function(permissions, callback) {
     console.debug("permissions.remove(..) called");
   };
 
   //----------------------------------------------------------------------------
-  // aji.permissions.request
+  // chrome.permissions.request
   this.request = function(permissions, callback) {
     console.debug("permissions.request(..) called");
   };
@@ -47,18 +49,18 @@ exports.createAPI = function(instanceID) {
   //============================================================================
   // events
 
-  this.onAdded = new Event('permissions.onAdded', instanceID);
-  this.onRemoved = new Event('permissions.onRemoved', instanceID);
+  EventFactory.createEvents(this, instanceID, API_NAME, EVENT_LIST);
 
   //============================================================================
   //============================================================================
   // main initialization
 
+}
 
-})();
+exports.createAPI = function(instanceID) {
+  return new Permissions(instanceID);
 }
 
 exports.releaseAPI = function(instanceID) {
-  addonAPI.removeEventObject('permissions.onAdded', instanceID);
-  addonAPI.removeEventObject('permissions.onRemoved', instanceID);
+  EventFactory.releaseEvents(instanceID, API_NAME, EVENT_LIST);
 }

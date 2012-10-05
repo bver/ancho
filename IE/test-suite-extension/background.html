@@ -17,11 +17,9 @@
 <body>
 
 <script>
-  require(
-  [
+  require([
     'spec/chromeEvents'
-  ],
-  function() {
+  ], function() {
     jasmine.getEnv().addReporter(new jasmine.ConsoleReporter());
     jasmine.getEnv().execute();
   });
