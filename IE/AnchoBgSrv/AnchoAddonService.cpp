@@ -20,13 +20,13 @@ void CAnchoAddonService::OnAddonFinalRelease(BSTR bsID)
 
 //----------------------------------------------------------------------------
 //
-HRESULT CAnchoAddonService::invokeExternalEventObject(BSTR aExtensionId, BSTR aEventName, LPDISPATCH aArgs)
+HRESULT CAnchoAddonService::invokeExternalEventObject(BSTR aExtensionId, BSTR aEventName, LPDISPATCH aArgs, VARIANT* aRet)
 {
   CAnchoAddonBackgroundComObject* pObject = NULL;
 
   if (m_Objects.Lookup(aExtensionId, pObject))
   {
-    return pObject->invokeExternalEventObject(aExtensionId, aEventName, aArgs);
+    return pObject->invokeExternalEventObject(aExtensionId, aEventName, aArgs, aRet);
   }
   return S_OK;
 }

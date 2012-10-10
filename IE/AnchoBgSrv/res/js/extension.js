@@ -36,18 +36,19 @@ function releasePorts(instanceID) {
 
 CallbackWrapper = function(responseCallback) {
   var self = this;
-  this.called = false;
 
-  this.responseCallback = responseCallback;
+  var responseCallback = responseCallback;
 
+  this.callable = true;
   this.callback = function() {
     return function() {
-      if (self.called) {
+      if (!self.callable) {
         return;
       }
-      self.called = true;
+      self.callable = false;
       try {
-        addonAPI.callFunction(self.responseCallback, arguments); //Solve incompatible array constructors
+        //Solves the 'Different array constructors' problem
+        addonAPI.callFunction(responseCallback, arguments);
       } catch (e) {
         console.error('responseCallback call failed - ' + self.responseCallback);
       }
@@ -61,7 +62,7 @@ var Extension = function(instanceID) {
   //============================================================================
   // private variables
   _instanceID = instanceID;
-  self = this;
+  thisAPI = this;
   //============================================================================
   // public properties
 
@@ -76,9 +77,10 @@ var Extension = function(instanceID) {
   };
 
   this.Port = function(aName, aSender) {
+    var self = this;
     this.postMessage = function(msg) {
-      if (otherPort) {
-        otherPort.onMessage.fire(msg);
+      if (self.otherPort) {
+        self.otherPort.onMessage.fire(msg);
       }
     };
     this.otherPort = null;
@@ -88,8 +90,8 @@ var Extension = function(instanceID) {
     this.name = aName;
 
     this.disconnect = function() {
-      otherPort.onDisconnect.fire();
-      otherPort = null;
+      self.otherPort.onDisconnect.fire();
+      self.otherPort = null;
     }
     this.release = function() {
       delete onDisconnect;
@@ -98,21 +100,20 @@ var Extension = function(instanceID) {
   };
 
   PortPair = function(aName, aMessageSender) {
-    this.near = new self.Port(aName, aMessageSender);
-    this.far = new self.Port(aName, aMessageSender);
+    var self = this;
+    this.near = new thisAPI.Port(aName, aMessageSender);
+    this.far = new thisAPI.Port(aName, aMessageSender);
 
     this.near.otherPort = this.far;
     this.far.otherPort = this.near;
 
     this.release = function() {
-      this.near.disconnect();
-      this.far.disconnect();
-      this.near.release();
-      this.far.release();
+      self.near.disconnect();
+      self.far.disconnect();
+      self.near.release();
+      self.far.release();
     }
   }
-
-
 
   //============================================================================
   // public methods
@@ -121,21 +122,23 @@ var Extension = function(instanceID) {
   // chrome.extension.connect
   //   returns   Port
   this.connect = function(extensionId, connectInfo) {
-    var pair = new PortPair(connectInfo.name, new self.MessageSender());
+    console.debug("extension.connect(..) called");
+    var name = (connectInfo != undefined) ? connectInfo.name : undefined;
+    var pair = new PortPair(name, new thisAPI.MessageSender());
     addPortPair(pair, _instanceID);
-    if (extensionId && extensionId != addonAPI.id) {
+    if (extensionId != undefined && extensionId != addonAPI.id) {
       addonAPI.invokeExternalEventObject(
               extensionId,
               'extension.onConnectExternal',
               [pair.far]
               );
     } else {
-      addonAPI.invokeEventObject(
+       addonAPI.invokeEventObject(
               'extension.onConnect',
+              -1,
               [pair.far]
               );
     }
-    console.debug("extension.connect(..) called");
     return pair.near;
   };
 
@@ -177,25 +180,39 @@ var Extension = function(instanceID) {
   // chrome.extension.sendMessage
   this.sendMessage = function(extensionId, message, responseCallback) {
     console.debug("extension.sendMessage(..) called: " + message);
-    sender = new self.MessageSender();
+    sender = new thisAPI.MessageSender();
     callback = undefined;
+    ret = undefined;
     if (responseCallback) {
       callbackWrapper = new CallbackWrapper(responseCallback);
       callback = callbackWrapper.callback;
     }
     if (extensionId && extensionId != addonAPI.id) {
-      addonAPI.invokeExternalEventObject(
+      ret = addonAPI.invokeExternalEventObject(
             extensionId,
             'extension.onMessageExternal',
             [message, sender, callback]
             ); //TODO: fill tab to MessageSender
     } else {
-      addonAPI.invokeEventObject(
+      ret = addonAPI.invokeEventObject(
             'extension.onMessage',
             _instanceID,
             [message, sender, callback]
             ); //TODO: fill tab to MessageSender
     }
+
+    //if responseCallaback not yet called, check if some of the listeners 
+    //requests asynchronous responseCallback, otherwise disable responseCallback
+    if (callbackWrapper.callable && ret != undefined) {
+      var arr = new VBArray(ret).toArray();
+      for (var i = 0; i < arr.length; ++i) {
+        if (arr[i] === true) {
+          console.debug("Asynchronous call to responseCallback requested!");
+          return;
+        }
+      }
+    }
+    callbackWrapper.callable = false;
   };
 
   //----------------------------------------------------------------------------

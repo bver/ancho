@@ -27,8 +27,16 @@
 
     this.fire = function() {
       //console.debug('Fire event ' + _eventName + ' - ' + _listeners.length + ' instance:' + _instanceID);
+      var results = [];
       for (var i = 0; i < _listeners.length; ++i) {
-        _listeners[i].apply(_listeners[i], arguments);
+        var ret = addonAPI.callFunction(_listeners[i], arguments);
+        //var ret = _listeners[i].apply(_listeners[i], arguments);
+        if (ret != undefined) {
+          results.push(ret);
+        }
+      }
+      if (results.length > 0) {
+        return results;
       }
     }
 
@@ -57,7 +65,7 @@
 
     if (instanceID != undefined) { //register only events with assigned instanceID
       addonAPI.addEventObject(eventName, instanceID, function() {
-        self.fire.apply(self, arguments);
+        return self.fire.apply(self, arguments);
       });
     }
   };

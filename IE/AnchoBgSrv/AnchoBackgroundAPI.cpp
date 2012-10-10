@@ -11,6 +11,78 @@
 
 #include <algorithm>
 
+
+//----------------------------------------------------------------------------
+//
+HRESULT addJSArrayToVariantVector(LPDISPATCH aArrayDispatch, VariantVector &aVariantVector)
+{
+  CComQIPtr<IDispatchEx> dispexArray(aArrayDispatch);
+  if (!dispexArray) {
+      return E_NOINTERFACE;
+  }
+
+  // Get array length DISPID
+  DISPID dispidLength;
+  CComBSTR bstrLength(L"length");
+  HRESULT hr = dispexArray->GetDispID(bstrLength, fdexNameCaseSensitive, &dispidLength);
+  if (FAILED(hr)) {
+      return hr;
+  }
+
+  // Get length value using InvokeEx()
+  CComVariant varLength;
+  DISPPARAMS dispParamsNoArgs = {0};
+  hr = dispexArray->InvokeEx(dispidLength, LOCALE_USER_DEFAULT, DISPATCH_PROPERTYGET, &dispParamsNoArgs, &varLength, NULL, NULL);
+  if (FAILED(hr)) {
+      return hr;
+  }
+
+  ATLASSERT(varLength.vt == VT_I4);
+  const int count = varLength.intVal;
+  aVariantVector.reserve(aVariantVector.size() + count); //ensure that we will not reallocate too often
+
+  // For each element in source array:
+  for (int i = count-1; i >= 0; --i) //values are reverted
+  {
+      CString strIndex;
+      strIndex.Format(L"%d", i);
+
+      // Convert to BSTR, as GetDispID() wants BSTR's
+      CComBSTR bstrIndex(strIndex);
+      DISPID dispidIndex;
+      hr = dispexArray->GetDispID(bstrIndex, fdexNameCaseSensitive, &dispidIndex);
+      if (FAILED(hr)) {
+          break;
+      }
+
+      // Get array item value using InvokeEx()
+      CComVariant varItem;
+      hr = dispexArray->InvokeEx(dispidIndex, LOCALE_USER_DEFAULT, DISPATCH_PROPERTYGET, &dispParamsNoArgs, &varItem, NULL, NULL);
+      if (FAILED(hr)) {
+          break;
+      }
+      aVariantVector.push_back(varItem);
+  }
+  return S_OK;
+}
+
+//----------------------------------------------------------------------------
+//
+HRESULT constructSafeArrayFromVector(const VariantVector &aVariantVector, VARIANT &aSafeArray)
+{
+  SAFEARRAYBOUND bounds [] = { aVariantVector.size(), 0 };
+  aSafeArray.vt = VT_ARRAY | VT_VARIANT;
+  aSafeArray.parray = SafeArrayCreate(VT_VARIANT, 1, bounds);
+  VARIANT *elements;
+  SafeArrayAccessData(aSafeArray.parray, (void**)&elements);
+  for (size_t i = 0; i < aVariantVector.size(); ++i) {
+    elements[i] = aVariantVector[i];
+  }
+  SafeArrayUnaccessData(aSafeArray.parray);
+  return S_OK;
+}
+
+
 /*============================================================================
  * class CAnchoBackgroundAPI
  */
@@ -319,9 +391,9 @@ STDMETHODIMP CAnchoBackgroundAPI::removeEventObject(BSTR aEventName, INT aInstan
 }
 //----------------------------------------------------------------------------
 //
-STDMETHODIMP CAnchoBackgroundAPI::invokeExternalEventObject(BSTR aExtensionId, BSTR aEventName, LPDISPATCH aArgs)
+STDMETHODIMP CAnchoBackgroundAPI::invokeExternalEventObject(BSTR aExtensionId, BSTR aEventName, LPDISPATCH aArgs, VARIANT* aRet)
 {
-  return m_pAddonServiceCallback->invokeExternalEventObject(aExtensionId, aEventName, aArgs);
+  return m_pAddonServiceCallback->invokeExternalEventObject(aExtensionId, aEventName, aArgs, aRet);
 }
 //----------------------------------------------------------------------------
 //
@@ -331,7 +403,7 @@ STDMETHODIMP CAnchoBackgroundAPI::callFunction(LPDISPATCH aFunction, LPDISPATCH 
   CIDispatchHelper function(aFunction);
   VariantVector args;
 
-  HRESULT hr = constructVariantVector(aArgs, args);
+  HRESULT hr = addJSArrayToVariantVector(aArgs, args);
   if (FAILED(hr)) {
       return hr;
   }
@@ -339,41 +411,47 @@ STDMETHODIMP CAnchoBackgroundAPI::callFunction(LPDISPATCH aFunction, LPDISPATCH 
 }
 //----------------------------------------------------------------------------
 //
-STDMETHODIMP CAnchoBackgroundAPI::invokeEventObject(BSTR aEventName, INT aSkipInstance, LPDISPATCH aArgs)
+STDMETHODIMP CAnchoBackgroundAPI::invokeEventObject(BSTR aEventName, INT aSkipInstance, LPDISPATCH aArgs, VARIANT* aRet)
 {
-  VariantVector args;
+  ENSURE_RETVAL(aRet);
 
-  HRESULT hr = constructVariantVector(aArgs, args);
+  VariantVector args;
+  VariantVector results;
+
+  HRESULT hr = addJSArrayToVariantVector(aArgs, args);
   if (FAILED(hr)) {
       return hr;
   }
-
-  return invokeEvent(aEventName, aSkipInstance, args);
+  hr = invokeEvent(aEventName, aSkipInstance, args, results);
+  if (FAILED(hr)) {
+      return hr;
+  }
+  return constructSafeArrayFromVector(results, *aRet);
 }
 //----------------------------------------------------------------------------
 //
 struct InvokeEventFtor
 {
-  InvokeEventFtor(CAnchoBackgroundAPI::VariantVector &aArgs, CAnchoBackgroundAPI::VariantVector &aResults, int aSkipInstance)
+  InvokeEventFtor(VariantVector &aArgs, VariantVector &aResults, int aSkipInstance)
     : mArgs(aArgs), mResults(aResults), mSkipInstance(aSkipInstance) { }
-  CAnchoBackgroundAPI::VariantVector &mArgs;
-  CAnchoBackgroundAPI::VariantVector &mResults;
+  VariantVector &mArgs;
+  VariantVector &mResults;
   int mSkipInstance;
 
   void operator()(CAnchoBackgroundAPI::EventObjectRecord &aRec) {
     if (aRec.instanceID != mSkipInstance) {
       CComVariant result;
       aRec.listener.InvokeN((DISPID)0, mArgs.size()>0? &(mArgs[0]): NULL, mArgs.size(), &result);
-      if(result.vt != VT_EMPTY) { 
-        mResults.push_back(result);
+      if (result.vt == VT_DISPATCH) {
+        addJSArrayToVariantVector(result.pdispVal, mResults);
+        //mResults.push_back(result);
       }
     }
   }
 };
 
-STDMETHODIMP CAnchoBackgroundAPI::invokeEvent(BSTR aEventName, INT aSkipInstance, CAnchoBackgroundAPI::VariantVector &aArgs)
+STDMETHODIMP CAnchoBackgroundAPI::invokeEvent(BSTR aEventName, INT aSkipInstance, VariantVector &aArgs, VariantVector &aResults)
 {
-  CAnchoBackgroundAPI::VariantVector aResults;
   std::wstring eventName(aEventName, SysStringLen(aEventName));
   EventObjectMap::iterator it = m_EventObjects.find(eventName);
   if (it == m_EventObjects.end()) {
@@ -383,75 +461,6 @@ STDMETHODIMP CAnchoBackgroundAPI::invokeEvent(BSTR aEventName, INT aSkipInstance
   return S_OK;
 }
 
-//----------------------------------------------------------------------------
-//
-HRESULT CAnchoBackgroundAPI::constructVariantVector(LPDISPATCH aArrayDispatch, CAnchoBackgroundAPI::VariantVector &aVariantVector)
-{
-  CComQIPtr<IDispatchEx> dispexArray(aArrayDispatch);
-  if (!dispexArray) {
-      return E_NOINTERFACE;
-  }
-
-  // Get array length DISPID
-  DISPID dispidLength;
-  CComBSTR bstrLength(L"length");
-  HRESULT hr = dispexArray->GetDispID(bstrLength, fdexNameCaseSensitive, &dispidLength);
-  if (FAILED(hr)) {
-      return hr;
-  }
-
-  // Get length value using InvokeEx()
-  CComVariant varLength;
-  DISPPARAMS dispParamsNoArgs = {0};
-  hr = dispexArray->InvokeEx(dispidLength, LOCALE_USER_DEFAULT, DISPATCH_PROPERTYGET, &dispParamsNoArgs, &varLength, NULL, NULL);
-  if (FAILED(hr)) {
-      return hr;
-  }
-
-  ATLASSERT(varLength.vt == VT_I4);
-  const int count = varLength.intVal;
-  aVariantVector.reserve(count);
-
-  // For each element in source array:
-  for (int i = count-1; i >= 0; --i) //values are reverted
-  {
-      CString strIndex;
-      strIndex.Format(L"%d", i);
-
-      // Convert to BSTR, as GetDispID() wants BSTR's
-      CComBSTR bstrIndex(strIndex);
-      DISPID dispidIndex;
-      hr = dispexArray->GetDispID(bstrIndex, fdexNameCaseSensitive, &dispidIndex);
-      if (FAILED(hr)) {
-          break;
-      }
-
-      // Get array item value using InvokeEx()
-      CComVariant varItem;
-      hr = dispexArray->InvokeEx(dispidIndex, LOCALE_USER_DEFAULT, DISPATCH_PROPERTYGET, &dispParamsNoArgs, &varItem, NULL, NULL);
-      if (FAILED(hr)) {
-          break;
-      }
-      aVariantVector.push_back(varItem);
-  }
-  return S_OK;
-}
-
-//----------------------------------------------------------------------------
-//
-HRESULT CAnchoBackgroundAPI::constructSafeArrayFromVector(VariantVector &aVariantVector, CComVariant &aSafeArray)
-{
-  SAFEARRAYBOUND bounds [] = { aVariantVector.size(), 0 };
-  aSafeArray.vt = VT_ARRAY | VT_VARIANT;
-  aSafeArray.parray = SafeArrayCreate(VT_VARIANT, 1, bounds);
-  VARIANT *elements;
-  SafeArrayAccessData(aSafeArray.parray, (void**)&elements);
-  for (size_t i = 0; i < aVariantVector.size(); ++i) {
-    elements[i] = aVariantVector[i];
-  }
-  SafeArrayUnaccessData(aSafeArray.parray);
-  return S_OK;
-}
 //----------------------------------------------------------------------------
 //  _IMagpieLoggerEvents methods
 //----------------------------------------------------------------------------

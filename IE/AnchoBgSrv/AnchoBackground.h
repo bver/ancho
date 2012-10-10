@@ -78,7 +78,7 @@ public:
   // destroy everything here, so cleanup is done in FinalRelease().
   void AddonServiceLost();
 
-  STDMETHOD(invokeExternalEventObject)(BSTR aExtensionId, BSTR aEventName, LPDISPATCH aArgs);
+  STDMETHOD(invokeExternalEventObject)(BSTR aExtensionId, BSTR aEventName, LPDISPATCH aArgs, VARIANT* aRet);
 
 public:
   // -------------------------------------------------------------------------

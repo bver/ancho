@@ -20,6 +20,10 @@
 #error "Single-threaded COM objects are not properly supported on Windows CE platform, such as the Windows Mobile platforms that do not include full DCOM support. Define _CE_ALLOW_SINGLE_THREADED_OBJECTS_IN_MTA to force ATL to support creating single-thread COM object's and allow use of it's single-threaded COM object implementations. The threading model in your rgs file was set to 'Free' as that is the only threading model supported in non DCOM Windows CE platforms."
 #endif
 
+typedef std::vector<CComVariant> VariantVector;
+HRESULT addJSArrayToVariantVector(LPDISPATCH aArrayDispatch, VariantVector &aVariantVector);
+HRESULT constructSafeArrayFromVector(const VariantVector &aVariantVector, CComVariant &aSafeArray);
+
 struct CAnchoAddonServiceCallback;
 
 class CAnchoBackgroundAPI;
@@ -104,8 +108,8 @@ public:
 
   STDMETHOD(addEventObject)(BSTR aEventName, INT aInstanceId, LPDISPATCH aListener);
   STDMETHOD(removeEventObject)(BSTR aEventName, INT aInstanceId);
-  STDMETHOD(invokeEventObject)(BSTR aEventName, INT aSkipInstance, LPDISPATCH aArgs);
-  STDMETHOD(invokeExternalEventObject)(BSTR aExtensionId, BSTR aEventName, LPDISPATCH aArgs);
+  STDMETHOD(invokeEventObject)(BSTR aEventName, INT aSkipInstance, LPDISPATCH aArgs, VARIANT* aRet);
+  STDMETHOD(invokeExternalEventObject)(BSTR aExtensionId, BSTR aEventName, LPDISPATCH aArgs, VARIANT* aRet);
   STDMETHOD(callFunction)(LPDISPATCH aFunction, LPDISPATCH aArgs, VARIANT* pvRet);
   // -------------------------------------------------------------------------
   // _IMagpieLoggerEvents methods
@@ -126,15 +130,11 @@ public:
   };
   typedef std::list<EventObjectRecord> EventObjectList;
   typedef std::map<std::wstring, EventObjectList> EventObjectMap;
-  typedef std::vector<CComVariant> VariantVector;
 
 private:
   // -------------------------------------------------------------------------
   // Private member functions
-  STDMETHOD(invokeEvent)(BSTR aEventName, INT aSkipInstance, VariantVector &aArgs);
-
-  HRESULT constructVariantVector(LPDISPATCH aArrayDispatch, VariantVector &aVariantVector);
-  HRESULT constructSafeArrayFromVector(VariantVector &aVariantVector, CComVariant &aSafeArray);
+  STDMETHOD(invokeEvent)(BSTR aEventName, INT aSkipInstance, VariantVector &aArgs, VariantVector &aResults);
 
   HRESULT GetMainModuleExportsScript(CIDispatchHelper & script);
 

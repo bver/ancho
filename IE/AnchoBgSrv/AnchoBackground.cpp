@@ -110,9 +110,9 @@ void CAnchoAddonBackground::AddonServiceLost()
 
 //----------------------------------------------------------------------------
 //
-STDMETHODIMP CAnchoAddonBackground::invokeExternalEventObject(BSTR aExtensionId, BSTR aEventName, LPDISPATCH aArgs)
+STDMETHODIMP CAnchoAddonBackground::invokeExternalEventObject(BSTR aExtensionId, BSTR aEventName, LPDISPATCH aArgs, VARIANT* aRet)
 {
-  return m_BackgroundAPI.invokeEventObject(aEventName, -1, aArgs);
+  return m_BackgroundAPI.invokeEventObject(aEventName, -1, aArgs, aRet);
 }
 //----------------------------------------------------------------------------
 //  IAnchoAddonBackground methods

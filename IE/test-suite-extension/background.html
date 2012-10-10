@@ -35,7 +35,17 @@
       } else {
          console.log('Message responseCallback unavailable');
       }
-      return false;
+      return true;
+  });
+  
+  console.log('Adding listener to chrome.extension.onConnect');
+  chrome.extension.onConnect.addListener( function(port){
+      console.log('Adding listener to port.onMessage');
+      port.onMessage.addListener( function(msg) {
+          console.log('Message from port recieved: ' + msg);
+          console.log('Sending response!');
+          port.postMessage('Responding to message received through port');
+      });
   });
 </script>
 
