@@ -46,12 +46,8 @@ CallbackWrapper = function(responseCallback) {
         return;
       }
       self.callable = false;
-      try {
         //Solves the 'Different array constructors' problem
         addonAPI.callFunction(responseCallback, arguments);
-      } catch (e) {
-        console.error('responseCallback call failed - ' + self.responseCallback);
-      }
     }
   } ();
 }
@@ -135,7 +131,7 @@ var Extension = function(instanceID) {
     } else {
        addonAPI.invokeEventObject(
               'extension.onConnect',
-              -1,
+              -1, //TODO: after tabs API finished prevent content scripts from notifications
               [pair.far]
               );
     }
