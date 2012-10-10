@@ -6,7 +6,7 @@ define(function() {
     var event;
     var listener = function(){};
     beforeEach(function() {
-      event = new chrome.events.Event('test.event', 0);
+      event = new chrome.events.Event('test.event', undefined);
     });
 
     it('has whole event listener API available', function() {
@@ -39,6 +39,18 @@ define(function() {
       expect(event.hasListener(listener)).toBe(true);
       expect(event.hasListener(listener2)).toBe(true);
       expect(event.hasListeners()).toBe(true);
+    });
+    
+    it('invoke listeners when event is fired', function() {
+      var spyListener1 = jasmine.createSpy('listener1');
+      var spyListener2 = jasmine.createSpy('listener2');
+      event.addListener(spyListener1);
+      event.addListener(spyListener2);
+      event.fire(1,2,3);
+      expect(spyListener1).toHaveBeenCalled();
+      expect(spyListener2).toHaveBeenCalled();
+      expect(spyListener1).toHaveBeenCalledWith(1,2,3);
+      expect(spyListener2).toHaveBeenCalledWith(1,2,3);
     });
   });
 
