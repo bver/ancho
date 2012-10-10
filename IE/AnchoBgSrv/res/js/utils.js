@@ -1,7 +1,7 @@
 /******************************************************************************
  * tabs.js
  * Part of Ancho browser extension framework
- * Implements aji.tabs
+ * Implements chrome.tabs
  * Copyright 2012 Salsita software (http://www.salsitasoft.com).
  ******************************************************************************/
 

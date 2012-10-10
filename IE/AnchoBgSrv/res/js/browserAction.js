@@ -23,13 +23,13 @@ var BrowserAction = function(instanceID) {
   // public methods
 
   //----------------------------------------------------------------------------
-  // ancho.browserAction.getBadgeBackgroundColor
+  // chrome.browserAction.getBadgeBackgroundColor
   this.getBadgeBackgroundColor = function(details, callback) {
     console.debug("browserAction.getBadgeBackgroundColor(..) called");
   };
 
   //----------------------------------------------------------------------------
-  // ancho.browserAction.getBadgeText
+  // chrome.browserAction.getBadgeText
   this.getBadgeText = function(details, callback) {
     console.debug("browserAction.getBadgeText(..) called");
   };

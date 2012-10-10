@@ -1,7 +1,7 @@
 /******************************************************************************
  * pageAction.js
  * Part of Ancho browser extension framework
- * Implements aji.pageAction
+ * Implements chrome.pageAction
  * Copyright 2012 Salsita software (http://www.salsitasoft.com).
  ******************************************************************************/
 

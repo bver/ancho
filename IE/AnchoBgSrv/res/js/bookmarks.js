@@ -31,25 +31,25 @@ var Bookmarks = function(instanceID) {
   // public methods
 
   //----------------------------------------------------------------------------
-  // ancho.bookmarks.create
+  // chrome.bookmarks.create
   this.create = function(bookmark, callback) {
     console.debug("bookmarks.create(..) called");
   };
 
   //----------------------------------------------------------------------------
-  // ancho.bookmarks.get
+  // chrome.bookmarks.get
   this.get = function(idOrIdList, callback) {
     console.debug("bookmarks.get(..) called");
   };
 
   //----------------------------------------------------------------------------
-  // ancho.bookmarks.getChildren
+  // chrome.bookmarks.getChildren
   this.getChildren = function(id, callback) {
     console.debug("bookmarks.getChildren(..) called");
   };
 
   //----------------------------------------------------------------------------
-  // ancho.bookmarks.getRecent
+  // chrome.bookmarks.getRecent
   this.getRecent = function(numberOfItems, callback) {
     console.debug("bookmarks.getRecent(..) called");
   };

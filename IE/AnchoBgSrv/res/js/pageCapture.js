@@ -1,7 +1,7 @@
 /******************************************************************************
  * pageCapture.js
  * Part of Ancho browser extension framework
- * Implements aji.pageCapture
+ * Implements chrome.pageCapture
  * Copyright 2012 Salsita software (http://www.salsitasoft.com).
  ******************************************************************************/
   
@@ -16,7 +16,7 @@
   // public methods
     
   //----------------------------------------------------------------------------
-  // aji.pageCapture.saveAsMHTML
+  // chrome.pageCapture.saveAsMHTML
   me.saveAsMHTML = function(details, callback) {
     console.debug("pageCapture.saveAsMHTML(..) called");
   };

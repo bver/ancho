@@ -1,7 +1,7 @@
 /******************************************************************************
  * contentSettings.js
  * Part of Ancho browser extension framework
- * Implements aji.contentSettings
+ * Implements chrome.contentSettings
  * Copyright 2012 Salsita software (http://www.salsitasoft.com).
  ******************************************************************************/
   

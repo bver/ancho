@@ -30,13 +30,13 @@ exports.createAPI = function(instanceID) {
   // public methods
 
   //----------------------------------------------------------------------------
-  // aji.webNavigation.getAllFrames
+  // chrome.webNavigation.getAllFrames
   this.getAllFrames = function(details, callback) {
     console.debug("webNavigation.getAllFrames(..) called");
   };
 
   //----------------------------------------------------------------------------
-  // aji.webNavigation.getFrame
+  // chrome.webNavigation.getFrame
   this.getFrame = function(details, callback) {
     console.debug("webNavigation.getFrame(..) called");
   };

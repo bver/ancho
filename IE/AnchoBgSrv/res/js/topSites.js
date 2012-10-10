@@ -1,7 +1,7 @@
 /******************************************************************************
  * topSites.js
  * Part of Ancho browser extension framework
- * Implements aji.topSites
+ * Implements chrome.topSites
  * Copyright 2012 Salsita software (http://www.salsitasoft.com).
  ******************************************************************************/
   
@@ -16,7 +16,7 @@
   // public methods
     
   //----------------------------------------------------------------------------
-  // aji.topSites.get
+  // chrome.topSites.get
   me.get = function(callback) {
     console.debug("topSites.get(..) called");
   };

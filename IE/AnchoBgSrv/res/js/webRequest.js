@@ -1,7 +1,7 @@
 /******************************************************************************
  * webRequest.js
  * Part of Ancho browser extension framework
- * Implements aji.webRequest
+ * Implements chrome.webRequest
  * Copyright 2012 Salsita software (http://www.salsitasoft.com).
  ******************************************************************************/
 
@@ -32,7 +32,7 @@ exports.createAPI = function(instanceID) {
   // public methods
 
   //----------------------------------------------------------------------------
-  // aji.webRequest.handlerBehaviorChanged
+  // chrome.webRequest.handlerBehaviorChanged
   this.handlerBehaviorChanged = function(callback) {
     console.debug("webRequest.handlerBehaviorChanged(..) called");
   };

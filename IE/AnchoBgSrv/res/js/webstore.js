@@ -1,7 +1,7 @@
 /******************************************************************************
  * webstore.js
  * Part of Ancho browser extension framework
- * Implements aji.webstore
+ * Implements chrome.webstore
  * Copyright 2012 Salsita software (http://www.salsitasoft.com).
  ******************************************************************************/
   
@@ -16,7 +16,7 @@
   // public methods
     
   //----------------------------------------------------------------------------
-  // aji.webstore.install
+  // chrome.webstore.install
   me.install = function(url, successCallback, failureCallback) {
     console.debug("webstore.install(..) called");
   };

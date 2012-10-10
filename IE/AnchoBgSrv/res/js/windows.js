@@ -1,7 +1,7 @@
 /******************************************************************************
  * windows.js
  * Part of Ancho browser extension framework
- * Implements aji.windows
+ * Implements chrome.windows
  * Copyright 2012 Salsita software (http://www.salsitasoft.com).
  ******************************************************************************/
 

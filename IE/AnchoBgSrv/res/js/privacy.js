@@ -1,7 +1,7 @@
 /******************************************************************************
  * privacy.js
  * Part of Ancho browser extension framework
- * Implements aji.privacy
+ * Implements chrome.privacy
  * Copyright 2012 Salsita software (http://www.salsitasoft.com).
  ******************************************************************************/
   

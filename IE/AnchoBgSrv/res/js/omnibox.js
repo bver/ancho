@@ -27,7 +27,7 @@ exports.createAPI = function(instanceID) {
   // public methods
 
   //----------------------------------------------------------------------------
-  // aji.omnibox.setDefaultSuggestion
+  // chrome.omnibox.setDefaultSuggestion
   this.setDefaultSuggestion = function(suggestion) {
     console.debug("omnibox.setDefaultSuggestion(..) called");
   };
