@@ -106,6 +106,7 @@ public:
   STDMETHOD(removeEventObject)(BSTR aEventName, INT aInstanceId);
   STDMETHOD(invokeEventObject)(BSTR aEventName, INT aSkipInstance, LPDISPATCH aArgs);
   STDMETHOD(invokeExternalEventObject)(BSTR aExtensionId, BSTR aEventName, LPDISPATCH aArgs);
+  STDMETHOD(callFunction)(LPDISPATCH aFunction, LPDISPATCH aArgs, VARIANT* pvRet);
   // -------------------------------------------------------------------------
   // _IMagpieLoggerEvents methods
   STDMETHOD_(void, OnLog)(VARIANT val, BSTR bsModuleID);
@@ -125,14 +126,15 @@ public:
   };
   typedef std::list<EventObjectRecord> EventObjectList;
   typedef std::map<std::wstring, EventObjectList> EventObjectMap;
-  typedef std::vector<CComVariant> ArgumentVector;
+  typedef std::vector<CComVariant> VariantVector;
 
 private:
   // -------------------------------------------------------------------------
   // Private member functions
-  STDMETHOD(invokeEvent)(BSTR aEventName, INT aSkipInstance, ArgumentVector &aArgs);
+  STDMETHOD(invokeEvent)(BSTR aEventName, INT aSkipInstance, VariantVector &aArgs);
 
-  HRESULT constructArgumentVector(LPDISPATCH aArgsDispatch, ArgumentVector &aArgsVector);
+  HRESULT constructVariantVector(LPDISPATCH aArrayDispatch, VariantVector &aVariantVector);
+  HRESULT constructSafeArrayFromVector(VariantVector &aVariantVector, CComVariant &aSafeArray);
 
   HRESULT GetMainModuleExportsScript(CIDispatchHelper & script);
 

@@ -30,8 +30,12 @@
   chrome.extension.onMessage.addListener( function(msg, sender, sendResponse){
       console.log('Message received : ' + msg );
       if (sendResponse) {
-        sendResponse(); 
+        sendResponse();
+        sendResponse();
+      } else {
+         console.log('Message responseCallback unavailable');
       }
+      return false;
   });
 </script>
 

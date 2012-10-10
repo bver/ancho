@@ -325,13 +325,28 @@ STDMETHODIMP CAnchoBackgroundAPI::invokeExternalEventObject(BSTR aExtensionId, B
 }
 //----------------------------------------------------------------------------
 //
+STDMETHODIMP CAnchoBackgroundAPI::callFunction(LPDISPATCH aFunction, LPDISPATCH aArgs, VARIANT* aRet)
+{
+  ENSURE_RETVAL(aRet);
+  CIDispatchHelper function(aFunction);
+  VariantVector args;
+
+  HRESULT hr = constructVariantVector(aArgs, args);
+  if (FAILED(hr)) {
+      return hr;
+  }
+  return function.InvokeN((DISPID)0, args.size()>0? &(args[0]): NULL, args.size(), aRet);
+}
+//----------------------------------------------------------------------------
+//
 STDMETHODIMP CAnchoBackgroundAPI::invokeEventObject(BSTR aEventName, INT aSkipInstance, LPDISPATCH aArgs)
 {
-  ArgumentVector args;
+  VariantVector args;
 
-  HRESULT hr = constructArgumentVector(aArgs, args);
-  if (FAILED(hr))
+  HRESULT hr = constructVariantVector(aArgs, args);
+  if (FAILED(hr)) {
       return hr;
+  }
 
   return invokeEvent(aEventName, aSkipInstance, args);
 }
@@ -339,49 +354,63 @@ STDMETHODIMP CAnchoBackgroundAPI::invokeEventObject(BSTR aEventName, INT aSkipIn
 //
 struct InvokeEventFtor
 {
-  InvokeEventFtor(CAnchoBackgroundAPI::ArgumentVector &aArgs, int aSkipInstance): mArgs(aArgs), mSkipInstance(aSkipInstance) { }
-  CAnchoBackgroundAPI::ArgumentVector &mArgs;
+  InvokeEventFtor(CAnchoBackgroundAPI::VariantVector &aArgs, CAnchoBackgroundAPI::VariantVector &aResults, int aSkipInstance)
+    : mArgs(aArgs), mResults(aResults), mSkipInstance(aSkipInstance) { }
+  CAnchoBackgroundAPI::VariantVector &mArgs;
+  CAnchoBackgroundAPI::VariantVector &mResults;
   int mSkipInstance;
+
   void operator()(CAnchoBackgroundAPI::EventObjectRecord &aRec) {
     if (aRec.instanceID != mSkipInstance) {
-      aRec.listener.InvokeN((DISPID)0, mArgs.size()>0? &(mArgs[0]): NULL, mArgs.size(), 0);
+      CComVariant result;
+      aRec.listener.InvokeN((DISPID)0, mArgs.size()>0? &(mArgs[0]): NULL, mArgs.size(), &result);
+      if(result.vt != VT_EMPTY) { 
+        mResults.push_back(result);
+      }
     }
   }
 };
 
-STDMETHODIMP CAnchoBackgroundAPI::invokeEvent(BSTR aEventName, INT aSkipInstance, CAnchoBackgroundAPI::ArgumentVector &aArgs)
+STDMETHODIMP CAnchoBackgroundAPI::invokeEvent(BSTR aEventName, INT aSkipInstance, CAnchoBackgroundAPI::VariantVector &aArgs)
 {
+  CAnchoBackgroundAPI::VariantVector aResults;
   std::wstring eventName(aEventName, SysStringLen(aEventName));
   EventObjectMap::iterator it = m_EventObjects.find(eventName);
   if (it == m_EventObjects.end()) {
     return S_OK;
   }
-  std::for_each(it->second.begin(), it->second.end(), InvokeEventFtor(aArgs, aSkipInstance));
+  std::for_each(it->second.begin(), it->second.end(), InvokeEventFtor(aArgs, aResults, aSkipInstance));
   return S_OK;
 }
 
-HRESULT CAnchoBackgroundAPI::constructArgumentVector(LPDISPATCH aArgsDispatch, ArgumentVector &aArgsVector)
+//----------------------------------------------------------------------------
+//
+HRESULT CAnchoBackgroundAPI::constructVariantVector(LPDISPATCH aArrayDispatch, CAnchoBackgroundAPI::VariantVector &aVariantVector)
 {
-  CComQIPtr<IDispatchEx> dispexArray(aArgsDispatch);
-  if (!dispexArray)
+  CComQIPtr<IDispatchEx> dispexArray(aArrayDispatch);
+  if (!dispexArray) {
       return E_NOINTERFACE;
+  }
 
   // Get array length DISPID
   DISPID dispidLength;
   CComBSTR bstrLength(L"length");
   HRESULT hr = dispexArray->GetDispID(bstrLength, fdexNameCaseSensitive, &dispidLength);
-  if (FAILED(hr))
+  if (FAILED(hr)) {
       return hr;
+  }
 
-   // Get length value using InvokeEx()
+  // Get length value using InvokeEx()
   CComVariant varLength;
   DISPPARAMS dispParamsNoArgs = {0};
   hr = dispexArray->InvokeEx(dispidLength, LOCALE_USER_DEFAULT, DISPATCH_PROPERTYGET, &dispParamsNoArgs, &varLength, NULL, NULL);
-  if (FAILED(hr))
+  if (FAILED(hr)) {
       return hr;
+  }
 
   ATLASSERT(varLength.vt == VT_I4);
   const int count = varLength.intVal;
+  aVariantVector.reserve(count);
 
   // For each element in source array:
   for (int i = count-1; i >= 0; --i) //values are reverted
@@ -393,19 +422,36 @@ HRESULT CAnchoBackgroundAPI::constructArgumentVector(LPDISPATCH aArgsDispatch, A
       CComBSTR bstrIndex(strIndex);
       DISPID dispidIndex;
       hr = dispexArray->GetDispID(bstrIndex, fdexNameCaseSensitive, &dispidIndex);
-      if (FAILED(hr))
+      if (FAILED(hr)) {
           break;
+      }
 
       // Get array item value using InvokeEx()
       CComVariant varItem;
       hr = dispexArray->InvokeEx(dispidIndex, LOCALE_USER_DEFAULT, DISPATCH_PROPERTYGET, &dispParamsNoArgs, &varItem, NULL, NULL);
-      if (FAILED(hr))
+      if (FAILED(hr)) {
           break;
-      aArgsVector.push_back(varItem);
+      }
+      aVariantVector.push_back(varItem);
   }
   return S_OK;
 }
 
+//----------------------------------------------------------------------------
+//
+HRESULT CAnchoBackgroundAPI::constructSafeArrayFromVector(VariantVector &aVariantVector, CComVariant &aSafeArray)
+{
+  SAFEARRAYBOUND bounds [] = { aVariantVector.size(), 0 };
+  aSafeArray.vt = VT_ARRAY | VT_VARIANT;
+  aSafeArray.parray = SafeArrayCreate(VT_VARIANT, 1, bounds);
+  VARIANT *elements;
+  SafeArrayAccessData(aSafeArray.parray, (void**)&elements);
+  for (size_t i = 0; i < aVariantVector.size(); ++i) {
+    elements[i] = aVariantVector[i];
+  }
+  SafeArrayUnaccessData(aSafeArray.parray);
+  return S_OK;
+}
 //----------------------------------------------------------------------------
 //  _IMagpieLoggerEvents methods
 //----------------------------------------------------------------------------

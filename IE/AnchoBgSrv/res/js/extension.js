@@ -34,48 +34,25 @@ function releasePorts(instanceID) {
   }
 }
 
-var MessageSender = function(aTab) {
-  this.id = addonAPI.id;
-  if (aTab) {
-    this.tab = aTab; //optional
-  }
-};
+CallbackWrapper = function(responseCallback) {
+  var self = this;
+  this.called = false;
 
-var Port = function(aName, aSender) {
-  this.postMessage = function(msg) {
-    if (otherPort) {
-      otherPort.onMessage.fire(msg);
+  this.responseCallback = responseCallback;
+
+  this.callback = function() {
+    return function() {
+      if (self.called) {
+        return;
+      }
+      self.called = true;
+      try {
+        addonAPI.callFunction(self.responseCallback, arguments); //Solve incompatible array constructors
+      } catch (e) {
+        console.error('responseCallback call failed - ' + self.responseCallback);
+      }
     }
-  };
-  this.otherPort = null;
-  this.sender = aSender;
-  this.onDisconnect = new Event('port.onDisconnect');
-  this.onMessage = new Event('port.onMessage');
-  this.name = aName;
-
-  this.disconnect = function() {
-    otherPort.onDisconnect.fire();
-    otherPort = null;
-  }
-  this.release = function() {
-    delete onDisconnect;
-    delete onMessage;
-  }
-};
-
-var PortPair = function(aName, aMessageSender) {
-  this.near = new Port(aName, aMessageSender);
-  this.far = new Port(aName, aMessageSender);
-
-  this.near.otherPort = this.far;
-  this.far.otherPort = this.near;
-
-  this.release = function() {
-    this.near.disconnect();
-    this.far.disconnect();
-    this.near.release();
-    this.far.release();
-  }
+  } ();
 }
 
 //******************************************************************************
@@ -91,6 +68,51 @@ var Extension = function(instanceID) {
   this.lastError = null;
   this.inIncognitoContext = null;
 
+  this.MessageSender = function(aTab) {
+    this.id = addonAPI.id;
+    if (aTab) {
+      this.tab = aTab; //optional
+    }
+  };
+
+  this.Port = function(aName, aSender) {
+    this.postMessage = function(msg) {
+      if (otherPort) {
+        otherPort.onMessage.fire(msg);
+      }
+    };
+    this.otherPort = null;
+    this.sender = aSender;
+    this.onDisconnect = new Event('port.onDisconnect');
+    this.onMessage = new Event('port.onMessage');
+    this.name = aName;
+
+    this.disconnect = function() {
+      otherPort.onDisconnect.fire();
+      otherPort = null;
+    }
+    this.release = function() {
+      delete onDisconnect;
+      delete onMessage;
+    }
+  };
+
+  PortPair = function(aName, aMessageSender) {
+    this.near = new self.Port(aName, aMessageSender);
+    this.far = new self.Port(aName, aMessageSender);
+
+    this.near.otherPort = this.far;
+    this.far.otherPort = this.near;
+
+    this.release = function() {
+      this.near.disconnect();
+      this.far.disconnect();
+      this.near.release();
+      this.far.release();
+    }
+  }
+
+
 
   //============================================================================
   // public methods
@@ -99,7 +121,7 @@ var Extension = function(instanceID) {
   // chrome.extension.connect
   //   returns   Port
   this.connect = function(extensionId, connectInfo) {
-    var pair = new PortPair(connectInfo.name, new MessageSender());
+    var pair = new PortPair(connectInfo.name, new self.MessageSender());
     addPortPair(pair, _instanceID);
     if (extensionId && extensionId != addonAPI.id) {
       addonAPI.invokeExternalEventObject(
@@ -154,21 +176,26 @@ var Extension = function(instanceID) {
   //----------------------------------------------------------------------------
   // chrome.extension.sendMessage
   this.sendMessage = function(extensionId, message, responseCallback) {
-    sender = new MessageSender();
+    console.debug("extension.sendMessage(..) called: " + message);
+    sender = new self.MessageSender();
+    callback = undefined;
+    if (responseCallback) {
+      callbackWrapper = new CallbackWrapper(responseCallback);
+      callback = callbackWrapper.callback;
+    }
     if (extensionId && extensionId != addonAPI.id) {
       addonAPI.invokeExternalEventObject(
             extensionId,
             'extension.onMessageExternal',
-            [message, sender, responseCallback]
+            [message, sender, callback]
             ); //TODO: fill tab to MessageSender
     } else {
       addonAPI.invokeEventObject(
             'extension.onMessage',
             _instanceID,
-            [message, sender, responseCallback]
+            [message, sender, callback]
             ); //TODO: fill tab to MessageSender
     }
-    console.debug("extension.sendMessage(..) called: " + message);
   };
 
   //----------------------------------------------------------------------------

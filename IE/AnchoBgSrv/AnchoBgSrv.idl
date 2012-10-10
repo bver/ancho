@@ -84,7 +84,7 @@ library AnchoBgSrvLib
 
     HRESULT invokeEventObject([in] BSTR aEventName, [in] INT aSkipInstance, [in] LPDISPATCH aArgs);
     HRESULT invokeExternalEventObject([in] BSTR aExtensionId, [in] BSTR aEventName, [in] LPDISPATCH aArgs);
-
+    HRESULT callFunction([in] LPDISPATCH aFunction, [in] LPDISPATCH aArgs, [out, retval] VARIANT* pvRet);
   };
 
 /*==========================================================================*/
