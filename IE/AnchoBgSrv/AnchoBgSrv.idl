@@ -9,6 +9,7 @@ import "ocidl.idl";
 
 // forwards
 interface IAnchoAddonBackground;
+interface IAnchoRuntime;
 
 /*==========================================================================*/
 [
@@ -23,6 +24,9 @@ interface IAnchoAddonService : IUnknown
 {
   HRESULT GetExtension([in] BSTR bsID, [out, retval] IAnchoAddonBackground ** ppRet);
   HRESULT GetModulePath([out, retval] BSTR * pbsPath);
+
+  HRESULT registerRuntime([in] IAnchoRuntime * aRuntime, INT aTabID);
+  HRESULT unregisterRuntime([in] INT aTabID);
 };
 
 /*==========================================================================*/
@@ -51,6 +55,17 @@ interface IAnchoAddonBackground : IUnknown
 library AnchoBgSrvLib
 {
 	importlib("stdole2.tlb");
+  [
+	  object,
+	  uuid(06550FFB-49D7-4428-A5FF-2CC688A8001F),
+	  oleautomation,
+	  nonextensible,
+	  helpstring("IAnchoRuntime Interface"),
+	  pointer_default(unique)
+  ]
+  interface IAnchoRuntime : IUnknown
+  {
+  };
 
 /*==========================================================================*/
   [

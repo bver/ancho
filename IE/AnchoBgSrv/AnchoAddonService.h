@@ -71,18 +71,33 @@ public:
 
   HRESULT invokeExternalEventObject(BSTR aExtensionId, BSTR aEventName, LPDISPATCH aArgs, VARIANT* aRet);
 
+  HRESULT openNewTab(LPUNKNOWN aWebBrowserWin, BSTR url);
+  HRESULT getActiveWebBrowser(LPUNKNOWN* pUnkWebBrowser);
 public:
   // -------------------------------------------------------------------------
   // IAnchoAddonService methods. See .idl for description.
   STDMETHOD(GetExtension)(BSTR bsID, IAnchoAddonBackground ** ppRet);
   STDMETHOD(GetModulePath)(BSTR * pbsPath);
+  STDMETHOD(registerRuntime)(IAnchoRuntime * aRuntime, INT aTabID);
+  STDMETHOD(unregisterRuntime)(INT aTabID);
 
 private:
+  HRESULT FindActiveBrowser(IWebBrowser2** webBrowser);
+
+  struct RuntimeRecord {
+    RuntimeRecord(IAnchoRuntime *aRuntime = NULL)
+      : runtime(aRuntime) {}
+    CComPtr<IAnchoRuntime> runtime;
+  };
+
+  typedef std::map<int, RuntimeRecord> RuntimeMap;
   // -------------------------------------------------------------------------
   // Private members.
 
   // a map containing all addon background objects - one per addon
   CAtlMap<CString, CAnchoAddonBackgroundComObject*>   m_Objects;
+
+  RuntimeMap  m_Runtimes;
 
   // Path to this exe and also to magpie.
   CString             m_sThisPath;

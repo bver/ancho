@@ -72,6 +72,8 @@ private:
   CComQIPtr<IWebBrowser2>                 m_pWebBrowser;
   CComPtr<IAnchoAddonService>             m_pAnchoService;
   CAtlMap<CStringW, CComPtr<IAnchoAddon> > m_Addons;
+
+  int m_TabID;
 };
 
 OBJECT_ENTRY_AUTO(__uuidof(AnchoRuntime), CAnchoRuntime)

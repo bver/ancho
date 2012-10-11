@@ -23,7 +23,49 @@ var API_NAME = 'tabs';
 var Tabs = function(instanceID) {
   //============================================================================
   // private variables
+  thisAPI = this;
+  //============================================================================
+  // public properties
 
+  thisAPI.Tab = function() {
+    //Either loading or complete. 
+    this.status = null;
+    //The zero-based index of the tab within its window.
+    this.index = -1;
+    //The ID of the tab that opened this tab, if any. This will only be present if the opener tab still exists.      
+    this.openerTabId = null;
+    //The title of the tab. This may not be available if the tab is loading.     
+    this.title = null;
+    //The URL the tab is displaying.
+    this.url = "";
+    //Whether the tab is pinned.     
+    this.pinned = false;
+    //Whether the tab is highlighted. 
+    this.highlighted = false;
+    //The ID of the window the tab is contained within.     
+    this.windowId = -1;
+    //Whether the tab is active in its window.        
+    this.active = false;
+    //The URL of the tab's favicon. This may not be available if the tab is loading.         
+    this.favIconUrl = null;
+    //The ID of the tab. Tab IDs are unique within a browser session.     
+    this.id = -1;
+    //Whether the tab is in an incognito window.     
+    this.incognito = false;
+  }
+
+  //Details of the script or CSS to inject. 
+  //Either the code or the file property must be set, but both may not be set at the same time.
+  thisAPI.InjectDetails = new function() {
+    //If allFrames is true, implies that the JavaScript or CSS should be injected into all frames of current page. By default, it's false and will only be injected into the top frame. 
+    this.allFrames = false;
+    //JavaScript or CSS code to inject.     
+    this.code = null;
+    //The soonest that the JavaScript or CSS will be injected into the tab. Defaults to "document_idle".     
+    this.runAt = "document_idle"; //enumerated string ["document_start", "document_end", "document_idle"]
+    //JavaScript or CSS file to inject.        
+    this.file = null;
+  }
 
   //============================================================================
   // public methods
@@ -45,6 +87,7 @@ var Tabs = function(instanceID) {
   // chrome.tabs.create
   this.create = function(createProperties, callback) {
     console.debug("tabs.create(..) called");
+
   };
 
   //----------------------------------------------------------------------------
@@ -63,12 +106,17 @@ var Tabs = function(instanceID) {
   // chrome.tabs.get
   this.get = function(tabId, callback) {
     console.debug("tabs.get(..) called");
+    if (!callback) {
+      return;
+    }
+    
   };
 
   //----------------------------------------------------------------------------
   // chrome.tabs.getCurrent
   this.getCurrent = function(callback) {
     console.debug("tabs.getCurrent(..) called");
+    get(addonAPI.getCurrentTabId(), callback);
   };
 
   //----------------------------------------------------------------------------

@@ -7,7 +7,7 @@
 import "oaidl.idl";
 import "ocidl.idl";
 import "exdisp.idl";
-
+/*
 [
 	object,
 	uuid(06550FFB-49D7-4428-A5FF-2CC688A8001F),
@@ -18,7 +18,7 @@ import "exdisp.idl";
 ]
 interface IAnchoRuntime : IUnknown
 {
-};
+};*/
 
 [
 	uuid(DBBBF00D-3AB6-45BA-BE51-B5D8EFECD127),

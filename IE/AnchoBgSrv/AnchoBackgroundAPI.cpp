@@ -279,7 +279,12 @@ BOOL CAnchoBackgroundAPI::GetURL(CStringW & sURL)
   }
   return b;
 }
-
+//----------------------------------------------------------------------------
+//
+void CAnchoBackgroundAPI::AddonServiceLost()
+{
+  m_pAddonServiceCallback = NULL;
+}
 //----------------------------------------------------------------------------
 //
 HRESULT CAnchoBackgroundAPI::GetMainModuleExportsScript(CIDispatchHelper & script)
@@ -393,6 +398,9 @@ STDMETHODIMP CAnchoBackgroundAPI::removeEventObject(BSTR aEventName, INT aInstan
 //
 STDMETHODIMP CAnchoBackgroundAPI::invokeExternalEventObject(BSTR aExtensionId, BSTR aEventName, LPDISPATCH aArgs, VARIANT* aRet)
 {
+  if (!m_pAddonServiceCallback) {
+    return S_OK;
+  }
   return m_pAddonServiceCallback->invokeExternalEventObject(aExtensionId, aEventName, aArgs, aRet);
 }
 //----------------------------------------------------------------------------

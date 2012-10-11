@@ -38,6 +38,11 @@ HRESULT CAnchoRuntime::InitAddons()
   // create addon service object
   IF_FAILED_RET(m_pAnchoService.CoCreateInstance(CLSID_AnchoAddonService));
 
+  HWND hwnd;
+  m_pWebBrowser->get_HWND((long*)&hwnd);
+  m_TabID = (int)hwnd;
+  m_pAnchoService->registerRuntime(this, m_TabID);
+
   // create all addons
   // open the registry key where all extensions are registered,
   // iterate subkeys and load each extension
@@ -84,6 +89,9 @@ void CAnchoRuntime::DestroyAddons()
     m_Addons.GetNextValue(pos)->Shutdown();
   }
   m_Addons.RemoveAll();
+  if(m_pAnchoService) { 
+    m_pAnchoService->unregisterRuntime(m_TabID);
+  }
   m_pAnchoService.Release();
   m_pWebBrowser.Release();
 }

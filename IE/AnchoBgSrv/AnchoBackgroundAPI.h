@@ -99,6 +99,8 @@ public:
 
   BOOL GetURL(/*in, out*/ CStringW & sURL);
 
+  void AddonServiceLost();
+
 public:
   // -------------------------------------------------------------------------
   // IAnchoBackgroundAPI methods. See .idl for description.
