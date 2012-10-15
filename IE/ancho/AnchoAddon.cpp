@@ -62,7 +62,7 @@ STDMETHODIMP CAnchoAddon::Init(LPCOLESTR lpsExtensionID, IAnchoAddonService * pS
   AtlAdvise(m_pWebBrowser, (IUnknown*)(DWebBrowserEvents2Ancho*)this, DIID_DWebBrowserEvents2, &m_dwAdviseSinkWebBrowser);
 
   // get addon instance
-  IF_FAILED_RET(m_pAnchoService->GetExtension(CComBSTR(m_sExtensionName), &m_pAddonBackground));
+  //IF_FAILED_RET(m_pAnchoService->GetExtension(CComBSTR(m_sExtensionName), &m_pAddonBackground));
 
   // The addon can be a resource DLL or simply a folder in the filesystem.
   // TODO: Load the DLL if there is any.
@@ -90,15 +90,15 @@ STDMETHODIMP CAnchoAddon::Init(LPCOLESTR lpsExtensionID, IAnchoAddonService * pS
   IF_FAILED_RET(CreateMagpieInstance(&m_Magpie));
 #endif
 
-  // get console
-  m_pBackgroundConsole = m_pAddonBackground;
-  ATLASSERT(m_pBackgroundConsole);
+  //// get console
+  //m_pBackgroundConsole = m_pAddonBackground;
+  //ATLASSERT(m_pBackgroundConsole);
 
-  // tell background we are there and get instance id
-  IF_FAILED_RET(m_pAddonBackground->AdviseInstance(&m_InstanceID));
+  //// tell background we are there and get instance id
+  //IF_FAILED_RET(m_pAddonBackground->AdviseInstance(&m_InstanceID));
 
-  // get content our API
-  IF_FAILED_RET(m_pAddonBackground->GetContentAPI(m_InstanceID, &m_pContentAPI));
+  //// get content our API
+  //IF_FAILED_RET(m_pAddonBackground->GetContentAPI(m_InstanceID, &m_pContentAPI));
   return S_OK;
 }
 
@@ -135,6 +135,23 @@ STDMETHODIMP CAnchoAddon::Shutdown()
 //  BrowserNavigateCompleteEvent
 STDMETHODIMP_(void) CAnchoAddon::BrowserNavigateCompleteEvent(IDispatch *pDisp, VARIANT *URL)
 {
+  //ATLASSERT(m_pAddonBackground != NULL);
+  if(!m_pAddonBackground) {
+    if(S_OK != m_pAnchoService->GetExtension(CComBSTR(m_sExtensionName), &m_pAddonBackground)) {
+      return;
+    }
+
+    // get console
+    m_pBackgroundConsole = m_pAddonBackground;
+    ATLASSERT(m_pBackgroundConsole);
+
+    // tell background we are there and get instance id
+    m_pAddonBackground->AdviseInstance(&m_InstanceID);
+
+    // get content our API
+    m_pAddonBackground->GetContentAPI(m_InstanceID, &m_pContentAPI);
+  }
+
   // content script handling happens here
 
   // no frame handling
@@ -184,4 +201,3 @@ STDMETHODIMP_(void) CAnchoAddon::BrowserNavigateCompleteEvent(IDispatch *pDisp, 
   // and run content script
   m_Magpie->Run(L"content.js");
 }
-

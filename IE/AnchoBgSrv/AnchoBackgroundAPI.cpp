@@ -419,7 +419,28 @@ STDMETHODIMP CAnchoBackgroundAPI::callFunction(LPDISPATCH aFunction, LPDISPATCH 
 }
 //----------------------------------------------------------------------------
 //
-STDMETHODIMP CAnchoBackgroundAPI::invokeEventObject(BSTR aEventName, INT aSkipInstance, LPDISPATCH aArgs, VARIANT* aRet)
+STDMETHODIMP CAnchoBackgroundAPI::executeScript(INT aTabID, BSTR aCode, BOOL aFileSpecified)
+{
+  return S_OK; 
+}
+//----------------------------------------------------------------------------
+//
+STDMETHODIMP CAnchoBackgroundAPI::createTab(BSTR aUrl)
+{
+  LPUNKNOWN browser;
+  IF_FAILED_RET(m_pAddonServiceCallback->getActiveWebBrowser(&browser));
+  IF_FAILED_RET(m_pAddonServiceCallback->navigateBrowser(browser, aUrl));
+  return S_OK;
+}
+//----------------------------------------------------------------------------
+//
+STDMETHODIMP CAnchoBackgroundAPI::getTabInfo(INT aTabId)
+{
+
+}
+//----------------------------------------------------------------------------
+//
+STDMETHODIMP CAnchoBackgroundAPI::invokeEventObject(BSTR aEventName, INT aSelectedInstance, BOOL aSkipInstance, LPDISPATCH aArgs, VARIANT* aRet)
 {
   ENSURE_RETVAL(aRet);
 
@@ -430,7 +451,7 @@ STDMETHODIMP CAnchoBackgroundAPI::invokeEventObject(BSTR aEventName, INT aSkipIn
   if (FAILED(hr)) {
       return hr;
   }
-  hr = invokeEvent(aEventName, aSkipInstance, args, results);
+  hr = invokeEvent(aEventName, aSelectedInstance, aSkipInstance, args, results);
   if (FAILED(hr)) {
       return hr;
   }
@@ -438,34 +459,56 @@ STDMETHODIMP CAnchoBackgroundAPI::invokeEventObject(BSTR aEventName, INT aSkipIn
 }
 //----------------------------------------------------------------------------
 //
-struct InvokeEventFtor
+struct InvokeSelectedEventFunctor
 {
-  InvokeEventFtor(VariantVector &aArgs, VariantVector &aResults, int aSkipInstance)
-    : mArgs(aArgs), mResults(aResults), mSkipInstance(aSkipInstance) { }
+  InvokeSelectedEventFunctor(VariantVector &aArgs, VariantVector &aResults, int aSelectedInstance)
+    : mArgs(aArgs), mResults(aResults), mSelectedInstance(aSelectedInstance) { }
   VariantVector &mArgs;
   VariantVector &mResults;
-  int mSkipInstance;
+  int mSelectedInstance;
 
   void operator()(CAnchoBackgroundAPI::EventObjectRecord &aRec) {
-    if (aRec.instanceID != mSkipInstance) {
+    if (aRec.instanceID == mSelectedInstance) {
       CComVariant result;
       aRec.listener.InvokeN((DISPID)0, mArgs.size()>0? &(mArgs[0]): NULL, mArgs.size(), &result);
       if (result.vt == VT_DISPATCH) {
         addJSArrayToVariantVector(result.pdispVal, mResults);
-        //mResults.push_back(result);
       }
     }
   }
 };
 
-STDMETHODIMP CAnchoBackgroundAPI::invokeEvent(BSTR aEventName, INT aSkipInstance, VariantVector &aArgs, VariantVector &aResults)
+struct InvokeUnSelectedEventFunctor
+{
+  InvokeUnSelectedEventFunctor(VariantVector &aArgs, VariantVector &aResults, int aSelectedInstance)
+    : mArgs(aArgs), mResults(aResults), mSelectedInstance(aSelectedInstance) { }
+  VariantVector &mArgs;
+  VariantVector &mResults;
+  int mSelectedInstance;
+
+  void operator()(CAnchoBackgroundAPI::EventObjectRecord &aRec) {
+    if (aRec.instanceID != mSelectedInstance) {
+      CComVariant result;
+      aRec.listener.InvokeN((DISPID)0, mArgs.size()>0? &(mArgs[0]): NULL, mArgs.size(), &result);
+      if (result.vt == VT_DISPATCH) {
+        addJSArrayToVariantVector(result.pdispVal, mResults);
+      }
+    }
+  }
+};
+
+STDMETHODIMP CAnchoBackgroundAPI::invokeEvent(BSTR aEventName, INT aSelectedInstance, bool aSkipInstance, VariantVector &aArgs, VariantVector &aResults)
 {
   std::wstring eventName(aEventName, SysStringLen(aEventName));
   EventObjectMap::iterator it = m_EventObjects.find(eventName);
   if (it == m_EventObjects.end()) {
     return S_OK;
   }
-  std::for_each(it->second.begin(), it->second.end(), InvokeEventFtor(aArgs, aResults, aSkipInstance));
+  if(aSkipInstance) {
+    std::for_each(it->second.begin(), it->second.end(), InvokeUnSelectedEventFunctor(aArgs, aResults, aSelectedInstance));
+  } else {
+    std::for_each(it->second.begin(), it->second.end(), InvokeSelectedEventFunctor(aArgs, aResults, aSelectedInstance));
+  }
   return S_OK;
 }
 

@@ -110,9 +110,13 @@ public:
 
   STDMETHOD(addEventObject)(BSTR aEventName, INT aInstanceId, LPDISPATCH aListener);
   STDMETHOD(removeEventObject)(BSTR aEventName, INT aInstanceId);
-  STDMETHOD(invokeEventObject)(BSTR aEventName, INT aSkipInstance, LPDISPATCH aArgs, VARIANT* aRet);
+  STDMETHOD(invokeEventObject)(BSTR aEventName, INT aSelectedInstance, BOOL aSkipInstance, LPDISPATCH aArgs, VARIANT* aRet);
   STDMETHOD(invokeExternalEventObject)(BSTR aExtensionId, BSTR aEventName, LPDISPATCH aArgs, VARIANT* aRet);
   STDMETHOD(callFunction)(LPDISPATCH aFunction, LPDISPATCH aArgs, VARIANT* pvRet);
+
+  STDMETHOD(executeScript)(INT aTabID, BSTR aCode, BOOL aFileSpecified);
+  STDMETHOD(createTab)(BSTR aUrl);
+  STDMETHOD(getTabInfo)(INT aTabId, VARIANT* aRet);
   // -------------------------------------------------------------------------
   // _IMagpieLoggerEvents methods
   STDMETHOD_(void, OnLog)(VARIANT val, BSTR bsModuleID);
@@ -136,7 +140,7 @@ public:
 private:
   // -------------------------------------------------------------------------
   // Private member functions
-  STDMETHOD(invokeEvent)(BSTR aEventName, INT aSkipInstance, VariantVector &aArgs, VariantVector &aResults);
+  STDMETHOD(invokeEvent)(BSTR aEventName, INT aSelectedInstance, bool aSkipInstance, VariantVector &aArgs, VariantVector &aResults);
 
   HRESULT GetMainModuleExportsScript(CIDispatchHelper & script);
 

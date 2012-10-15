@@ -9,6 +9,10 @@
 #include "AnchoAddon.h"
 #include "dllmain.h"
 
+
+#include <Iepmapi.h>
+#pragma comment(lib, "Iepmapi.lib")
+
 extern class CanchoModule _AtlModule;
 
 /*============================================================================
@@ -20,6 +24,12 @@ extern class CanchoModule _AtlModule;
 HRESULT CAnchoRuntime::InitAddons()
 {
   ATLASSERT(m_spUnkSite);
+
+  BOOL val = FALSE;
+  HRESULT rv = IEIsProtectedModeProcess(&val);
+  if (rv == S_OK) {
+    ATLTRACE(L"IE in protective mode: %s\n", val == TRUE ? L"yes" : L"no");
+  }
 
   // get IServiceProvider to get IWebBrowser2 and IOleWindow
   CComQIPtr<IServiceProvider> pServiceProvider = m_spUnkSite;
@@ -38,10 +48,10 @@ HRESULT CAnchoRuntime::InitAddons()
   // create addon service object
   IF_FAILED_RET(m_pAnchoService.CoCreateInstance(CLSID_AnchoAddonService));
 
-  HWND hwnd;
-  m_pWebBrowser->get_HWND((long*)&hwnd);
-  m_TabID = (int)hwnd;
-  m_pAnchoService->registerRuntime(this, m_TabID);
+  //Registering tab in service - obtains tab id and assigns it to the tab as property
+  IF_FAILED_RET(m_pAnchoService->registerRuntime(this, &m_TabID));
+  HWND hwnd;  m_pWebBrowser->get_HWND((long*)&hwnd);
+  ::SetProp(hwnd, s_AnchoTabIDPropertyName, (HANDLE)m_TabID);
 
   // create all addons
   // open the registry key where all extensions are registered,

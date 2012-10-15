@@ -87,7 +87,7 @@ var Tabs = function(instanceID) {
   // chrome.tabs.create
   this.create = function(createProperties, callback) {
     console.debug("tabs.create(..) called");
-
+    addonAPI.createTab(createProperties.url);
   };
 
   //----------------------------------------------------------------------------
@@ -100,6 +100,24 @@ var Tabs = function(instanceID) {
   // chrome.tabs.executeScript
   this.executeScript = function(tabId, details, callback) {
     console.debug("tabs.executeScript(..) called");
+    if ((tabId && !(typeof tabId === 'number'))
+      || (!details || (!details.code && !details.file))
+      || (callback && !(typeof callback === 'function'))
+      ) {
+      throw new Error('Invocation of chrome.tabs.executeScript doesn\'t match definition.');
+    }
+    if (details.code && details.file) {
+      throw new Error('Code and file should not be specified at the same time in the second argument.');
+    }
+    var ret = undefined;
+    if (details.code) {
+      ret = addonAPI.executeScript(tabId, details.code, false);
+    } else {
+      ret = addonAPI.executeScript(tabId, details.file, true);
+    }
+    if (callback) {
+      callback(ret);
+    }
   };
 
   //----------------------------------------------------------------------------
@@ -109,14 +127,22 @@ var Tabs = function(instanceID) {
     if (!callback) {
       return;
     }
-    
+    var tab = addonAPI.getTabInfo(tabId);
+    callback(tab);
   };
 
   //----------------------------------------------------------------------------
   // chrome.tabs.getCurrent
   this.getCurrent = function(callback) {
     console.debug("tabs.getCurrent(..) called");
-    get(addonAPI.getCurrentTabId(), callback);
+    //if we are not running in tab context - return undefined
+    if (instanceID <= 0) {
+      if (callback) {
+        callback(undefined);
+      }
+      return;
+    }
+    get(instanceID, callback);
   };
 
   //----------------------------------------------------------------------------

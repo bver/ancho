@@ -71,7 +71,6 @@ public:
   // -------------------------------------------------------------------------
   // DWebBrowserEvents2 methods
   STDMETHOD_(void, BrowserNavigateCompleteEvent)(IDispatch *pDisp, VARIANT *URL);
-
 private:
   // -------------------------------------------------------------------------
   // Private members.

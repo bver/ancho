@@ -10,6 +10,7 @@
 #include <shlguid.h>
 #include <OleAcc.h> // For ObjectFromLresult
 #pragma comment(lib, "Oleacc.lib")
+
 /*============================================================================
  * class CAnchoAddonBackground
  */
@@ -36,7 +37,7 @@ HRESULT CAnchoAddonService::invokeExternalEventObject(BSTR aExtensionId, BSTR aE
 
 //----------------------------------------------------------------------------
 //
-HRESULT CAnchoAddonService::openNewTab(LPUNKNOWN aWebBrowserWin, BSTR url) {
+HRESULT CAnchoAddonService::navigateBrowser(LPUNKNOWN aWebBrowserWin, BSTR url) {
   //LPUNKNOWN lpWebBrowser = NULL;
   //m_ApiService->get_activeWebBrowser(&lpWebBrowser);
   CComQIPtr<IWebBrowser2> webBrowser = aWebBrowserWin;
@@ -59,6 +60,9 @@ HRESULT CAnchoAddonService::getActiveWebBrowser(LPUNKNOWN* pUnkWebBrowser)
   if (FAILED(hr)) {
     return hr;
   }
+  HWND hwnd = 0;
+  pWebBrowser->get_HWND((long*)&hwnd);
+  ATLTRACE( L"------- Tab id = %d", ::GetProp(hwnd, s_AnchoTabIDPropertyName) );
   return pWebBrowser->QueryInterface(IID_IUnknown, (void**) pUnkWebBrowser);
 }
 //----------------------------------------------------------------------------
@@ -143,16 +147,24 @@ STDMETHODIMP CAnchoAddonService::GetModulePath(BSTR * pbsPath)
   (*pbsPath) = m_sThisPath.AllocSysString();
   return S_OK;
 }
-
-STDMETHODIMP CAnchoAddonService::registerRuntime(IAnchoRuntime * aRuntime, INT aTabID)
+//----------------------------------------------------------------------------
+//
+STDMETHODIMP CAnchoAddonService::registerRuntime(IAnchoRuntime * aRuntime, INT *aTabID)
 {
-  m_Runtimes[aTabID] = RuntimeRecord(aRuntime);
+  ENSURE_RETVAL(aTabID);
+  //Assigning tab id 
+  *aTabID = m_NextTabID++;
+
+  m_Runtimes[*aTabID] = RuntimeRecord(aRuntime);
+  ATLTRACE(L"ADDON SERVICE - registering tab: %d\n", *aTabID);
   return S_OK;
 }
-
+//----------------------------------------------------------------------------
+//
 STDMETHODIMP CAnchoAddonService::unregisterRuntime(INT aTabID)
 {
   m_Runtimes.erase(aTabID);
+  ATLTRACE(L"ADDON SERVICE - unregistering tab: %d\n", aTabID);
   return S_OK;
 }
 
@@ -215,7 +227,6 @@ HRESULT CAnchoAddonService::FindActiveBrowser(IWebBrowser2** webBrowser)
 {
   ATLASSERT(webBrowser != NULL);
   *webBrowser = NULL;
-
   // First find the IE frame windows.
   HWND hIEFrame = NULL;
   do {

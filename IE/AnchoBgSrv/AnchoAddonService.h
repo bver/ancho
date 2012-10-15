@@ -22,6 +22,8 @@ struct CAnchoAddonServiceCallback
 {
   virtual void OnAddonFinalRelease(BSTR bsID) = 0;
   virtual HRESULT invokeExternalEventObject(BSTR aExtensionId, BSTR aEventName, LPDISPATCH aArgs, VARIANT* aRet) = 0;
+  virtual HRESULT navigateBrowser(LPUNKNOWN aWebBrowserWin, BSTR url) = 0;
+  virtual HRESULT getActiveWebBrowser(LPUNKNOWN* pUnkWebBrowser) = 0;
 };
 
 /*============================================================================
@@ -36,7 +38,7 @@ class ATL_NO_VTABLE CAnchoAddonService :
 public:
   // -------------------------------------------------------------------------
   // ctor
-  CAnchoAddonService()
+  CAnchoAddonService(): m_NextTabID(1)
   {
   }
 
@@ -71,14 +73,14 @@ public:
 
   HRESULT invokeExternalEventObject(BSTR aExtensionId, BSTR aEventName, LPDISPATCH aArgs, VARIANT* aRet);
 
-  HRESULT openNewTab(LPUNKNOWN aWebBrowserWin, BSTR url);
+  HRESULT navigateBrowser(LPUNKNOWN aWebBrowserWin, BSTR url);
   HRESULT getActiveWebBrowser(LPUNKNOWN* pUnkWebBrowser);
 public:
   // -------------------------------------------------------------------------
   // IAnchoAddonService methods. See .idl for description.
   STDMETHOD(GetExtension)(BSTR bsID, IAnchoAddonBackground ** ppRet);
   STDMETHOD(GetModulePath)(BSTR * pbsPath);
-  STDMETHOD(registerRuntime)(IAnchoRuntime * aRuntime, INT aTabID);
+  STDMETHOD(registerRuntime)(IAnchoRuntime * aRuntime, INT *aTabID);
   STDMETHOD(unregisterRuntime)(INT aTabID);
 
 private:
@@ -102,6 +104,7 @@ private:
   // Path to this exe and also to magpie.
   CString             m_sThisPath;
 
+  int     m_NextTabID;
 };
 
 OBJECT_ENTRY_AUTO(__uuidof(AnchoAddonService), CAnchoAddonService)

@@ -25,7 +25,7 @@ interface IAnchoAddonService : IUnknown
   HRESULT GetExtension([in] BSTR bsID, [out, retval] IAnchoAddonBackground ** ppRet);
   HRESULT GetModulePath([out, retval] BSTR * pbsPath);
 
-  HRESULT registerRuntime([in] IAnchoRuntime * aRuntime, INT aTabID);
+  HRESULT registerRuntime([in] IAnchoRuntime * aRuntime, [out, retval] INT *aTabID);
   HRESULT unregisterRuntime([in] INT aTabID);
 };
 
@@ -97,9 +97,13 @@ library AnchoBgSrvLib
     HRESULT addEventObject([in]BSTR aEventName, [in] INT aInstanceId, [in] LPDISPATCH aListener);
     HRESULT removeEventObject([in]BSTR aEventName, [in] INT aInstanceId);
 
-    HRESULT invokeEventObject([in] BSTR aEventName, [in] INT aSkipInstance, [in] LPDISPATCH aArgs, [out, retval] VARIANT* aRet);
+    HRESULT invokeEventObject([in] BSTR aEventName, [in] INT aSelectedInstance, [in] BOOL aSkipInstance, [in] LPDISPATCH aArgs, [out, retval] VARIANT* aRet);
     HRESULT invokeExternalEventObject([in] BSTR aExtensionId, [in] BSTR aEventName, [in] LPDISPATCH aArgs, [out, retval] VARIANT* aRet);
     HRESULT callFunction([in] LPDISPATCH aFunction, [in] LPDISPATCH aArgs, [out, retval] VARIANT* aRet);
+
+    HRESULT executeScript([in] INT aTabID, [in] BSTR aCode, [in] BOOL aFileSpecified);
+    HRESULT createTab([in] BSTR aUrl);
+    HRESULT getTabInfo([in] INT aTabId, [out, retval] VARIANT* aRet);
   };
 
 /*==========================================================================*/

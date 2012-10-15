@@ -132,6 +132,7 @@ var Extension = function(instanceID) {
        addonAPI.invokeEventObject(
               'extension.onConnect',
               -1, //TODO: after tabs API finished prevent content scripts from notifications
+              true,
               [pair.far]
               );
     }
@@ -193,6 +194,7 @@ var Extension = function(instanceID) {
       ret = addonAPI.invokeEventObject(
             'extension.onMessage',
             _instanceID,
+            true, //we are skipping _instanceID
             [message, sender, callback]
             ); //TODO: fill tab to MessageSender
     }

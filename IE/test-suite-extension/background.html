@@ -47,6 +47,10 @@
           port.postMessage('Responding to message received through port');
       });
   });
+  
+console.log('TAB CREATING');
+chrome.tabs.create({'url': 'http://www.centrum.cz' });
+console.log('TAB CREATED');
 </script>
 
 
