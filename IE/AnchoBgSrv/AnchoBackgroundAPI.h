@@ -115,8 +115,12 @@ public:
   STDMETHOD(callFunction)(LPDISPATCH aFunction, LPDISPATCH aArgs, VARIANT* pvRet);
 
   STDMETHOD(executeScript)(INT aTabID, BSTR aCode, BOOL aFileSpecified);
-  STDMETHOD(createTab)(BSTR aUrl);
-  STDMETHOD(getTabInfo)(INT aTabId, VARIANT* aRet);
+  STDMETHOD(createTab)(LPDISPATCH aProperties, LPDISPATCH aCreator, VARIANT* aRet);
+  STDMETHOD(updateTab)(INT aTabId, LPDISPATCH aProperties);
+  STDMETHOD(getTabInfo)(INT aTabId, LPDISPATCH aCreator, VARIANT* aRet);
+  STDMETHOD(reloadTab)(INT aTabId);
+  STDMETHOD(removeTabs)(LPDISPATCH aTabs);
+  STDMETHOD(queryTabs)(LPDISPATCH aQueryInfo, LPDISPATCH aCreator, VARIANT* aRet);
   // -------------------------------------------------------------------------
   // _IMagpieLoggerEvents methods
   STDMETHOD_(void, OnLog)(VARIANT val, BSTR bsModuleID);

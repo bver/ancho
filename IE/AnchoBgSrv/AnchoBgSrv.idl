@@ -65,6 +65,11 @@ library AnchoBgSrvLib
   ]
   interface IAnchoRuntime : IUnknown
   {
+    HRESULT reloadTab();
+    HRESULT closeTab();
+    HRESULT executeScript([in] BSTR aExtensionId, [in] BSTR aCode/*, [in] BOOL aFileSpecified*/);
+    HRESULT updateTab([in] LPDISPATCH aProperties);
+    HRESULT fillTabInfo([in] VARIANT* aInfo);
   };
 
 /*==========================================================================*/
@@ -102,8 +107,11 @@ library AnchoBgSrvLib
     HRESULT callFunction([in] LPDISPATCH aFunction, [in] LPDISPATCH aArgs, [out, retval] VARIANT* aRet);
 
     HRESULT executeScript([in] INT aTabID, [in] BSTR aCode, [in] BOOL aFileSpecified);
-    HRESULT createTab([in] BSTR aUrl);
-    HRESULT getTabInfo([in] INT aTabId, [out, retval] VARIANT* aRet);
+    HRESULT createTab([in] LPDISPATCH aProperties, [in] LPDISPATCH aCreator, [in] VARIANT* aRet);
+    HRESULT updateTab([in] INT aTabId, [in] LPDISPATCH aProperties);
+    HRESULT getTabInfo([in] INT aTabId, [in] LPDISPATCH aCreator, [out, retval] VARIANT* aRet);
+    HRESULT removeTabs([in] LPDISPATCH aTabs);
+    HRESULT queryTabs([in] LPDISPATCH aQueryInfo, [in] LPDISPATCH aCreator, [out, retval] VARIANT* aRet);
   };
 
 /*==========================================================================*/

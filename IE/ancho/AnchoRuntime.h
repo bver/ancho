@@ -14,12 +14,16 @@
 #error "Single-threaded COM objects are not properly supported on Windows CE platform, such as the Windows Mobile platforms that do not include full DCOM support. Define _CE_ALLOW_SINGLE_THREADED_OBJECTS_IN_MTA to force ATL to support creating single-thread COM object's and allow use of it's single-threaded COM object implementations. The threading model in your rgs file was set to 'Free' as that is the only threading model supported in non DCOM Windows CE platforms."
 #endif
 
+class CAnchoRuntime;
+typedef IDispEventImpl<1, CAnchoRuntime, &DIID_DWebBrowserEvents2, &LIBID_SHDocVw, 1, 0> DWebBrowserEvents2AnchoRuntime;
+
 /*============================================================================
  * class CAnchoRuntime
  */
 class ATL_NO_VTABLE CAnchoRuntime :
   public CComObjectRootEx<CComSingleThreadModel>,
   public CComCoClass<CAnchoRuntime, &CLSID_AnchoRuntime>,
+  public DWebBrowserEvents2AnchoRuntime,
   public IObjectWithSiteImpl<CAnchoRuntime>,
   public IAnchoRuntime
 {
@@ -44,6 +48,13 @@ public:
   END_COM_MAP()
 
   // -------------------------------------------------------------------------
+  // COM sink map
+  BEGIN_SINK_MAP(CAnchoRuntime)
+    SINK_ENTRY_EX(1, DIID_DWebBrowserEvents2, DISPID_BEFORENAVIGATE2, browserBeforeNavigateEvent)
+  END_SINK_MAP()
+
+  STDMETHOD_(void, browserBeforeNavigateEvent)(LPDISPATCH pDisp, VARIANT *pURL, VARIANT *Flags, VARIANT *TargetFrameName, VARIANT *PostData, VARIANT *Headers, BOOL *Cancel);
+  // -------------------------------------------------------------------------
   // COM standard methods
   HRESULT FinalConstruct()
   {
@@ -60,12 +71,21 @@ public:
   // IObjectWithSiteImpl methods
   STDMETHOD(SetSite)(IUnknown *pUnkSite);
 
+  // -------------------------------------------------------------------------
+  // IAnchoRuntime methods
+  STDMETHOD(reloadTab)();
+  STDMETHOD(closeTab)();
+  STDMETHOD(executeScript)(BSTR aExtensionId, BSTR aCode/*, BOOL aFileSpecified*/);
+  STDMETHOD(updateTab)(LPDISPATCH aProperties);
+  STDMETHOD(fillTabInfo)(VARIANT* aInfo);
 private:
   // -------------------------------------------------------------------------
   // Methods
   HRESULT InitAddons();
   void DestroyAddons();
 
+  HWND getTabWindow();
+  bool isTabActive();
 private:
   // -------------------------------------------------------------------------
   // Private members.

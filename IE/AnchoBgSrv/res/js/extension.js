@@ -199,7 +199,7 @@ var Extension = function(instanceID) {
             ); //TODO: fill tab to MessageSender
     }
 
-    //if responseCallaback not yet called, check if some of the listeners 
+    //if responseCallaback not yet called, check if some of the listeners
     //requests asynchronous responseCallback, otherwise disable responseCallback
     if (callbackWrapper.callable && ret != undefined) {
       var arr = new VBArray(ret).toArray();
@@ -235,6 +235,6 @@ exports.createAPI = function(instanceID) {
 
 exports.releaseAPI = function(instanceID) {
   EventFactory.releaseEvents(instanceID, API_NAME, EVENT_LIST);
-  
+
   releasePorts(instanceID);
 }

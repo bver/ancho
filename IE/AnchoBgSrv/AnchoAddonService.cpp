@@ -11,6 +11,22 @@
 #include <OleAcc.h> // For ObjectFromLresult
 #pragma comment(lib, "Oleacc.lib")
 
+
+HRESULT createIDispatchFromCreator(LPDISPATCH aCreator, VARIANT* aRet)
+{
+ENSURE_RETVAL(aRet);
+  CComQIPtr<IDispatchEx> creator(aCreator);
+  if (!creator) {
+    return E_NOINTERFACE;
+  }
+  DISPPARAMS params = {0};
+  HRESULT hr = creator->InvokeEx(DISPID_VALUE, LOCALE_USER_DEFAULT, DISPATCH_CONSTRUCT, &params, aRet, NULL, NULL);
+  if (hr != S_OK) {
+    return hr;
+  }
+  return S_OK;
+}
+
 /*============================================================================
  * class CAnchoAddonBackground
  */
@@ -44,7 +60,7 @@ HRESULT CAnchoAddonService::navigateBrowser(LPUNKNOWN aWebBrowserWin, BSTR url) 
   if (!webBrowser) {
     return E_POINTER;
   }
-  
+
   CComVariant vtUrl(url);
   CComVariant vtFlags(navOpenInNewTab);
   CComVariant vtEmpty;
@@ -64,6 +80,77 @@ HRESULT CAnchoAddonService::getActiveWebBrowser(LPUNKNOWN* pUnkWebBrowser)
   pWebBrowser->get_HWND((long*)&hwnd);
   ATLTRACE( L"------- Tab id = %d", ::GetProp(hwnd, s_AnchoTabIDPropertyName) );
   return pWebBrowser->QueryInterface(IID_IUnknown, (void**) pUnkWebBrowser);
+}
+//----------------------------------------------------------------------------
+//
+HRESULT CAnchoAddonService::reloadTab(INT aTabId)
+{
+  RuntimeMap::iterator it = m_Runtimes.find(aTabId);
+  if (it != m_Runtimes.end()) {
+    ATLASSERT(it->second.runtime);
+    it->second.runtime->reloadTab();
+    return S_OK;
+  }
+  return E_FAIL;
+}
+//----------------------------------------------------------------------------
+//
+HRESULT CAnchoAddonService::removeTab(INT aTabId)
+{
+  RuntimeMap::iterator it = m_Runtimes.find(aTabId);
+  if (it != m_Runtimes.end()) {
+    ATLASSERT(it->second.runtime);
+    it->second.runtime->closeTab();
+    return S_OK;
+  }
+  return E_FAIL;
+}
+//----------------------------------------------------------------------------
+//
+HRESULT CAnchoAddonService::updateTab(INT aTabId, LPDISPATCH aProperties)
+{
+  RuntimeMap::iterator it = m_Runtimes.find(aTabId);
+  if (it != m_Runtimes.end()) {
+    ATLASSERT(it->second.runtime);
+    it->second.runtime->updateTab(aProperties);
+    return S_OK;
+  }
+  return E_FAIL;
+}
+//----------------------------------------------------------------------------
+//
+HRESULT CAnchoAddonService::getTabInfo(INT aTabId, LPDISPATCH aCreator, VARIANT* aRet)
+{
+  /*ENSURE_RETVAL(aRet);
+  CComQIPtr<IDispatchEx> creator(aCreator);
+  if (!creator) {
+    return E_NOINTERFACE;
+  }
+  DISPPARAMS params = {0};
+  HRESULT hr = creator->InvokeEx(DISPID_VALUE, LOCALE_USER_DEFAULT, DISPATCH_CONSTRUCT, &params, aRet, NULL, NULL);
+  if (hr != S_OK) {
+    return hr;
+  }*/
+
+  HRESULT hr = createIDispatchFromCreator(aCreator, aRet);
+  if (hr != S_OK) {
+    return hr;
+  }
+
+  RuntimeMap::iterator it = m_Runtimes.find(aTabId);
+  if (it != m_Runtimes.end()) {
+    ATLASSERT(it->second.runtime);
+    it->second.runtime->fillTabInfo(aRet);
+    return S_OK;
+  }
+  return E_FAIL;
+}
+
+//----------------------------------------------------------------------------
+//
+HRESULT CAnchoAddonService::queryTabs(LPDISPATCH aQueryInfo, LPDISPATCH aCreator, VARIANT* aRet)
+{
+  return S_OK;
 }
 //----------------------------------------------------------------------------
 //
@@ -152,7 +239,7 @@ STDMETHODIMP CAnchoAddonService::GetModulePath(BSTR * pbsPath)
 STDMETHODIMP CAnchoAddonService::registerRuntime(IAnchoRuntime * aRuntime, INT *aTabID)
 {
   ENSURE_RETVAL(aTabID);
-  //Assigning tab id 
+  //Assigning tab id
   *aTabID = m_NextTabID++;
 
   m_Runtimes[*aTabID] = RuntimeRecord(aRuntime);

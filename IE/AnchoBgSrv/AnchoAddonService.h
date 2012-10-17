@@ -24,6 +24,11 @@ struct CAnchoAddonServiceCallback
   virtual HRESULT invokeExternalEventObject(BSTR aExtensionId, BSTR aEventName, LPDISPATCH aArgs, VARIANT* aRet) = 0;
   virtual HRESULT navigateBrowser(LPUNKNOWN aWebBrowserWin, BSTR url) = 0;
   virtual HRESULT getActiveWebBrowser(LPUNKNOWN* pUnkWebBrowser) = 0;
+  virtual HRESULT reloadTab(INT aTabId) = 0;
+  virtual HRESULT removeTab(INT aTabId) = 0;
+  virtual HRESULT updateTab(INT aTabId, LPDISPATCH aProperties) = 0;
+  virtual HRESULT getTabInfo(INT aTabId, LPDISPATCH aCreator, VARIANT* aRet) = 0;
+  virtual HRESULT queryTabs(LPDISPATCH aQueryInfo, LPDISPATCH aCreator, VARIANT* aRet) = 0;
 };
 
 /*============================================================================
@@ -75,6 +80,11 @@ public:
 
   HRESULT navigateBrowser(LPUNKNOWN aWebBrowserWin, BSTR url);
   HRESULT getActiveWebBrowser(LPUNKNOWN* pUnkWebBrowser);
+  HRESULT reloadTab(INT aTabId);
+  HRESULT removeTab(INT aTabId);
+  HRESULT updateTab(INT aTabId, LPDISPATCH aProperties);
+  HRESULT getTabInfo(INT aTabId, LPDISPATCH aCreator, VARIANT* aRet);
+  HRESULT queryTabs(LPDISPATCH aQueryInfo, LPDISPATCH aCreator, VARIANT* aRet);
 public:
   // -------------------------------------------------------------------------
   // IAnchoAddonService methods. See .idl for description.

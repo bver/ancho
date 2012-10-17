@@ -99,7 +99,7 @@ void CAnchoRuntime::DestroyAddons()
     m_Addons.GetNextValue(pos)->Shutdown();
   }
   m_Addons.RemoveAll();
-  if(m_pAnchoService) { 
+  if(m_pAnchoService) {
     m_pAnchoService->unregisterRuntime(m_TabID);
   }
   m_pAnchoService.Release();
@@ -122,4 +122,101 @@ STDMETHODIMP CAnchoRuntime::SetSite(IUnknown *pUnkSite)
   }
   return hr;
 }
+//----------------------------------------------------------------------------
+//
+STDMETHODIMP_(void) CAnchoRuntime::browserBeforeNavigateEvent(LPDISPATCH pDisp, VARIANT *pURL, VARIANT *Flags, VARIANT *TargetFrameName, VARIANT *PostData, VARIANT *Headers, BOOL *Cancel)
+{
+  if (!m_pWebBrowser.IsEqualObject(pDisp)) {
+    return;
+  }
+  CComQIPtr<IWebBrowser2> pWebBrowser(pDisp);
+  if (!pWebBrowser) {
+    return;
+  }
+  if(pURL->vt != VT_BSTR) {
+    return;
+  }
 
+  CComBSTR url(pURL->bstrVal);
+
+  /*
+  *Cancel = TRUE;
+  pWebBrowser->Stop();
+  pWebBrowser->Navigate2();
+  */
+}
+//----------------------------------------------------------------------------
+//
+STDMETHODIMP CAnchoRuntime::reloadTab()
+{
+  CComVariant var(REFRESH_COMPLETELY);
+  m_pWebBrowser->Refresh2(&var);
+  return S_OK;
+}
+//----------------------------------------------------------------------------
+//
+STDMETHODIMP CAnchoRuntime::closeTab()
+{
+  return m_pWebBrowser->Quit();
+}
+//----------------------------------------------------------------------------
+//
+STDMETHODIMP CAnchoRuntime::executeScript(BSTR aExtensionId, BSTR aCode/*, BOOL aFileSpecified*/)
+{
+  return S_OK;
+}
+//----------------------------------------------------------------------------
+//
+STDMETHODIMP CAnchoRuntime::updateTab(LPDISPATCH aProperties)
+{
+  return S_OK;
+}
+//----------------------------------------------------------------------------
+//
+STDMETHODIMP CAnchoRuntime::fillTabInfo(VARIANT* aInfo)
+{
+  ENSURE_RETVAL(aInfo);
+  if(aInfo->vt != VT_DISPATCH) {
+    return E_NOINTERFACE;
+  }
+  CIDispatchHelper obj(aInfo->pdispVal);
+
+  CComBSTR locationUrl;
+  CComBSTR name;
+  m_pWebBrowser->get_LocationURL(&locationUrl);
+  obj.SetProperty(L"url", CComVariant(locationUrl));
+
+  m_pWebBrowser->get_Name(&name);
+  obj.SetProperty(L"title", CComVariant(name));
+
+  obj.SetProperty(L"id", CComVariant(m_TabID));
+
+  obj.SetProperty(L"active", CComVariant(isTabActive()));
+  return S_OK;
+}
+//----------------------------------------------------------------------------
+//
+HWND CAnchoRuntime::getTabWindow()
+{
+  HWND hwndBrowser = NULL;
+  IServiceProvider* pServiceProvider = NULL;
+  if (SUCCEEDED(m_pWebBrowser->QueryInterface(IID_IServiceProvider, (void**)&pServiceProvider))){
+    IOleWindow* pWindow = NULL;
+    if (SUCCEEDED(pServiceProvider->QueryService(SID_SShellBrowser, IID_IOleWindow,(void**)&pWindow))) {
+      // hwndBrowser is the handle of TabWindowClass
+      if (!SUCCEEDED(pWindow->GetWindow(&hwndBrowser))) {
+        hwndBrowser = NULL;
+      }
+      pWindow->Release();
+    }
+    pServiceProvider->Release();
+  }
+  return hwndBrowser;
+}
+//----------------------------------------------------------------------------
+//
+bool CAnchoRuntime::isTabActive()
+{
+  HWND hwndBrowser = getTabWindow();
+  return hwndBrowser && ::IsWindowEnabled(hwndBrowser);
+}

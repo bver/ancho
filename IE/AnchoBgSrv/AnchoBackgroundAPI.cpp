@@ -421,23 +421,82 @@ STDMETHODIMP CAnchoBackgroundAPI::callFunction(LPDISPATCH aFunction, LPDISPATCH 
 //
 STDMETHODIMP CAnchoBackgroundAPI::executeScript(INT aTabID, BSTR aCode, BOOL aFileSpecified)
 {
-  return S_OK; 
-}
-//----------------------------------------------------------------------------
-//
-STDMETHODIMP CAnchoBackgroundAPI::createTab(BSTR aUrl)
-{
-  LPUNKNOWN browser;
-  IF_FAILED_RET(m_pAddonServiceCallback->getActiveWebBrowser(&browser));
-  IF_FAILED_RET(m_pAddonServiceCallback->navigateBrowser(browser, aUrl));
   return S_OK;
 }
 //----------------------------------------------------------------------------
 //
-STDMETHODIMP CAnchoBackgroundAPI::getTabInfo(INT aTabId)
+STDMETHODIMP CAnchoBackgroundAPI::createTab(LPDISPATCH aProperties, LPDISPATCH aCreator, VARIANT* aRet)
 {
+  if (!m_pAddonServiceCallback) {
+    return E_FAIL;
+  }
 
+  LPUNKNOWN browser;
+  //IF_FAILED_RET(m_pAddonServiceCallback->getActiveWebBrowser(&browser));
+  //IF_FAILED_RET(m_pAddonServiceCallback->navigateBrowser(browser, aUrl));
+  return S_OK;
 }
+//----------------------------------------------------------------------------
+//
+STDMETHODIMP CAnchoBackgroundAPI::updateTab(INT aTabId, LPDISPATCH aProperties)
+{
+  if (!m_pAddonServiceCallback) {
+    return E_FAIL;
+  }
+  IF_FAILED_RET(m_pAddonServiceCallback->updateTab(aTabId, aProperties));
+  return S_OK;
+}
+//----------------------------------------------------------------------------
+//
+STDMETHODIMP CAnchoBackgroundAPI::getTabInfo(INT aTabId, LPDISPATCH aCreator, VARIANT* aRet)
+{
+  ENSURE_RETVAL(aRet);
+  if (!m_pAddonServiceCallback) {
+    return E_FAIL;
+  }
+
+  IF_FAILED_RET(m_pAddonServiceCallback->getTabInfo(aTabId, aCreator, aRet));
+  return S_OK;
+}
+//----------------------------------------------------------------------------
+//
+STDMETHODIMP CAnchoBackgroundAPI::reloadTab(INT aTabId)
+{
+  if (!m_pAddonServiceCallback) {
+    return E_FAIL;
+  }
+
+  return m_pAddonServiceCallback->reloadTab(aTabId);
+}
+//----------------------------------------------------------------------------
+//
+STDMETHODIMP CAnchoBackgroundAPI::removeTabs(LPDISPATCH aTabs)
+{
+  if (!m_pAddonServiceCallback) {
+    return E_FAIL;
+  }
+  VariantVector tabs;
+
+  IF_FAILED_RET(addJSArrayToVariantVector(aTabs, tabs));
+  for(VariantVector::iterator it = tabs.begin(); it != tabs.end(); ++it) {
+    if( it->vt == VT_I4 ) {
+      m_pAddonServiceCallback->removeTab(it->intVal);
+    } else {
+      ATLTRACE(L"Problem with specified tabId - not an integer\n");
+    }
+  }
+  return S_OK;
+}
+//----------------------------------------------------------------------------
+//
+STDMETHODIMP CAnchoBackgroundAPI::queryTabs(LPDISPATCH aQueryInfo, LPDISPATCH aCreator, VARIANT* aRet)
+{
+  if (!m_pAddonServiceCallback) {
+    return E_FAIL;
+  }
+  return m_pAddonServiceCallback->queryTabs(aQueryInfo, aCreator, aRet);
+}
+
 //----------------------------------------------------------------------------
 //
 STDMETHODIMP CAnchoBackgroundAPI::invokeEventObject(BSTR aEventName, INT aSelectedInstance, BOOL aSkipInstance, LPDISPATCH aArgs, VARIANT* aRet)
@@ -451,7 +510,7 @@ STDMETHODIMP CAnchoBackgroundAPI::invokeEventObject(BSTR aEventName, INT aSelect
   if (FAILED(hr)) {
       return hr;
   }
-  hr = invokeEvent(aEventName, aSelectedInstance, aSkipInstance, args, results);
+  hr = invokeEvent(aEventName, aSelectedInstance, aSkipInstance != FALSE, args, results);
   if (FAILED(hr)) {
       return hr;
   }
