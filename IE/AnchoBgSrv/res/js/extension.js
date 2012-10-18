@@ -18,12 +18,13 @@ var EVENT_LIST = ['onConnect',
 var API_NAME = 'extension';
 
 var portPairs = {}
-function addPortPair(pair, instanceID) {
+var addPortPair = function (pair, instanceID) {
   if (!portPairs[instanceID]) {
     portPairs[instanceID] = [];
   }
   portPairs[instanceID].push(pair);
 }
+exports.addPortPair = addPortPair;
 
 function releasePorts(instanceID) {
   if (portPairs[instanceID]) {
@@ -34,7 +35,7 @@ function releasePorts(instanceID) {
   }
 }
 
-CallbackWrapper = function(responseCallback) {
+var CallbackWrapper = function(responseCallback) {
   var self = this;
 
   var responseCallback = responseCallback;
@@ -51,6 +52,15 @@ CallbackWrapper = function(responseCallback) {
     }
   } ();
 }
+exports.CallbackWrapper = CallbackWrapper;
+
+var MessageSender = function(aTab) {
+  this.id = addonAPI.id;
+  if (aTab) {
+    this.tab = aTab; //optional
+  }
+};
+exports.MessageSender = MessageSender;
 
 //******************************************************************************
 //* main closure
@@ -65,12 +75,7 @@ var Extension = function(instanceID) {
   this.lastError = null;
   this.inIncognitoContext = null;
 
-  this.MessageSender = function(aTab) {
-    this.id = addonAPI.id;
-    if (aTab) {
-      this.tab = aTab; //optional
-    }
-  };
+  
 
   this.Port = function(aName, aSender) {
     var self = this;
@@ -120,7 +125,7 @@ var Extension = function(instanceID) {
   this.connect = function(extensionId, connectInfo) {
     console.debug("extension.connect(..) called");
     var name = (connectInfo != undefined) ? connectInfo.name : undefined;
-    var pair = new PortPair(name, new thisAPI.MessageSender());
+    var pair = new PortPair(name, new MessageSender());
     addPortPair(pair, _instanceID);
     if (extensionId != undefined && extensionId != addonAPI.id) {
       addonAPI.invokeExternalEventObject(
@@ -176,8 +181,7 @@ var Extension = function(instanceID) {
   //----------------------------------------------------------------------------
   // chrome.extension.sendMessage
   this.sendMessage = function(extensionId, message, responseCallback) {
-    console.debug("extension.sendMessage(..) called: " + message);
-    sender = new thisAPI.MessageSender();
+    sender = new MessageSender();
     callback = undefined;
     ret = undefined;
     if (responseCallback) {

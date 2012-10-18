@@ -11,10 +11,12 @@
 #include <OleAcc.h> // For ObjectFromLresult
 #pragma comment(lib, "Oleacc.lib")
 
+#include <sstream>
+#include <algorithm>
 
 HRESULT createIDispatchFromCreator(LPDISPATCH aCreator, VARIANT* aRet)
 {
-ENSURE_RETVAL(aRet);
+  ENSURE_RETVAL(aRet);
   CComQIPtr<IDispatchEx> creator(aCreator);
   if (!creator) {
     return E_NOINTERFACE;
@@ -53,15 +55,14 @@ HRESULT CAnchoAddonService::invokeExternalEventObject(BSTR aExtensionId, BSTR aE
 
 //----------------------------------------------------------------------------
 //
-HRESULT CAnchoAddonService::navigateBrowser(LPUNKNOWN aWebBrowserWin, BSTR url) {
-  //LPUNKNOWN lpWebBrowser = NULL;
-  //m_ApiService->get_activeWebBrowser(&lpWebBrowser);
+HRESULT CAnchoAddonService::navigateBrowser(LPUNKNOWN aWebBrowserWin, const std::wstring &url) 
+{
   CComQIPtr<IWebBrowser2> webBrowser = aWebBrowserWin;
   if (!webBrowser) {
     return E_POINTER;
   }
 
-  CComVariant vtUrl(url);
+  CComVariant vtUrl(url.c_str());
   CComVariant vtFlags(navOpenInNewTab);
   CComVariant vtEmpty;
   return webBrowser->Navigate2(&vtUrl, &vtFlags, &vtEmpty, &vtEmpty, &vtEmpty);
@@ -78,8 +79,32 @@ HRESULT CAnchoAddonService::getActiveWebBrowser(LPUNKNOWN* pUnkWebBrowser)
   }
   HWND hwnd = 0;
   pWebBrowser->get_HWND((long*)&hwnd);
-  ATLTRACE( L"------- Tab id = %d", ::GetProp(hwnd, s_AnchoTabIDPropertyName) );
   return pWebBrowser->QueryInterface(IID_IUnknown, (void**) pUnkWebBrowser);
+}
+//----------------------------------------------------------------------------
+//
+HRESULT CAnchoAddonService::createTab(LPDISPATCH aProperties, LPDISPATCH aCreator, LPDISPATCH aCallback)
+{
+  CIDispatchHelper properties(aProperties);
+  CComBSTR originalUrl;
+  HRESULT hr = properties.Get<CComBSTR, VT_BSTR, BSTR>(L"url", originalUrl);
+  if (hr != S_OK) {
+    return hr;
+  }
+  std::wstring url = std::wstring(originalUrl,SysStringLen(originalUrl));
+  if (aCallback) {
+    int requestID = m_NextRequestID++;
+    std::wostringstream str;
+    str << L'#' << requestID << '#';
+    url = str.str() + url;
+
+    m_CreateTabCallbacks[requestID] = CreateTabCallbackRecord(aCreator, aCallback);
+  }
+
+  LPUNKNOWN browser;
+  IF_FAILED_RET(getActiveWebBrowser(&browser));
+  IF_FAILED_RET(navigateBrowser(browser, url));
+  return S_OK;
 }
 //----------------------------------------------------------------------------
 //
@@ -121,17 +146,6 @@ HRESULT CAnchoAddonService::updateTab(INT aTabId, LPDISPATCH aProperties)
 //
 HRESULT CAnchoAddonService::getTabInfo(INT aTabId, LPDISPATCH aCreator, VARIANT* aRet)
 {
-  /*ENSURE_RETVAL(aRet);
-  CComQIPtr<IDispatchEx> creator(aCreator);
-  if (!creator) {
-    return E_NOINTERFACE;
-  }
-  DISPPARAMS params = {0};
-  HRESULT hr = creator->InvokeEx(DISPID_VALUE, LOCALE_USER_DEFAULT, DISPATCH_CONSTRUCT, &params, aRet, NULL, NULL);
-  if (hr != S_OK) {
-    return hr;
-  }*/
-
   HRESULT hr = createIDispatchFromCreator(aCreator, aRet);
   if (hr != S_OK) {
     return hr;
@@ -140,8 +154,7 @@ HRESULT CAnchoAddonService::getTabInfo(INT aTabId, LPDISPATCH aCreator, VARIANT*
   RuntimeMap::iterator it = m_Runtimes.find(aTabId);
   if (it != m_Runtimes.end()) {
     ATLASSERT(it->second.runtime);
-    it->second.runtime->fillTabInfo(aRet);
-    return S_OK;
+    return it->second.runtime->fillTabInfo(aRet);
   }
   return E_FAIL;
 }
@@ -150,7 +163,30 @@ HRESULT CAnchoAddonService::getTabInfo(INT aTabId, LPDISPATCH aCreator, VARIANT*
 //
 HRESULT CAnchoAddonService::queryTabs(LPDISPATCH aQueryInfo, LPDISPATCH aCreator, VARIANT* aRet)
 {
-  return S_OK;
+  ENSURE_RETVAL(aRet);
+  struct QueryTabFunctor
+  {
+    QueryTabFunctor(VariantVector &aInfos, LPDISPATCH aCreator, CAnchoAddonService &aService ): infos(aInfos), creator(aCreator), service(aService) {}
+    void operator()(RuntimeMap::value_type &aRec) 
+    {
+      CComVariant info;
+      if (S_OK != createIDispatchFromCreator(creator, &info)) {
+        return;
+      }
+      if (S_OK == service.getTabInfo(aRec.first, creator, &info)) {
+        infos.push_back(info);
+      }
+    }
+    VariantVector &infos;
+    LPDISPATCH creator;
+    CAnchoAddonService &service;
+  };
+
+
+  VariantVector infos;
+  std::for_each(m_Runtimes.begin(), m_Runtimes.end(), QueryTabFunctor(infos, aCreator, *this));
+  return constructSafeArrayFromVector(infos, *aRet);
+  //return S_OK;
 }
 //----------------------------------------------------------------------------
 //
@@ -254,8 +290,20 @@ STDMETHODIMP CAnchoAddonService::unregisterRuntime(INT aTabID)
   ATLTRACE(L"ADDON SERVICE - unregistering tab: %d\n", aTabID);
   return S_OK;
 }
-
-
+//----------------------------------------------------------------------------
+//
+STDMETHODIMP CAnchoAddonService::createTabNotification(INT aTabID, INT aRequestID)
+{
+  CreateTabCallbackMap::iterator it = m_CreateTabCallbacks.find(aRequestID);
+  if (it != m_CreateTabCallbacks.end()) {
+    CComVariant tabInfo;
+    IF_FAILED_RET(getTabInfo(aTabID, it->second.creator, &tabInfo));
+    IF_FAILED_RET(it->second.callback.Invoke1((DISPID) 0, &tabInfo));
+    m_CreateTabCallbacks.erase(it);
+    return S_OK;
+  }
+  return S_OK;
+}
 //----------------------------------------------------------------------------
 //
 

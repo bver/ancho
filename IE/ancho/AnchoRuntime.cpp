@@ -9,6 +9,7 @@
 #include "AnchoAddon.h"
 #include "dllmain.h"
 
+#include <string>
 
 #include <Iepmapi.h>
 #pragma comment(lib, "Iepmapi.lib")
@@ -25,12 +26,6 @@ HRESULT CAnchoRuntime::InitAddons()
 {
   ATLASSERT(m_spUnkSite);
 
-  BOOL val = FALSE;
-  HRESULT rv = IEIsProtectedModeProcess(&val);
-  if (rv == S_OK) {
-    ATLTRACE(L"IE in protective mode: %s\n", val == TRUE ? L"yes" : L"no");
-  }
-
   // get IServiceProvider to get IWebBrowser2 and IOleWindow
   CComQIPtr<IServiceProvider> pServiceProvider = m_spUnkSite;
   if (!pServiceProvider)
@@ -44,6 +39,7 @@ HRESULT CAnchoRuntime::InitAddons()
   {
     return E_FAIL;
   }
+  AtlAdvise(m_pWebBrowser, (IUnknown*)(DWebBrowserEvents2AnchoRuntime*)this, DIID_DWebBrowserEvents2, &m_dwAdviseSinkWebBrowser);
 
   // create addon service object
   IF_FAILED_RET(m_pAnchoService.CoCreateInstance(CLSID_AnchoAddonService));
@@ -103,7 +99,15 @@ void CAnchoRuntime::DestroyAddons()
     m_pAnchoService->unregisterRuntime(m_TabID);
   }
   m_pAnchoService.Release();
-  m_pWebBrowser.Release();
+  if (m_pWebBrowser)
+  {
+    if (m_dwAdviseSinkWebBrowser)
+    {
+      AtlUnadvise(m_pWebBrowser, DIID_DWebBrowserEvents2, m_dwAdviseSinkWebBrowser);
+      m_dwAdviseSinkWebBrowser = 0;
+    }
+    m_pWebBrowser.Release();
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -126,9 +130,6 @@ STDMETHODIMP CAnchoRuntime::SetSite(IUnknown *pUnkSite)
 //
 STDMETHODIMP_(void) CAnchoRuntime::browserBeforeNavigateEvent(LPDISPATCH pDisp, VARIANT *pURL, VARIANT *Flags, VARIANT *TargetFrameName, VARIANT *PostData, VARIANT *Headers, BOOL *Cancel)
 {
-  if (!m_pWebBrowser.IsEqualObject(pDisp)) {
-    return;
-  }
   CComQIPtr<IWebBrowser2> pWebBrowser(pDisp);
   if (!pWebBrowser) {
     return;
@@ -136,14 +137,26 @@ STDMETHODIMP_(void) CAnchoRuntime::browserBeforeNavigateEvent(LPDISPATCH pDisp, 
   if(pURL->vt != VT_BSTR) {
     return;
   }
+  std::wstring url(pURL->bstrVal, SysStringLen(pURL->bstrVal));
+  
+  size_t first = url.find_first_of(L'#');
+  size_t last = url.find_last_of(L'#');
+  if (first == std::wstring::npos || first == last) {
+    return;
+  }
+  
+  std::wstring requestIDStr = url.substr(first+1, last - first - 1);
+  int requestID = _wtoi(requestIDStr.c_str());
+  url.erase(0, last+1);
 
-  CComBSTR url(pURL->bstrVal);
-
-  /*
+  CComVariant urlVar(url.c_str());
+  CComVariant vtEmpty;
+  
   *Cancel = TRUE;
   pWebBrowser->Stop();
-  pWebBrowser->Navigate2();
-  */
+  pWebBrowser->Navigate2(&urlVar, &vtEmpty, &vtEmpty, &vtEmpty, &vtEmpty);
+
+  m_pAnchoService->createTabNotification(m_TabID, requestID);
 }
 //----------------------------------------------------------------------------
 //
@@ -169,6 +182,20 @@ STDMETHODIMP CAnchoRuntime::executeScript(BSTR aExtensionId, BSTR aCode/*, BOOL 
 //
 STDMETHODIMP CAnchoRuntime::updateTab(LPDISPATCH aProperties)
 {
+  CIDispatchHelper properties(aProperties);
+  CComBSTR url;
+  HRESULT hr = properties.Get<CComBSTR, VT_BSTR, BSTR>(L"url", url);
+  if (hr == S_OK) {
+    CComVariant vtUrl(url);
+    CComVariant vtEmpty;
+    m_pWebBrowser->Navigate2(&vtUrl, &vtEmpty, &vtEmpty, &vtEmpty, &vtEmpty);
+  }
+  INT active = 0;
+  hr = properties.Get<INT, VT_BOOL, INT>(L"active", active);
+  if (hr == S_OK) {
+    HWND hwnd = getTabWindow();
+    ::EnableWindow(hwnd, TRUE);
+  }
   return S_OK;
 }
 //----------------------------------------------------------------------------

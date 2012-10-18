@@ -425,15 +425,15 @@ STDMETHODIMP CAnchoBackgroundAPI::executeScript(INT aTabID, BSTR aCode, BOOL aFi
 }
 //----------------------------------------------------------------------------
 //
-STDMETHODIMP CAnchoBackgroundAPI::createTab(LPDISPATCH aProperties, LPDISPATCH aCreator, VARIANT* aRet)
+STDMETHODIMP CAnchoBackgroundAPI::createTab(LPDISPATCH aProperties, LPDISPATCH aCreator, LPDISPATCH aCallback)
 {
   if (!m_pAddonServiceCallback) {
     return E_FAIL;
   }
 
-  LPUNKNOWN browser;
+  //LPUNKNOWN browser;
   //IF_FAILED_RET(m_pAddonServiceCallback->getActiveWebBrowser(&browser));
-  //IF_FAILED_RET(m_pAddonServiceCallback->navigateBrowser(browser, aUrl));
+  IF_FAILED_RET(m_pAddonServiceCallback->createTab(aProperties, aCreator, aCallback));
   return S_OK;
 }
 //----------------------------------------------------------------------------

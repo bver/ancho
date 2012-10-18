@@ -18,6 +18,10 @@ var EVENT_LIST = ['onActivated',
                   'onRemoved',
                   'onUpdated'];
 var API_NAME = 'tabs';
+
+var MessageSender = require("extension.js").MessageSender;
+var CallbackWrapper = require("extension.js").CallbackWrapper;
+var addPortPair = require("extension.js").addPortPair;
 //******************************************************************************
 //* main closure
 var Tabs = function(instanceID) {
@@ -81,16 +85,30 @@ var Tabs = function(instanceID) {
   //   returns   Port
   this.connect = function(tabId, connectInfo) {
     console.debug("tabs.connect(..) called");
+    var name = (connectInfo != undefined) ? connectInfo.name : undefined;
+    var pair = new PortPair(name, new MessageSender());
+    addPortPair(pair, _instanceID);
+    addonAPI.invokeEventObject(
+              'extension.onConnect',
+              tabId,
+              false,
+              [pair.far]
+              );
+    return pair.near;
   };
 
   //----------------------------------------------------------------------------
   // chrome.tabs.create
   this.create = function(createProperties, callback) {
     console.debug("tabs.create(..) called");
-    var tab = addonAPI.createTab(createProperties);
-    if (callback) {
-      callback(tab);
+    try {
+      var tab = addonAPI.createTab(createProperties, Object, callback);
+    } catch(e) {
+      console.debug("Error: " + e.message);
     }
+    /*if (callback) {
+      callback(tab);
+    }*/
   };
 
   //----------------------------------------------------------------------------
@@ -170,7 +188,6 @@ var Tabs = function(instanceID) {
   //----------------------------------------------------------------------------
   // chrome.tabs.query
   this.query = function(queryInfo, callback) {
-    console.debug("tabs.query(..) called");
     var tabs = addonAPI.queryTabs(queryInfo, Object);
     callback(tabs);
   };
@@ -178,27 +195,51 @@ var Tabs = function(instanceID) {
   //----------------------------------------------------------------------------
   // chrome.tabs.reload
   this.reload = function(tabId, reloadProperties, callback) {
-    console.debug("tabs.reload(..) called");
     addonAPI.reloadTab(tabId);
   };
 
   //----------------------------------------------------------------------------
   // chrome.tabs.remove
   this.remove = function(tabIds, callback) {
-    console.debug("tabs.remove(..) called");
     if (typeof tabIds === 'number') {
       tabIds = [tabIds];
     }
     addonAPI.removeTabs(tabIds);
-    if (typeof callback === 'function') {
-      callback();
-    }
+    callback();
   };
 
   //----------------------------------------------------------------------------
   // chrome.tabs.sendMessage
   this.sendMessage = function(tabId, message, responseCallback) {
     console.debug("tabs.sendMessage(..) called");
+    sender = new MessageSender();
+    callback = undefined;
+    ret = undefined;
+    if (responseCallback) {
+      callbackWrapper = new CallbackWrapper(responseCallback);
+      callback = callbackWrapper.callback;
+    }
+    ret = addonAPI.invokeEventObject(
+            'extension.onMessage',
+            tabId,
+            false, //we are selecting tab with tabId
+            [message, sender, callback]
+            ); //TODO: fill MessageSender
+
+
+    //if responseCallaback not yet called, check if some of the listeners
+    //requests asynchronous responseCallback, otherwise disable responseCallback
+    if (callbackWrapper.callable && ret != undefined) {
+      var arr = new VBArray(ret).toArray();
+      for (var i = 0; i < arr.length; ++i) {
+        if (arr[i] === true) {
+          console.debug("Asynchronous call to responseCallback requested!");
+          return;
+        }
+      }
+    }
+    callbackWrapper.callable = false;
+
   };
 
   //----------------------------------------------------------------------------

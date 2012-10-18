@@ -90,6 +90,7 @@ private:
   // -------------------------------------------------------------------------
   // Private members.
   CComQIPtr<IWebBrowser2>                 m_pWebBrowser;
+  DWORD                                   m_dwAdviseSinkWebBrowser;
   CComPtr<IAnchoAddonService>             m_pAnchoService;
   CAtlMap<CStringW, CComPtr<IAnchoAddon> > m_Addons;
 

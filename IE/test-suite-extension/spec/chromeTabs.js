@@ -3,12 +3,10 @@ define(function() {
  
     
   describe('chrome.tabs API', function() {
-    var tab;
     var callback = function(aTab){tab = aTab;}
     var address = 'http://www.google.cz';
     
     beforeEach(function() {
-        tab = undefined;
         
     });
     
@@ -34,39 +32,44 @@ define(function() {
     });
     
     it('Can create tabs - correct tab info passed to callback ', function(){
-        var address = 'http://www.google.cz';
+        var tab;
+        var created = false;
+        var callback = function(aTab){tab = aTab; created = true;}
+        runs( function() {
+            chrome.tabs.create({'url': address}, callback);  
+        });
+        waitsFor(function() {
+          return created;
+        }, "Callback fot createTab was not called", 3000);
         
-        chrome.tabs.create({'url': address}, callback);  
-        
-        expect(tab).toBeDefined();
-        expect(tab.url).toBeDefined();
-        expect(tab.url).toMatch(address);
+        runs( function() {
+          expect(tab).toBeDefined();
+          expect(tab.id).toBeDefined();
+          //expect(tab.url).toMatch(address);
+        });
     });
     
     it('Can remove tabs', function(){
-        runs( function() {
-          chrome.tabs.create({'url': address}, callback);
-        });
-        
-        waitsFor(function() {
-          return tab != undefined;
-        }, "Callback for createTab was not called", 3000);
-
-        var tabId = tab.id; 
-        var tab1;
-        var callback1 = function(aTab){tab1 = aTab;}
-        runs(function(){
-          chrome.tabs.get(tabId, callback1);
-        });
-        waitsFor(function() {
-          return tab1;
-        }, "Callback for get was not called", 3000);
-        
-        runs(function(){
-          expect(tab1).toBeDefined();
-        });
+        var tab;
+        var tab2;
+        var created = false;
+        var tabId; 
         var removeCallbackCalled = false;
+        var getCallbackCalled = false;
+        var callback = function(aTab){tab = aTab; created = true;}
+        var callbackFromGet = function(aTab){tab2 = aTab; getCallbackCalled = true;}
+        runs( function() {
+            chrome.tabs.create({'url': address}, callback);  
+        });
+        waitsFor(function() {
+          return created;
+        }, "Callback fot createTab was not called", 3000);
+                
         runs(function(){
+          tabId = tab.id;
+          expect(tab).toBeDefined();
+          expect(tab.id).toBeDefined();
+          
           chrome.tabs.remove(tabId, function(){ removeCallbackCalled = true; });
         });
         
@@ -75,15 +78,15 @@ define(function() {
         }, "Callback for remove was not called", 3000);
         
         runs(function(){
-          chrome.tabs.get(tabId, callback1);
+          chrome.tabs.get(tabId, callbackFromGet);
         });
         
         waitsFor(function() {
-          return tab1;
+          return getCallbackCalled;
         }, "Callback for get was not called", 3000);
         
         runs(function(){
-          expect(tab1).not.toBeDefined();
+          expect(tab2).not.toBeDefined();
         });
     });
     

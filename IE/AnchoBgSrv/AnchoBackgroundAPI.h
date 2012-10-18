@@ -22,7 +22,7 @@
 
 typedef std::vector<CComVariant> VariantVector;
 HRESULT addJSArrayToVariantVector(LPDISPATCH aArrayDispatch, VariantVector &aVariantVector);
-HRESULT constructSafeArrayFromVector(const VariantVector &aVariantVector, CComVariant &aSafeArray);
+HRESULT constructSafeArrayFromVector(const VariantVector &aVariantVector, VARIANT &aSafeArray);
 
 struct CAnchoAddonServiceCallback;
 
@@ -115,7 +115,7 @@ public:
   STDMETHOD(callFunction)(LPDISPATCH aFunction, LPDISPATCH aArgs, VARIANT* pvRet);
 
   STDMETHOD(executeScript)(INT aTabID, BSTR aCode, BOOL aFileSpecified);
-  STDMETHOD(createTab)(LPDISPATCH aProperties, LPDISPATCH aCreator, VARIANT* aRet);
+  STDMETHOD(createTab)(LPDISPATCH aProperties, LPDISPATCH aCreator, LPDISPATCH aCallback);
   STDMETHOD(updateTab)(INT aTabId, LPDISPATCH aProperties);
   STDMETHOD(getTabInfo)(INT aTabId, LPDISPATCH aCreator, VARIANT* aRet);
   STDMETHOD(reloadTab)(INT aTabId);

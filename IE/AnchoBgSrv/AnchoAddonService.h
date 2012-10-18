@@ -22,8 +22,9 @@ struct CAnchoAddonServiceCallback
 {
   virtual void OnAddonFinalRelease(BSTR bsID) = 0;
   virtual HRESULT invokeExternalEventObject(BSTR aExtensionId, BSTR aEventName, LPDISPATCH aArgs, VARIANT* aRet) = 0;
-  virtual HRESULT navigateBrowser(LPUNKNOWN aWebBrowserWin, BSTR url) = 0;
+  virtual HRESULT navigateBrowser(LPUNKNOWN aWebBrowserWin, const std::wstring &url) = 0;
   virtual HRESULT getActiveWebBrowser(LPUNKNOWN* pUnkWebBrowser) = 0;
+  virtual HRESULT createTab(LPDISPATCH aProperties, LPDISPATCH aCreator, LPDISPATCH aCallback) = 0;
   virtual HRESULT reloadTab(INT aTabId) = 0;
   virtual HRESULT removeTab(INT aTabId) = 0;
   virtual HRESULT updateTab(INT aTabId, LPDISPATCH aProperties) = 0;
@@ -43,7 +44,7 @@ class ATL_NO_VTABLE CAnchoAddonService :
 public:
   // -------------------------------------------------------------------------
   // ctor
-  CAnchoAddonService(): m_NextTabID(1)
+  CAnchoAddonService(): m_NextTabID(1), m_NextRequestID(1)
   {
   }
 
@@ -78,8 +79,9 @@ public:
 
   HRESULT invokeExternalEventObject(BSTR aExtensionId, BSTR aEventName, LPDISPATCH aArgs, VARIANT* aRet);
 
-  HRESULT navigateBrowser(LPUNKNOWN aWebBrowserWin, BSTR url);
+  HRESULT navigateBrowser(LPUNKNOWN aWebBrowserWin, const std::wstring &url);
   HRESULT getActiveWebBrowser(LPUNKNOWN* pUnkWebBrowser);
+  HRESULT createTab(LPDISPATCH aProperties, LPDISPATCH aCreator, LPDISPATCH aCallback);
   HRESULT reloadTab(INT aTabId);
   HRESULT removeTab(INT aTabId);
   HRESULT updateTab(INT aTabId, LPDISPATCH aProperties);
@@ -92,7 +94,7 @@ public:
   STDMETHOD(GetModulePath)(BSTR * pbsPath);
   STDMETHOD(registerRuntime)(IAnchoRuntime * aRuntime, INT *aTabID);
   STDMETHOD(unregisterRuntime)(INT aTabID);
-
+  STDMETHOD(createTabNotification)(INT aTabID, INT aRequestID);
 private:
   HRESULT FindActiveBrowser(IWebBrowser2** webBrowser);
 
@@ -103,6 +105,16 @@ private:
   };
 
   typedef std::map<int, RuntimeRecord> RuntimeMap;
+
+  struct CreateTabCallbackRecord {
+    CreateTabCallbackRecord() {}
+    CreateTabCallbackRecord(CIDispatchHelper aCreator, CIDispatchHelper aCallback)
+      : creator(aCreator), callback(aCallback) 
+    { }
+    CIDispatchHelper creator;
+    CIDispatchHelper callback;
+  };
+  typedef std::map<int, CreateTabCallbackRecord> CreateTabCallbackMap;
   // -------------------------------------------------------------------------
   // Private members.
 
@@ -110,11 +122,13 @@ private:
   CAtlMap<CString, CAnchoAddonBackgroundComObject*>   m_Objects;
 
   RuntimeMap  m_Runtimes;
+  CreateTabCallbackMap m_CreateTabCallbacks;
 
   // Path to this exe and also to magpie.
   CString             m_sThisPath;
 
   int     m_NextTabID;
+  int     m_NextRequestID;
 };
 
 OBJECT_ENTRY_AUTO(__uuidof(AnchoAddonService), CAnchoAddonService)
