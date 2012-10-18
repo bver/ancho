@@ -32,6 +32,10 @@ ConsoleReporter.prototype = {
       this.passedLog(resultText + "Passed.");
     } else {
       this.failedLog(resultText + "Failed.");
+      items = spec.results().getItems()
+      for( i = 0; i < items.length; ++i ) {
+        this.failedLog("--- " + items[i]);
+      }
     }
   },
 

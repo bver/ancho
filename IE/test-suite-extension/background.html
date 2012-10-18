@@ -48,11 +48,11 @@
           port.postMessage('Responding to message received through port');
       });
   });
-/*
+
 console.log('TAB CREATING');
-chrome.tabs.create({'url': 'http://www.centrum.cz' });
+chrome.tabs.create({'url': 'http://www.centrum.cz' }, function(tab){console.log("--------" + tab.url); });
 console.log('TAB CREATED');
-*/
+
 console.log('GETTING TAB');
 chrome.tabs.get(1,function(tab){console.log("TAAAAAAAAAAB " + tab.url + " active = " + tab.active);});
 console.log('AFTER GETTING TAB');
