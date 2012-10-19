@@ -68,10 +68,13 @@ public:
   STDMETHOD(Init)(LPCOLESTR lpsExtensionID, IAnchoAddonService * pService, IWebBrowser2 * pWebBrowser);
   STDMETHOD(Shutdown)();
 
+  STDMETHOD(executeScriptCode)(BSTR aCode);
+  STDMETHOD(executeScriptFile)(BSTR aFile);
+
+
   // -------------------------------------------------------------------------
   // DWebBrowserEvents2 methods
   STDMETHOD_(void, BrowserNavigateCompleteEvent)(IDispatch *pDisp, VARIANT *URL);
-
 private:
   // -------------------------------------------------------------------------
   // Private members.

@@ -13,7 +13,7 @@
     var _listeners = [];
     var _eventName = eventName;
     var _instanceID = instanceID;
-    console.debug('Created new event: ' + eventName + ' [' + instanceID + ']');
+    //console.debug('Created new event: ' + eventName + ' [' + instanceID + ']');
     var self = this;
 
     function _findListener(listener) {

@@ -11,3 +11,4 @@ extern const wchar_t * s_AnchoBackgroundPageAPIName;
 extern const wchar_t * s_AnchoBackgroundConsoleObjectName;
 extern const wchar_t * s_AnchoFnGetContentAPI;
 extern const wchar_t * s_AnchoFnReleaseContentAPI;
+extern const wchar_t * s_AnchoTabIDPropertyName;

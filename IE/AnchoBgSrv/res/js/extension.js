@@ -18,12 +18,13 @@ var EVENT_LIST = ['onConnect',
 var API_NAME = 'extension';
 
 var portPairs = {}
-function addPortPair(pair, instanceID) {
+var addPortPair = function (pair, instanceID) {
   if (!portPairs[instanceID]) {
     portPairs[instanceID] = [];
   }
   portPairs[instanceID].push(pair);
 }
+exports.addPortPair = addPortPair;
 
 function releasePorts(instanceID) {
   if (portPairs[instanceID]) {
@@ -49,6 +50,7 @@ var PortPair = function(aName, aMessageSender) {
     self.far.release();
   }
 }
+exports.PortPair = PortPair;
 
 /*
 To sendMessage is passed responseCallback, which can be invoked only once
@@ -74,6 +76,15 @@ var CallbackWrapper = function(responseCallback) {
     }
   } ();
 }
+exports.CallbackWrapper = CallbackWrapper;
+
+var MessageSender = function(aTab) {
+  this.id = addonAPI.id;
+  if (aTab) {
+    this.tab = aTab; //optional
+  }
+};
+exports.MessageSender = MessageSender;
 
 //******************************************************************************
 //* main closure
@@ -87,13 +98,6 @@ var Extension = function(instanceID) {
 
   this.lastError = null;
   this.inIncognitoContext = null;
-
-  API.MessageSender = function(aTab) {
-    this.id = addonAPI.id;
-    if (aTab) {
-      this.tab = aTab; //optional
-    }
-  };
 
   API.Port = function(aName, aSender) {
     var self = this;
@@ -127,7 +131,7 @@ var Extension = function(instanceID) {
   this.connect = function(extensionId, connectInfo) {
     console.debug("extension.connect(..) called");
     var name = (connectInfo != undefined) ? connectInfo.name : undefined;
-    var pair = new PortPair(name, new API.MessageSender());
+    var pair = new PortPair(name, new MessageSender());
     addPortPair(pair, _instanceID);
     if (extensionId != undefined && extensionId != addonAPI.id) {
       addonAPI.invokeExternalEventObject(
@@ -139,6 +143,7 @@ var Extension = function(instanceID) {
        addonAPI.invokeEventObject(
               'extension.onConnect',
               -1, //TODO: after tabs API finished prevent content scripts from notifications
+              true,
               [pair.far]
               );
     }
@@ -181,8 +186,7 @@ var Extension = function(instanceID) {
   //----------------------------------------------------------------------------
   // chrome.extension.sendMessage
   this.sendMessage = function(extensionId, message, responseCallback) {
-    console.debug("extension.sendMessage(..) called: " + message);
-    sender = new API.MessageSender();
+    sender = new MessageSender(_instanceID);
     callback = undefined;
     ret = undefined;
     if (responseCallback) {
@@ -194,13 +198,14 @@ var Extension = function(instanceID) {
             extensionId,
             'extension.onMessageExternal',
             [message, sender, callback]
-            ); //TODO: fill tab to MessageSender
+            );
     } else {
       ret = addonAPI.invokeEventObject(
             'extension.onMessage',
             _instanceID,
+            true, //we are skipping _instanceID
             [message, sender, callback]
-            ); //TODO: fill tab to MessageSender
+            );
     }
 
     //if responseCallaback not yet called, check if some of the listeners

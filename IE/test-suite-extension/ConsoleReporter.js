@@ -11,8 +11,8 @@ ConsoleReporter.prototype = {
     var spec_str = this.executed_specs + (this.executed_specs === 1 ? " spec, " : " specs, ");
     var fail_str = failed + (failed === 1 ? " failure in " : " failures in ");
 
-    this.log("Runner Finished.");
-    this.log(spec_str + fail_str + (duration/1000) + "s.");
+    this.passedLog("Runner Finished.");
+    this.passedLog(spec_str + fail_str + (duration/1000) + "s.");
     this.finished = true;
   },
 
@@ -21,32 +21,39 @@ ConsoleReporter.prototype = {
     this.start_time = (new Date()).getTime();
     this.executed_specs = 0;
     this.passed_specs = 0;
-    this.log("Runner Started.");
+    this.passedLog("Runner Started.");
   },
 
   reportSpecResults: function(spec) {
-    var resultText = "Failed.";
+    var resultText = spec.suite.description + ' : ' + spec.description + ' ... ';
 
     if (spec.results().passed()) {
       this.passed_specs++;
-      resultText = "Passed.";
+      this.passedLog(resultText + "Passed.");
+    } else {
+      this.failedLog(resultText + "Failed.");
+      items = spec.results().getItems()
+      for( i = 0; i < items.length; ++i ) {
+        this.failedLog("--- " + items[i]);
+      }
     }
-
-    this.log(resultText);
   },
 
   reportSpecStarting: function(spec) {
     this.executed_specs++;
-    this.log(spec.suite.description + ' : ' + spec.description + ' ... ');
   },
 
   reportSuiteResults: function(suite) {
     var results = suite.results();
-    this.log(suite.description + ": " + results.passedCount + " of " + results.totalCount + " passed.");
+    this.passedLog(suite.description + ": " + results.passedCount + " of " + results.totalCount + " passed.");
   },
 
-  log: function(str) {
+  passedLog: function(str) {
     this.console.log(str);
+  },
+
+  failedLog: function(str) {
+    this.console.error(str);
   }
 };
 

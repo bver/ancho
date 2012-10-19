@@ -4,17 +4,17 @@
  * Implements chrome.privacy
  * Copyright 2012 Salsita software (http://www.salsitasoft.com).
  ******************************************************************************/
-  
+
 //******************************************************************************
 //* main closure
 (function(me){
   //============================================================================
   // private variables
-  
+
 
   //============================================================================
   // public properties
-    
+
   me.network = null;
   me.services = null;
   me.websites = null;

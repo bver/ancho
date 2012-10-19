@@ -208,7 +208,12 @@ BOOL CAnchoBackgroundAPI::GetURL(CStringW & sURL)
   }
   return b;
 }
-
+//----------------------------------------------------------------------------
+//
+void CAnchoBackgroundAPI::AddonServiceLost()
+{
+  m_pAddonServiceCallback = NULL;
+}
 //----------------------------------------------------------------------------
 //
 HRESULT CAnchoBackgroundAPI::GetMainModuleExportsScript(CIDispatchHelper & script)
@@ -322,6 +327,9 @@ STDMETHODIMP CAnchoBackgroundAPI::removeEventObject(BSTR aEventName, INT aInstan
 //
 STDMETHODIMP CAnchoBackgroundAPI::invokeExternalEventObject(BSTR aExtensionId, BSTR aEventName, LPDISPATCH aArgs, VARIANT* aRet)
 {
+  if (!m_pAddonServiceCallback) {
+    return S_OK;
+  }
   return m_pAddonServiceCallback->invokeExternalEventObject(aExtensionId, aEventName, aArgs, aRet);
 }
 //----------------------------------------------------------------------------
@@ -337,7 +345,81 @@ STDMETHODIMP CAnchoBackgroundAPI::callFunction(LPDISPATCH aFunction, LPDISPATCH 
 }
 //----------------------------------------------------------------------------
 //
-STDMETHODIMP CAnchoBackgroundAPI::invokeEventObject(BSTR aEventName, INT aSkipInstance, LPDISPATCH aArgs, VARIANT* aRet)
+STDMETHODIMP CAnchoBackgroundAPI::executeScript(INT aTabID, BSTR aCode, BOOL aFileSpecified, BOOL aInAllFrames)
+{
+  if (!m_pAddonServiceCallback) {
+    return E_FAIL;
+  }
+  CComBSTR id;
+  IF_FAILED_RET(get_id(&id));
+  IF_FAILED_RET(m_pAddonServiceCallback->executeScript(id, aTabID, aCode, aFileSpecified, aInAllFrames));
+  return S_OK;
+}
+//----------------------------------------------------------------------------
+//
+STDMETHODIMP CAnchoBackgroundAPI::createTab(LPDISPATCH aProperties, LPDISPATCH aCreator, LPDISPATCH aCallback)
+{
+  if (!m_pAddonServiceCallback) {
+    return E_FAIL;
+  }
+
+  IF_FAILED_RET(m_pAddonServiceCallback->createTab(aProperties, aCreator, aCallback));
+  return S_OK;
+}
+//----------------------------------------------------------------------------
+//
+STDMETHODIMP CAnchoBackgroundAPI::updateTab(INT aTabId, LPDISPATCH aProperties)
+{
+  if (!m_pAddonServiceCallback) {
+    return E_FAIL;
+  }
+  IF_FAILED_RET(m_pAddonServiceCallback->updateTab(aTabId, aProperties));
+  return S_OK;
+}
+//----------------------------------------------------------------------------
+//
+STDMETHODIMP CAnchoBackgroundAPI::getTabInfo(INT aTabId, LPDISPATCH aCreator, VARIANT* aRet)
+{
+  ENSURE_RETVAL(aRet);
+  if (!m_pAddonServiceCallback) {
+    return E_FAIL;
+  }
+
+  IF_FAILED_RET(m_pAddonServiceCallback->getTabInfo(aTabId, aCreator, aRet));
+  return S_OK;
+}
+//----------------------------------------------------------------------------
+//
+STDMETHODIMP CAnchoBackgroundAPI::reloadTab(INT aTabId)
+{
+  if (!m_pAddonServiceCallback) {
+    return E_FAIL;
+  }
+
+  return m_pAddonServiceCallback->reloadTab(aTabId);
+}
+//----------------------------------------------------------------------------
+//
+STDMETHODIMP CAnchoBackgroundAPI::removeTabs(LPDISPATCH aTabs, LPDISPATCH aCallback)
+{
+  if (!m_pAddonServiceCallback) {
+    return E_FAIL;
+  }
+  return m_pAddonServiceCallback->removeTabs(aTabs, aCallback);
+}
+//----------------------------------------------------------------------------
+//
+STDMETHODIMP CAnchoBackgroundAPI::queryTabs(LPDISPATCH aQueryInfo, LPDISPATCH aCreator, VARIANT* aRet)
+{
+  if (!m_pAddonServiceCallback) {
+    return E_FAIL;
+  }
+  return m_pAddonServiceCallback->queryTabs(aQueryInfo, aCreator, aRet);
+}
+
+//----------------------------------------------------------------------------
+//
+STDMETHODIMP CAnchoBackgroundAPI::invokeEventObject(BSTR aEventName, INT aSelectedInstance, BOOL aSkipInstance, LPDISPATCH aArgs, VARIANT* aRet)
 {
   ENSURE_RETVAL(aRet);
 
@@ -348,7 +430,7 @@ STDMETHODIMP CAnchoBackgroundAPI::invokeEventObject(BSTR aEventName, INT aSkipIn
   if (FAILED(hr)) {
       return hr;
   }
-  hr = invokeEvent(aEventName, aSkipInstance, args, results);
+  hr = invokeEvent(aEventName, aSelectedInstance, aSkipInstance != FALSE, args, results);
   if (FAILED(hr)) {
       return hr;
   }
@@ -356,16 +438,17 @@ STDMETHODIMP CAnchoBackgroundAPI::invokeEventObject(BSTR aEventName, INT aSkipIn
 }
 //----------------------------------------------------------------------------
 //
-struct InvokeEventFunctor
+
+struct InvokeSelectedEventFunctor
 {
-  InvokeEventFunctor(VariantVector &aArgs, VariantVector &aResults, int aSkipInstance)
-    : mArgs(aArgs), mResults(aResults), mSkipInstance(aSkipInstance) { }
+  InvokeSelectedEventFunctor(VariantVector &aArgs, VariantVector &aResults, int aSelectedInstance)
+    : mArgs(aArgs), mResults(aResults), mSelectedInstance(aSelectedInstance) { }
   VariantVector &mArgs;
   VariantVector &mResults;
-  int mSkipInstance;
+  int mSelectedInstance;
 
   void operator()(CAnchoBackgroundAPI::EventObjectRecord &aRec) {
-    if (aRec.instanceID != mSkipInstance) {
+    if (aRec.instanceID == mSelectedInstance) {
       CComVariant result;
       aRec.listener.InvokeN((DISPID)0, mArgs.size()>0? &(mArgs[0]): NULL, mArgs.size(), &result);
       if (result.vt == VT_DISPATCH) {
@@ -375,14 +458,37 @@ struct InvokeEventFunctor
   }
 };
 
-STDMETHODIMP CAnchoBackgroundAPI::invokeEvent(BSTR aEventName, INT aSkipInstance, VariantVector &aArgs, VariantVector &aResults)
+struct InvokeUnSelectedEventFunctor
+{
+  InvokeUnSelectedEventFunctor(VariantVector &aArgs, VariantVector &aResults, int aSelectedInstance)
+    : mArgs(aArgs), mResults(aResults), mSelectedInstance(aSelectedInstance) { }
+  VariantVector &mArgs;
+  VariantVector &mResults;
+  int mSelectedInstance;
+
+  void operator()(CAnchoBackgroundAPI::EventObjectRecord &aRec) {
+    if (aRec.instanceID != mSelectedInstance) {
+      CComVariant result;
+      aRec.listener.InvokeN((DISPID)0, mArgs.size()>0? &(mArgs[0]): NULL, mArgs.size(), &result);
+      if (result.vt == VT_DISPATCH) {
+        addJSArrayToVariantVector(result.pdispVal, mResults);
+      }
+    }
+  }
+};
+
+STDMETHODIMP CAnchoBackgroundAPI::invokeEvent(BSTR aEventName, INT aSelectedInstance, bool aSkipInstance, VariantVector &aArgs, VariantVector &aResults)
 {
   std::wstring eventName(aEventName, SysStringLen(aEventName));
   EventObjectMap::iterator it = m_EventObjects.find(eventName);
   if (it == m_EventObjects.end()) {
     return S_OK;
   }
-  std::for_each(it->second.begin(), it->second.end(), InvokeEventFunctor(aArgs, aResults, aSkipInstance));
+  if(aSkipInstance) {
+    std::for_each(it->second.begin(), it->second.end(), InvokeUnSelectedEventFunctor(aArgs, aResults, aSelectedInstance));
+  } else {
+    std::for_each(it->second.begin(), it->second.end(), InvokeSelectedEventFunctor(aArgs, aResults, aSelectedInstance));
+  }
   return S_OK;
 }
 

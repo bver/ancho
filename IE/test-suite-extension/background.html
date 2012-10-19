@@ -19,13 +19,14 @@
   require(
   [
     'spec/chromeEvents',
-    'spec/chromeExtension'
+    'spec/chromeExtension',
+    'spec/chromeTabs'
   ],
   function() {
     jasmine.getEnv().addReporter(new ConsoleReporter(console));
     jasmine.getEnv().execute();
   });
-  
+
   console.log('Adding listener to chrome.extension.onMessage');
   chrome.extension.onMessage.addListener( function(msg, sender, sendResponse){
       console.log('Message received : ' + msg );
@@ -37,7 +38,7 @@
       }
       return true;
   });
-  
+
   console.log('Adding listener to chrome.extension.onConnect');
   chrome.extension.onConnect.addListener( function(port){
       console.log('Adding listener to port.onMessage');
@@ -47,6 +48,7 @@
           port.postMessage('Responding to message received through port');
       });
   });
+
 </script>
 
 

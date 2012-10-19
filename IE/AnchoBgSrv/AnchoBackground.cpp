@@ -105,6 +105,7 @@ void CAnchoAddonBackground::FinalRelease()
 //
 void CAnchoAddonBackground::AddonServiceLost()
 {
+  m_BackgroundAPI.AddonServiceLost();
   m_pAddonServiceCallback = NULL;
 }
 
@@ -112,7 +113,7 @@ void CAnchoAddonBackground::AddonServiceLost()
 //
 STDMETHODIMP CAnchoAddonBackground::invokeExternalEventObject(BSTR aEventName, LPDISPATCH aArgs, VARIANT* aRet)
 {
-  return m_BackgroundAPI.invokeEventObject(aEventName, -1, aArgs, aRet);
+  return m_BackgroundAPI.invokeEventObject(aEventName, -1, true, aArgs, aRet);
 }
 //----------------------------------------------------------------------------
 //  IAnchoAddonBackground methods

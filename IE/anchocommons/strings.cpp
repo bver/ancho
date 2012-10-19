@@ -49,3 +49,7 @@ const wchar_t * s_AnchoFnGetContentAPI =
 const wchar_t * s_AnchoFnReleaseContentAPI =
     L"releaseContentAPI";
 
+// name of the exported function for releasing a content API
+const wchar_t * s_AnchoTabIDPropertyName =
+    L"AnchoTabID";
+

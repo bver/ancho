@@ -1,5 +1,5 @@
 chrome.extension.sendMessage(undefined, "from CONTENT: " + document.location, function(){
-    chrome.console.log('Successfull response! But you should see this only once.')
+    chrome.console.log('Successfull response! But you should see this only once for every tab.')
 });
 try {
   chrome.console.log('Creating connection');

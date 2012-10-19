@@ -4,17 +4,17 @@
  * Implements chrome.contentSettings
  * Copyright 2012 Salsita software (http://www.salsitasoft.com).
  ******************************************************************************/
-  
+
 //******************************************************************************
 //* main closure
 (function(me){
   //============================================================================
   // private variables
-  
+
 
   //============================================================================
   // public properties
-    
+
   me.cookies = null;
   me.images = null;
   me.javascript = null;

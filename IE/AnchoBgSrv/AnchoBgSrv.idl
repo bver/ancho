@@ -9,6 +9,7 @@ import "ocidl.idl";
 
 // forwards
 interface IAnchoAddonBackground;
+interface IAnchoRuntime;
 
 /*==========================================================================*/
 [
@@ -23,6 +24,11 @@ interface IAnchoAddonService : IUnknown
 {
   HRESULT GetExtension([in] BSTR bsID, [out, retval] IAnchoAddonBackground ** ppRet);
   HRESULT GetModulePath([out, retval] BSTR * pbsPath);
+
+  HRESULT registerRuntime([in] IAnchoRuntime * aRuntime, [out, retval] INT *aTabID);
+  HRESULT unregisterRuntime([in] INT aTabID);
+  HRESULT createTabNotification([in] INT aTabID, [in] INT aRequestID);
+  HRESULT invokeEventObjectInAllExtensions([in] BSTR aEventName, [in] LPDISPATCH aArgs);
 };
 
 /*==========================================================================*/
@@ -51,6 +57,22 @@ interface IAnchoAddonBackground : IUnknown
 library AnchoBgSrvLib
 {
 	importlib("stdole2.tlb");
+  [
+	  object,
+	  uuid(06550FFB-49D7-4428-A5FF-2CC688A8001F),
+	  oleautomation,
+	  nonextensible,
+	  helpstring("IAnchoRuntime Interface"),
+	  pointer_default(unique)
+  ]
+  interface IAnchoRuntime : IUnknown
+  {
+    HRESULT reloadTab();
+    HRESULT closeTab();
+    HRESULT executeScript([in] BSTR aExtensionId, [in] BSTR aCode, [in] INT aFileSpecified);
+    HRESULT updateTab([in] LPDISPATCH aProperties);
+    HRESULT fillTabInfo([in] VARIANT* aInfo);
+  };
 
 /*==========================================================================*/
   [
@@ -82,9 +104,16 @@ library AnchoBgSrvLib
     HRESULT addEventObject([in]BSTR aEventName, [in] INT aInstanceId, [in] LPDISPATCH aListener);
     HRESULT removeEventObject([in]BSTR aEventName, [in] INT aInstanceId);
 
-    HRESULT invokeEventObject([in] BSTR aEventName, [in] INT aSkipInstance, [in] LPDISPATCH aArgs, [out, retval] VARIANT* aRet);
+    HRESULT invokeEventObject([in] BSTR aEventName, [in] INT aSelectedInstance, [in] BOOL aSkipInstance, [in] LPDISPATCH aArgs, [out, retval] VARIANT* aRet);
     HRESULT invokeExternalEventObject([in] BSTR aExtensionId, [in] BSTR aEventName, [in] LPDISPATCH aArgs, [out, retval] VARIANT* aRet);
     HRESULT callFunction([in] LPDISPATCH aFunction, [in] LPDISPATCH aArgs, [out, retval] VARIANT* aRet);
+
+    HRESULT executeScript([in] INT aTabID, [in] BSTR aCode, [in] BOOL aFileSpecified, [in] BOOL aInAllFrames);
+    HRESULT createTab([in] LPDISPATCH aProperties, [in] LPDISPATCH aCreator, [in] LPDISPATCH aCallback);
+    HRESULT updateTab([in] INT aTabId, [in] LPDISPATCH aProperties);
+    HRESULT getTabInfo([in] INT aTabId, [in] LPDISPATCH aCreator, [out, retval] VARIANT* aRet);
+    HRESULT removeTabs([in] LPDISPATCH aTabs, [in] LPDISPATCH aCallback);
+    HRESULT queryTabs([in] LPDISPATCH aQueryInfo, [in] LPDISPATCH aCreator, [out, retval] VARIANT* aRet);
   };
 
 /*==========================================================================*/
