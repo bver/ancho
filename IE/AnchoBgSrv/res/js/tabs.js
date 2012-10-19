@@ -22,6 +22,21 @@ var API_NAME = 'tabs';
 var MessageSender = require("extension.js").MessageSender;
 var CallbackWrapper = require("extension.js").CallbackWrapper;
 var addPortPair = require("extension.js").addPortPair;
+
+
+var removeCallbackWrapper = function(aTabs, aCallback) {
+  var callback = aCallback;
+  var tabs = aTabs;
+  var count = aTabs.length;
+  var singleTabRemoveCallback = function(aTabID) {
+    console.debug("singleTab callback");
+    --count;
+    if (count == 0) {
+      callback();
+    }
+  }
+}
+
 //******************************************************************************
 //* main closure
 var Tabs = function(instanceID) {
@@ -84,7 +99,6 @@ var Tabs = function(instanceID) {
   // chrome.tabs.connect
   //   returns   Port
   this.connect = function(tabId, connectInfo) {
-    console.debug("tabs.connect(..) called");
     var name = (connectInfo != undefined) ? connectInfo.name : undefined;
     var pair = new PortPair(name, new MessageSender());
     addPortPair(pair, _instanceID);
@@ -100,15 +114,7 @@ var Tabs = function(instanceID) {
   //----------------------------------------------------------------------------
   // chrome.tabs.create
   this.create = function(createProperties, callback) {
-    console.debug("tabs.create(..) called");
-    try {
-      var tab = addonAPI.createTab(createProperties, Object, callback);
-    } catch(e) {
-      console.debug("Error: " + e.message);
-    }
-    /*if (callback) {
-      callback(tab);
-    }*/
+    var tab = addonAPI.createTab(createProperties, Object, callback);
   };
 
   //----------------------------------------------------------------------------
@@ -120,7 +126,6 @@ var Tabs = function(instanceID) {
   //----------------------------------------------------------------------------
   // chrome.tabs.executeScript
   this.executeScript = function(tabId, details, callback) {
-    console.debug("tabs.executeScript(..) called");
     if ((tabId && !(typeof tabId === 'number'))
       || (!details || (!details.code && !details.file))
       || (callback && !(typeof callback === 'function'))
@@ -130,12 +135,17 @@ var Tabs = function(instanceID) {
     if (details.code && details.file) {
       throw new Error('Code and file should not be specified at the same time in the second argument.');
     }
-    var ret = undefined;
+    var str = details.code;
+    var isInFile = false;
+    var allFrames = details.allFrames ? true : false;
     if (details.code) {
-      ret = addonAPI.executeScript(tabId, details.code, false);
+      str = details.code;
+      isInFile = false;
     } else {
-      ret = addonAPI.executeScript(tabId, details.file, true);
+      str = details.file;
+      isInFile = true;
     }
+    var ret = addonAPI.executeScript(tabId, str, isInFile, allFrames);
     if (callback) {
       callback(ret);
     }
@@ -149,8 +159,9 @@ var Tabs = function(instanceID) {
       return;
     }
     var tab = addonAPI.getTabInfo(tabId, Object); //Pass reference to Object - used to create tab info
-
-    callback(tab);
+    if (callback) {
+      callback(tab);
+    }
   };
 
   //----------------------------------------------------------------------------
@@ -188,30 +199,62 @@ var Tabs = function(instanceID) {
   //----------------------------------------------------------------------------
   // chrome.tabs.query
   this.query = function(queryInfo, callback) {
-    var tabs = addonAPI.queryTabs(queryInfo, Object);
-    callback(tabs);
+    function checkTabForQueryInfo(aTab, aQueryInfo) {
+      var retVal = true;
+      if (aQueryInfo.url) {
+        retVal = retVal && (aTab.url == aQueryInfo.url);
+      }
+      if (aQueryInfo.id) {
+        retVal = retVal && (aTab.id == aQueryInfo.id);
+      }
+      if (aQueryInfo.active) {
+        retVal = retVal && (aTab.active == aQueryInfo.active);
+      }
+      return retVal;
+    }
+
+    var ret = addonAPI.queryTabs(queryInfo, Object);
+    var tabs = new VBArray(ret).toArray();
+
+    var filteredTabs = [];
+    for (var i = 0; i < tabs.length; ++i) {
+      if (checkTabForQueryInfo(tabs[i], queryInfo)) {
+        filteredTabs.push(tabs[i]);
+      }
+    }
+    callback(filteredTabs);
   };
 
   //----------------------------------------------------------------------------
   // chrome.tabs.reload
   this.reload = function(tabId, reloadProperties, callback) {
     addonAPI.reloadTab(tabId);
+    if (callback) {
+      callback();
+    }
   };
 
   //----------------------------------------------------------------------------
   // chrome.tabs.remove
   this.remove = function(tabIds, callback) {
+    var tabs;
     if (typeof tabIds === 'number') {
-      tabIds = [tabIds];
+      tabs = [tabIds];
+    } else {
+      tabs = tabIds;
     }
-    addonAPI.removeTabs(tabIds);
-    callback();
+    var callBackWrapper = new removeCallbackWrapper(tabs, callback);
+    try {
+      addonAPI.removeTabs(tabs, callBackWrapper.singleTabRemoveCallback);
+    } catch (e) {
+      console.error("Error while removing tabs [" + tabs + "] : " + e.message);
+      throw e;
+    }
   };
 
   //----------------------------------------------------------------------------
   // chrome.tabs.sendMessage
   this.sendMessage = function(tabId, message, responseCallback) {
-    console.debug("tabs.sendMessage(..) called");
     sender = new MessageSender();
     callback = undefined;
     ret = undefined;
@@ -245,10 +288,9 @@ var Tabs = function(instanceID) {
   //----------------------------------------------------------------------------
   // chrome.tabs.update
   this.update = function(tabId, updateProperties, callback) {
-    console.debug("tabs.update(..) called");
     addonAPI.updateTab(tabId, updateProperties);
 
-    if (typeof callback === 'function') {
+    if (callback) {
       API.get(tabId, callback);
     }
   };

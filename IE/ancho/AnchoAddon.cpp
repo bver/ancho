@@ -130,6 +130,21 @@ STDMETHODIMP CAnchoAddon::Shutdown()
   }
   return S_OK;
 }
+//----------------------------------------------------------------------------
+//
+STDMETHODIMP CAnchoAddon::executeScriptCode(BSTR aCode)
+{
+  //TODO: it needs method which is not implmented in magpie yet
+  return S_OK;
+}
+
+//----------------------------------------------------------------------------
+//
+STDMETHODIMP CAnchoAddon::executeScriptFile(BSTR aFile)
+{
+  //TODO: improve, when manifest processing finished
+  return m_Magpie->Run(aFile);
+}
 
 //----------------------------------------------------------------------------
 //  BrowserNavigateCompleteEvent
@@ -138,6 +153,7 @@ STDMETHODIMP_(void) CAnchoAddon::BrowserNavigateCompleteEvent(IDispatch *pDisp, 
   //ATLASSERT(m_pAddonBackground != NULL);
   if(!m_pAddonBackground) {
     if(S_OK != m_pAnchoService->GetExtension(CComBSTR(m_sExtensionName), &m_pAddonBackground)) {
+      ATLTRACE(L"Ancho addon couldn't acquire reference to AddonBackground\n");
       return;
     }
 

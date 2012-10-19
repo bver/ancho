@@ -75,7 +75,7 @@ var Extension = function(instanceID) {
   this.lastError = null;
   this.inIncognitoContext = null;
 
-  
+
 
   this.Port = function(aName, aSender) {
     var self = this;
@@ -181,7 +181,7 @@ var Extension = function(instanceID) {
   //----------------------------------------------------------------------------
   // chrome.extension.sendMessage
   this.sendMessage = function(extensionId, message, responseCallback) {
-    sender = new MessageSender();
+    sender = new MessageSender(_instanceID);
     callback = undefined;
     ret = undefined;
     if (responseCallback) {
@@ -193,14 +193,14 @@ var Extension = function(instanceID) {
             extensionId,
             'extension.onMessageExternal',
             [message, sender, callback]
-            ); //TODO: fill tab to MessageSender
+            );
     } else {
       ret = addonAPI.invokeEventObject(
             'extension.onMessage',
             _instanceID,
             true, //we are skipping _instanceID
             [message, sender, callback]
-            ); //TODO: fill tab to MessageSender
+            );
     }
 
     //if responseCallaback not yet called, check if some of the listeners

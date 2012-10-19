@@ -26,7 +26,7 @@ ConsoleReporter.prototype = {
 
   reportSpecResults: function(spec) {
     var resultText = spec.suite.description + ' : ' + spec.description + ' ... ';
-    
+
     if (spec.results().passed()) {
       this.passed_specs++;
       this.passedLog(resultText + "Passed.");
@@ -51,7 +51,7 @@ ConsoleReporter.prototype = {
   passedLog: function(str) {
     this.console.log(str);
   },
-  
+
   failedLog: function(str) {
     this.console.error(str);
   }

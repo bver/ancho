@@ -20,10 +20,6 @@
 #error "Single-threaded COM objects are not properly supported on Windows CE platform, such as the Windows Mobile platforms that do not include full DCOM support. Define _CE_ALLOW_SINGLE_THREADED_OBJECTS_IN_MTA to force ATL to support creating single-thread COM object's and allow use of it's single-threaded COM object implementations. The threading model in your rgs file was set to 'Free' as that is the only threading model supported in non DCOM Windows CE platforms."
 #endif
 
-typedef std::vector<CComVariant> VariantVector;
-HRESULT addJSArrayToVariantVector(LPDISPATCH aArrayDispatch, VariantVector &aVariantVector);
-HRESULT constructSafeArrayFromVector(const VariantVector &aVariantVector, VARIANT &aSafeArray);
-
 struct CAnchoAddonServiceCallback;
 
 class CAnchoBackgroundAPI;
@@ -114,12 +110,12 @@ public:
   STDMETHOD(invokeExternalEventObject)(BSTR aExtensionId, BSTR aEventName, LPDISPATCH aArgs, VARIANT* aRet);
   STDMETHOD(callFunction)(LPDISPATCH aFunction, LPDISPATCH aArgs, VARIANT* pvRet);
 
-  STDMETHOD(executeScript)(INT aTabID, BSTR aCode, BOOL aFileSpecified);
+  STDMETHOD(executeScript)(INT aTabID, BSTR aCode, BOOL aFileSpecified, BOOL aInAllFrames);
   STDMETHOD(createTab)(LPDISPATCH aProperties, LPDISPATCH aCreator, LPDISPATCH aCallback);
   STDMETHOD(updateTab)(INT aTabId, LPDISPATCH aProperties);
   STDMETHOD(getTabInfo)(INT aTabId, LPDISPATCH aCreator, VARIANT* aRet);
   STDMETHOD(reloadTab)(INT aTabId);
-  STDMETHOD(removeTabs)(LPDISPATCH aTabs);
+  STDMETHOD(removeTabs)(LPDISPATCH aTabs, LPDISPATCH aCallback);
   STDMETHOD(queryTabs)(LPDISPATCH aQueryInfo, LPDISPATCH aCreator, VARIANT* aRet);
   // -------------------------------------------------------------------------
   // _IMagpieLoggerEvents methods

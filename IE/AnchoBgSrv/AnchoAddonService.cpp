@@ -14,21 +14,6 @@
 #include <sstream>
 #include <algorithm>
 
-HRESULT createIDispatchFromCreator(LPDISPATCH aCreator, VARIANT* aRet)
-{
-  ENSURE_RETVAL(aRet);
-  CComQIPtr<IDispatchEx> creator(aCreator);
-  if (!creator) {
-    return E_NOINTERFACE;
-  }
-  DISPPARAMS params = {0};
-  HRESULT hr = creator->InvokeEx(DISPID_VALUE, LOCALE_USER_DEFAULT, DISPATCH_CONSTRUCT, &params, aRet, NULL, NULL);
-  if (hr != S_OK) {
-    return hr;
-  }
-  return S_OK;
-}
-
 /*============================================================================
  * class CAnchoAddonBackground
  */
@@ -37,7 +22,7 @@ HRESULT createIDispatchFromCreator(LPDISPATCH aCreator, VARIANT* aRet)
 //
 void CAnchoAddonService::OnAddonFinalRelease(BSTR bsID)
 {
-  m_Objects.RemoveKey(bsID);
+  m_Objects.erase(std::wstring(bsID, SysStringLen(bsID)));
 }
 
 //----------------------------------------------------------------------------
@@ -46,16 +31,17 @@ HRESULT CAnchoAddonService::invokeExternalEventObject(BSTR aExtensionId, BSTR aE
 {
   CAnchoAddonBackgroundComObject* pObject = NULL;
 
-  if (m_Objects.Lookup(aExtensionId, pObject))
-  {
-    return pObject->invokeExternalEventObject(aExtensionId, aEventName, aArgs, aRet);
+  ObjectsMap::iterator it = m_Objects.find(std::wstring(aExtensionId, SysStringLen(aExtensionId)));
+  if (it != m_Objects.end()) {
+    ATLASSERT(it->second != NULL);
+    return it->second->invokeExternalEventObject(aExtensionId, aEventName, aArgs, aRet);
   }
   return S_OK;
 }
 
 //----------------------------------------------------------------------------
 //
-HRESULT CAnchoAddonService::navigateBrowser(LPUNKNOWN aWebBrowserWin, const std::wstring &url) 
+HRESULT CAnchoAddonService::navigateBrowser(LPUNKNOWN aWebBrowserWin, const std::wstring &url)
 {
   CComQIPtr<IWebBrowser2> webBrowser = aWebBrowserWin;
   if (!webBrowser) {
@@ -120,13 +106,38 @@ HRESULT CAnchoAddonService::reloadTab(INT aTabId)
 }
 //----------------------------------------------------------------------------
 //
-HRESULT CAnchoAddonService::removeTab(INT aTabId)
+HRESULT CAnchoAddonService::removeTabs(LPDISPATCH aTabs, LPDISPATCH aCallback)
+{
+  VariantVector tabs;
+
+  IF_FAILED_RET(addJSArrayToVariantVector(aTabs, tabs));
+  for(VariantVector::iterator it = tabs.begin(); it != tabs.end(); ++it) {
+    if( it->vt == VT_I4 ) {
+      removeTab(it->intVal, aCallback);
+    } else {
+      ATLTRACE(L"Problem with specified tabId - not an integer\n");
+    }
+  }
+  return S_OK;
+}
+//----------------------------------------------------------------------------
+//
+HRESULT CAnchoAddonService::removeTab(INT aTabId, LPDISPATCH aCallback)
 {
   RuntimeMap::iterator it = m_Runtimes.find(aTabId);
   if (it != m_Runtimes.end()) {
     ATLASSERT(it->second.runtime);
+    if (aCallback) {
+      it->second.callback = aCallback;
+    }
     it->second.runtime->closeTab();
     return S_OK;
+  } else {
+    //If we don't find the tab - call the callback, 
+    //so we don't loose track of tabs for removal.
+    CIDispatchHelper callback = aCallback; 
+    CComVariant tabId(aTabId);
+    callback.Invoke1((DISPID)0, &tabId);
   }
   return E_FAIL;
 }
@@ -167,7 +178,7 @@ HRESULT CAnchoAddonService::queryTabs(LPDISPATCH aQueryInfo, LPDISPATCH aCreator
   struct QueryTabFunctor
   {
     QueryTabFunctor(VariantVector &aInfos, LPDISPATCH aCreator, CAnchoAddonService &aService ): infos(aInfos), creator(aCreator), service(aService) {}
-    void operator()(RuntimeMap::value_type &aRec) 
+    void operator()(RuntimeMap::value_type &aRec)
     {
       CComVariant info;
       if (S_OK != createIDispatchFromCreator(creator, &info)) {
@@ -186,7 +197,30 @@ HRESULT CAnchoAddonService::queryTabs(LPDISPATCH aQueryInfo, LPDISPATCH aCreator
   VariantVector infos;
   std::for_each(m_Runtimes.begin(), m_Runtimes.end(), QueryTabFunctor(infos, aCreator, *this));
   return constructSafeArrayFromVector(infos, *aRet);
-  //return S_OK;
+}
+//----------------------------------------------------------------------------
+//
+HRESULT CAnchoAddonService::executeScript(BSTR aExtensionID, INT aTabID, BSTR aCode, BOOL aFileSpecified, BOOL aInAllFrames)
+{
+  if (aInAllFrames) {
+    //TODO: gather results
+    for (RuntimeMap::iterator it = m_Runtimes.begin(); it != m_Runtimes.end(); ++it) {
+      executeScriptInTab(aExtensionID, it->first, aCode, aFileSpecified);
+    }
+  } else {
+    return executeScriptInTab(aExtensionID, aTabID, aCode, aFileSpecified);
+  }
+  return S_OK;
+}
+//----------------------------------------------------------------------------
+//
+HRESULT CAnchoAddonService::executeScriptInTab(BSTR aExtensionID, INT aTabID, BSTR aCode, BOOL aFileSpecified)
+{
+  RuntimeMap::iterator it = m_Runtimes.find(aTabID);
+  if (it != m_Runtimes.end()) {
+    it->second.runtime->executeScript(aExtensionID, aCode, aFileSpecified);
+  }
+  return S_OK;
 }
 //----------------------------------------------------------------------------
 //
@@ -206,15 +240,14 @@ HRESULT CAnchoAddonService::FinalConstruct()
 //
 void CAnchoAddonService::FinalRelease()
 {
-  CAnchoAddonBackgroundComObject* pObject;
-  CString sID;
-  POSITION pos = m_Objects.GetStartPosition();
-  while(pos)
+  ObjectsMap::iterator it = m_Objects.begin();
+  while(it != m_Objects.end())
   {
-    m_Objects.GetNextAssoc(pos, sID, pObject);
-    pObject->AddonServiceLost();
+    ATLASSERT(it->second != NULL);
+    it->second->AddonServiceLost();
+    ++it;
   }
-  m_Objects.RemoveAll();
+  m_Objects.clear();
 }
 
 //----------------------------------------------------------------------------
@@ -223,13 +256,13 @@ STDMETHODIMP CAnchoAddonService::GetExtension(BSTR bsID, IAnchoAddonBackground *
 {
   ENSURE_RETVAL(ppRet);
 
-  CAnchoAddonBackgroundComObject* pObject = NULL;
   CComPtr<IAnchoAddonBackground> ptr;
-
-  if (!m_Objects.Lookup(bsID, pObject))
-  {
+  std::wstring id = std::wstring(bsID, SysStringLen(bsID));
+  ObjectsMap::iterator it = m_Objects.find(id);
+  if (it == m_Objects.end()) {
     // not found, create new instance
     ATLTRACE(_T("ADD OBJECT %s\n"), bsID);
+    CAnchoAddonBackgroundComObject* pObject = NULL;
     HRESULT hr = CAnchoAddonBackgroundComObject::CreateInstance(&pObject);
     if (FAILED(hr))
     {
@@ -247,14 +280,12 @@ STDMETHODIMP CAnchoAddonService::GetExtension(BSTR bsID, IAnchoAddonBackground *
       return hr;
     }
     // store in map
-    m_Objects[bsID] = pObject;
-  }
-  else
-  {
+    m_Objects[id] = pObject;
+  } else {
     ATLTRACE(_T("FOUND OBJECT %s\n"), bsID);
     // found, create a new intance ID
     // store to safepointer
-    ptr = pObject;
+    ptr = it->second;
   }
 
   // set return value
@@ -286,7 +317,16 @@ STDMETHODIMP CAnchoAddonService::registerRuntime(IAnchoRuntime * aRuntime, INT *
 //
 STDMETHODIMP CAnchoAddonService::unregisterRuntime(INT aTabID)
 {
-  m_Runtimes.erase(aTabID);
+  RuntimeMap::iterator it = m_Runtimes.find(aTabID);
+  if (it != m_Runtimes.end()) {
+    CIDispatchHelper callback = it->second.callback;
+    m_Runtimes.erase(it);
+    if (callback) {
+      ATLTRACE(L"ADDON SERVICE - invoking callback for removeTab: %d\n", aTabID);
+      CComVariant tabId(aTabID);
+      callback.Invoke1((DISPID)0, &tabId);
+    }
+  }
   ATLTRACE(L"ADDON SERVICE - unregistering tab: %d\n", aTabID);
   return S_OK;
 }
@@ -301,6 +341,17 @@ STDMETHODIMP CAnchoAddonService::createTabNotification(INT aTabID, INT aRequestI
     IF_FAILED_RET(it->second.callback.Invoke1((DISPID) 0, &tabInfo));
     m_CreateTabCallbacks.erase(it);
     return S_OK;
+  }
+  return S_OK;
+}
+//----------------------------------------------------------------------------
+//
+STDMETHODIMP CAnchoAddonService::invokeEventObjectInAllExtensions(BSTR aEventName, LPDISPATCH aArgs)
+{
+  for (ObjectsMap::iterator it = m_Objects.begin(); it != m_Objects.end(); ++it) {
+    CComVariant retVal;
+    CComBSTR id(it->first.c_str());
+    invokeExternalEventObject(id, aEventName, aArgs, &retVal);
   }
   return S_OK;
 }

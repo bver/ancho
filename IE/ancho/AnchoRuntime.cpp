@@ -75,7 +75,7 @@ HRESULT CAnchoRuntime::InitAddons()
       hr = addon->Init(sKeyName, m_pAnchoService, m_pWebBrowser);
       if (SUCCEEDED(hr))
       {
-        m_Addons[sKeyName] = addon;
+        m_Addons[std::wstring(sKeyName)] = addon;
       }
     }
     dwLen = 4096;
@@ -88,13 +88,13 @@ HRESULT CAnchoRuntime::InitAddons()
 //  DestroyAddons
 void CAnchoRuntime::DestroyAddons()
 {
-  CString sAddonID;
-  POSITION pos = m_Addons.GetStartPosition();
-  while(pos)
-  {
-    m_Addons.GetNextValue(pos)->Shutdown();
+  AddonMap::iterator it = m_Addons.begin();
+  while(it != m_Addons.end()) {
+    it->second->Shutdown();
+    ++it;
   }
-  m_Addons.RemoveAll();
+  m_Addons.clear();
+
   if(m_pAnchoService) {
     m_pAnchoService->unregisterRuntime(m_TabID);
   }
@@ -138,20 +138,20 @@ STDMETHODIMP_(void) CAnchoRuntime::browserBeforeNavigateEvent(LPDISPATCH pDisp, 
     return;
   }
   std::wstring url(pURL->bstrVal, SysStringLen(pURL->bstrVal));
-  
+
   size_t first = url.find_first_of(L'#');
   size_t last = url.find_last_of(L'#');
   if (first == std::wstring::npos || first == last) {
     return;
   }
-  
+
   std::wstring requestIDStr = url.substr(first+1, last - first - 1);
   int requestID = _wtoi(requestIDStr.c_str());
   url.erase(0, last+1);
 
   CComVariant urlVar(url.c_str());
   CComVariant vtEmpty;
-  
+
   *Cancel = TRUE;
   pWebBrowser->Stop();
   pWebBrowser->Navigate2(&urlVar, &vtEmpty, &vtEmpty, &vtEmpty, &vtEmpty);
@@ -174,8 +174,9 @@ STDMETHODIMP CAnchoRuntime::closeTab()
 }
 //----------------------------------------------------------------------------
 //
-STDMETHODIMP CAnchoRuntime::executeScript(BSTR aExtensionId, BSTR aCode/*, BOOL aFileSpecified*/)
+STDMETHODIMP CAnchoRuntime::executeScript(BSTR aExtensionId, BSTR aCode, INT aFileSpecified)
 {
+  //TODO: check permissions from manifest
   return S_OK;
 }
 //----------------------------------------------------------------------------
