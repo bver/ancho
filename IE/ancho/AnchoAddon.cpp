@@ -150,7 +150,7 @@ STDMETHODIMP CAnchoAddon::executeScriptFile(BSTR aFile)
 //  BrowserNavigateCompleteEvent
 STDMETHODIMP_(void) CAnchoAddon::BrowserNavigateCompleteEvent(IDispatch *pDisp, VARIANT *URL)
 {
-  //ATLASSERT(m_pAddonBackground != NULL);
+  //If create AddonBackground sooner - background script will be executed before initialization of tab windows
   if(!m_pAddonBackground) {
     if(S_OK != m_pAnchoService->GetExtension(CComBSTR(m_sExtensionName), &m_pAddonBackground)) {
       ATLTRACE(L"Ancho addon couldn't acquire reference to AddonBackground\n");

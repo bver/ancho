@@ -79,6 +79,7 @@ HRESULT CAnchoAddonService::createTab(LPDISPATCH aProperties, LPDISPATCH aCreato
   }
   std::wstring url = std::wstring(originalUrl,SysStringLen(originalUrl));
   if (aCallback) {
+    //TODO - use headers instead of url
     int requestID = m_NextRequestID++;
     std::wostringstream str;
     str << L'#' << requestID << '#';
@@ -133,9 +134,9 @@ HRESULT CAnchoAddonService::removeTab(INT aTabId, LPDISPATCH aCallback)
     it->second.runtime->closeTab();
     return S_OK;
   } else {
-    //If we don't find the tab - call the callback, 
+    //If we don't find the tab - call the callback,
     //so we don't loose track of tabs for removal.
-    CIDispatchHelper callback = aCallback; 
+    CIDispatchHelper callback = aCallback;
     CComVariant tabId(aTabId);
     callback.Invoke1((DISPID)0, &tabId);
   }

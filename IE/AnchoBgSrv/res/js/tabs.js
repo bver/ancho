@@ -23,13 +23,13 @@ var MessageSender = require("extension.js").MessageSender;
 var CallbackWrapper = require("extension.js").CallbackWrapper;
 var addPortPair = require("extension.js").addPortPair;
 
-
+//Used for gathering callback from removeTabs
 var removeCallbackWrapper = function(aTabs, aCallback) {
   var callback = aCallback;
   var tabs = aTabs;
   var count = aTabs.length;
   var singleTabRemoveCallback = function(aTabID) {
-    console.debug("singleTab callback");
+    console.debug("removeSingleTab callback");
     --count;
     if (count == 0) {
       callback();

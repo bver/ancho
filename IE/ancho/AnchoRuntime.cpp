@@ -130,6 +130,7 @@ STDMETHODIMP CAnchoRuntime::SetSite(IUnknown *pUnkSite)
 //
 STDMETHODIMP_(void) CAnchoRuntime::browserBeforeNavigateEvent(LPDISPATCH pDisp, VARIANT *pURL, VARIANT *Flags, VARIANT *TargetFrameName, VARIANT *PostData, VARIANT *Headers, BOOL *Cancel)
 {
+  //Here we ensure that callback for createTab will be invoked by passing requestID for current tab back into the service
   CComQIPtr<IWebBrowser2> pWebBrowser(pDisp);
   if (!pWebBrowser) {
     return;
@@ -138,7 +139,7 @@ STDMETHODIMP_(void) CAnchoRuntime::browserBeforeNavigateEvent(LPDISPATCH pDisp, 
     return;
   }
   std::wstring url(pURL->bstrVal, SysStringLen(pURL->bstrVal));
-
+  //TODO - use headers instead of url
   size_t first = url.find_first_of(L'#');
   size_t last = url.find_last_of(L'#');
   if (first == std::wstring::npos || first == last) {

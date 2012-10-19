@@ -112,6 +112,7 @@ private:
   };
   typedef std::map<int, RuntimeRecord> RuntimeMap;
 
+  //Used for storing requests for calling createTab callbacks
   struct CreateTabCallbackRecord {
     CreateTabCallbackRecord() {}
     CreateTabCallbackRecord(CIDispatchHelper aCreator, CIDispatchHelper aCallback)
