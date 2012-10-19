@@ -26,7 +26,7 @@ HRESULT CAnchoAddonService::invokeExternalEventObject(BSTR aExtensionId, BSTR aE
 
   if (m_Objects.Lookup(aExtensionId, pObject))
   {
-    return pObject->invokeExternalEventObject(aExtensionId, aEventName, aArgs, aRet);
+    return pObject->invokeExternalEventObject(aEventName, aArgs, aRet);
   }
   return S_OK;
 }

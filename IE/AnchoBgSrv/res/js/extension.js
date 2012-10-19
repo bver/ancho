@@ -34,19 +34,42 @@ function releasePorts(instanceID) {
   }
 }
 
-CallbackWrapper = function(responseCallback) {
+var PortPair = function(aName, aMessageSender) {
+  var self = this;
+  this.near = new API.Port(aName, aMessageSender);
+  this.far = new API.Port(aName, aMessageSender);
+
+  this.near.otherPort = this.far;
+  this.far.otherPort = this.near;
+
+  this.release = function() {
+    self.near.disconnect();
+    self.far.disconnect();
+    self.near.release();
+    self.far.release();
+  }
+}
+
+/*
+To sendMessage is passed responseCallback, which can be invoked only once
+for all listeners and if requested also asynchronously. This object wrapps the original
+callback and prohibits multiple invocations.
+*/
+var CallbackWrapper = function(responseCallback) {
   var self = this;
 
   var responseCallback = responseCallback;
 
-  this.callable = true;
+  this.shouldInvokeCallback = true;
   this.callback = function() {
     return function() {
-      if (!self.callable) {
+    if (!self.shouldInvokeCallback) {
         return;
       }
-      self.callable = false;
-        //Solves the 'Different array constructors' problem
+      self.shouldInvokeCallback = false;
+        //Solves the 'Different array constructors' problem:
+        //apply cannot be called because if array was created in different script engine
+        //it fails comparison with array constructor
         addonAPI.callFunction(responseCallback, arguments);
     }
   } ();
@@ -58,21 +81,21 @@ var Extension = function(instanceID) {
   //============================================================================
   // private variables
   _instanceID = instanceID;
-  thisAPI = this;
+  API = this;
   //============================================================================
   // public properties
 
   this.lastError = null;
   this.inIncognitoContext = null;
 
-  this.MessageSender = function(aTab) {
+  API.MessageSender = function(aTab) {
     this.id = addonAPI.id;
     if (aTab) {
       this.tab = aTab; //optional
     }
   };
 
-  this.Port = function(aName, aSender) {
+  API.Port = function(aName, aSender) {
     var self = this;
     this.postMessage = function(msg) {
       if (self.otherPort) {
@@ -95,22 +118,6 @@ var Extension = function(instanceID) {
     }
   };
 
-  PortPair = function(aName, aMessageSender) {
-    var self = this;
-    this.near = new thisAPI.Port(aName, aMessageSender);
-    this.far = new thisAPI.Port(aName, aMessageSender);
-
-    this.near.otherPort = this.far;
-    this.far.otherPort = this.near;
-
-    this.release = function() {
-      self.near.disconnect();
-      self.far.disconnect();
-      self.near.release();
-      self.far.release();
-    }
-  }
-
   //============================================================================
   // public methods
 
@@ -120,7 +127,7 @@ var Extension = function(instanceID) {
   this.connect = function(extensionId, connectInfo) {
     console.debug("extension.connect(..) called");
     var name = (connectInfo != undefined) ? connectInfo.name : undefined;
-    var pair = new PortPair(name, new thisAPI.MessageSender());
+    var pair = new PortPair(name, new API.MessageSender());
     addPortPair(pair, _instanceID);
     if (extensionId != undefined && extensionId != addonAPI.id) {
       addonAPI.invokeExternalEventObject(
@@ -149,7 +156,6 @@ var Extension = function(instanceID) {
   // chrome.extension.getURL
   //   returns   string
   this.getURL = function(path) {
-    //console.debug("extension.getURL(..) called");
     return 'chrome-extension://' + addonAPI.id + '/' + path;
   };
 
@@ -176,7 +182,7 @@ var Extension = function(instanceID) {
   // chrome.extension.sendMessage
   this.sendMessage = function(extensionId, message, responseCallback) {
     console.debug("extension.sendMessage(..) called: " + message);
-    sender = new thisAPI.MessageSender();
+    sender = new API.MessageSender();
     callback = undefined;
     ret = undefined;
     if (responseCallback) {
@@ -197,9 +203,9 @@ var Extension = function(instanceID) {
             ); //TODO: fill tab to MessageSender
     }
 
-    //if responseCallaback not yet called, check if some of the listeners 
+    //if responseCallaback not yet called, check if some of the listeners
     //requests asynchronous responseCallback, otherwise disable responseCallback
-    if (callbackWrapper.callable && ret != undefined) {
+    if (callbackWrapper.shouldInvokeCallback && ret != undefined) {
       var arr = new VBArray(ret).toArray();
       for (var i = 0; i < arr.length; ++i) {
         if (arr[i] === true) {
@@ -208,7 +214,7 @@ var Extension = function(instanceID) {
         }
       }
     }
-    callbackWrapper.callable = false;
+    callbackWrapper.shouldInvokeCallback = false;
   };
 
   //----------------------------------------------------------------------------
@@ -233,6 +239,6 @@ exports.createAPI = function(instanceID) {
 
 exports.releaseAPI = function(instanceID) {
   EventFactory.releaseEvents(instanceID, API_NAME, EVENT_LIST);
-  
+
   releasePorts(instanceID);
 }

@@ -29,8 +29,8 @@
       //console.debug('Fire event ' + _eventName + ' - ' + _listeners.length + ' instance:' + _instanceID);
       var results = [];
       for (var i = 0; i < _listeners.length; ++i) {
+        //We cannot use apply - doesn't work for arryas from different script engines
         var ret = addonAPI.callFunction(_listeners[i], arguments);
-        //var ret = _listeners[i].apply(_listeners[i], arguments);
         if (ret != undefined) {
           results.push(ret);
         }
