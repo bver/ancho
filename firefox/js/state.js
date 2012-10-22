@@ -4,8 +4,8 @@
   var Cu = Components.utils;
 
   var getWindowId = require('./utils').getWindowId;
-  
-  const EXTENSION_ID = 'product@vendor.com';
+
+  const EXTENSION_ID = 'ancho@salsitasoft.com';
 
   function EventDispatcher() {
     this._listeners = {};

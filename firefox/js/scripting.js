@@ -4,22 +4,29 @@
   var Cu = Components.utils;
 
   Cu.import('resource://gre/modules/Services.jsm');
-  Cu.import('resource://gre/modules/Require.jsm');
-  
+  Cu.import('resource://ancho/modules/Require.jsm');
+
   var ExtensionState = require('./state');
-  var API = require('./ajiAPI');
+  var API = require('./api');
   var readStringFromUrl = require('./utils').readStringFromUrl;
-  
+
   function prepareWindow(window) {
     if (!('require' in window)) {
       var sandbox = Cu.Sandbox(window, { sandboxPrototype: window });
-      window.aji = sandbox.aji = new API(window, ExtensionState);
+
+      var api = new API(window, ExtensionState);
+      window.chrome = sandbox.chrome = api.chrome;
+      window.ancho = sandbox.ancho = api.ancho;
+      window.console = sandbox.console = api.console;
+      window.localStorage = sandbox.localStorage = api.localStorage;
+      window.clipboard = sandbox.clipboard = api.clipboard;
+
       window.require = sandbox.require = Require.createRequireForWindow(sandbox);
 
       window.addEventListener('unload', function(event) {
         window.removeEventListener('unload', arguments.callee, false);
         delete window.require;
-        delete window.aji;
+        delete window.chrome;
       });
     }
   }
@@ -33,14 +40,19 @@
       var matches = scriptInfo.matches;
       var principal = ExtensionState.backgroundWindow;
       var sandbox = Cu.Sandbox(principal, { sandboxPrototype: win });
-      sandbox.aji = new API(win, ExtensionState);
+      var api = new API(win, ExtensionState);
+      sandbox.chrome = api.chrome;
+      sandbox.ancho = api.ancho;
+      sandbox.console = api.console;
+      sandbox.localStorage = api.localStorage;
+      sandbox.clipboard = api.clipboard;
       for (var j=0; j<matches.length; j++) {
         if (spec.match(matches[j])) {
           for (var k=0; k<scriptInfo.js.length; k++) {
             if (sandbox.jQuery) {
               sandbox.jQuery.ajaxSettings.xhr = Require.createWrappedXMLHttpRequest;
             }
-            var scriptUri = Services.io.newURI('chrome://trusted-ads/content/' + scriptInfo.js[k], '', null);
+            var scriptUri = Services.io.newURI('chrome://ancho/content/' + scriptInfo.js[k], '', null);
             sandbox.require = Require.createRequireForWindow(sandbox, scriptUri);
             var script = readStringFromUrl(scriptUri);
             Cu.evalInSandbox(script, sandbox);
@@ -52,7 +64,7 @@
   }
 
   // When we load a privileged HTML page we want all scripts to load as content
-  // scripts so that they have access to the require function and aji.* APIs.
+  // scripts so that they have access to the require function and chrome / ancho APIs.
   // So we strip the <script> tags out of the document and load them separately
   // as content scripts.
   exports.loadHtml = function(document, iframe, htmlSpec, callback) {

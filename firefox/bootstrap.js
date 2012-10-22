@@ -10,10 +10,16 @@ Cu.import('resource://gre/modules/AddonManager.jsm');
 var backgroundWindow = null;
 var xulWindow = null;
 
+// require function created at startup()
+var require = null;
+
 function createBackground() {
+
+  // FIXME: BACKGROUND WINDOW IS NOT LOADING !!!
+
   backgroundWindow = Services.ww.openWindow(
     null, // parent
-    'chrome://{{SHORTNAME}}/content/background.xul', // url
+    'chrome://ancho/content/xul/background.xul', // url
     null, // window name
     null, // features
     null  // extra arguments
@@ -60,22 +66,23 @@ function setResourceSubstitution(addon) {
   // in the extension directly.
   var resourceProtocol = Services.io.getProtocolHandler('resource').
     QueryInterface(Ci.nsIResProtocolHandler);
-  resourceProtocol.setSubstitution('trusted-ads', addon.getResourceURI('/'));
+  resourceProtocol.setSubstitution('ancho', addon.getResourceURI('/'));
 }
 
 function loadConfig(addon) {
   // Load the manifest
-  Cu.import('resource://{{SHORTNAME}}/modules/Require.jsm');
-  var baseURI = Services.io.newURI('resource://{{SHORTNAME}}/modules/', '', null);
-  var require = Require.createRequireForWindow(this, baseURI);
+  Cu.import('resource://ancho/modules/Require.jsm');
+  var baseURI = Services.io.newURI('resource://ancho/', '', null);
+  require = Require.createRequireForWindow(this, baseURI);
 
-  var contentScripts = require('./config').contentScripts;
-  var readStringFromUrl = require('./utils').readStringFromUrl;
+  var contentScripts = require('./js/config').contentScripts;
+  var readStringFromUrl = require('./js/utils').readStringFromUrl;
 
   if (addon.hasResource('manifest.json')) {
     var manifestUrl = addon.getResourceURI('manifest.json');
     var manifest = readStringFromUrl(manifestUrl);
     var config = JSON.parse(manifest);
+    dump(JSON.stringify(config, null, 2));
     // Set the module search path if any
     if ('module_search_path' in config) {
       for (var i=0; i<config.module_search_path.length; i++) {
@@ -106,20 +113,17 @@ function loadConfig(addon) {
 }
 
 function unloadBackgroundScripts() {
-  require('./config').contentScripts = [];
+  require('./js/config').contentScripts = [];
 }
 
 // When the extension is activated:
 //
 function startup(data, reason) {
-  dump('\Aji: starting up ...\n\n');
+  dump('\nAncho: starting up ...\n\n');
 
-  // TODO: Set addon ID using preprocessor.
-  AddonManager.getAddonByID('product@vendor.com', function(addon) {
+  AddonManager.getAddonByID('ancho@salsitasoft.com', function(addon) {
     setResourceSubstitution(addon);
-
     loadConfig(addon);
-
     createBackground();
   });
 }
@@ -127,11 +131,11 @@ function startup(data, reason) {
 // When the extension is deactivated:
 //
 function shutdown(data, reason) {
-  dump('\nAji: shutting down ...\n\n');
+  dump('\nAncho: shutting down ...\n\n');
 
   releaseBackground();
   unloadBackgroundScripts();
 
   // Unload the modules so that we will load new versions if the add-on is installed again.
-  Cu.unload('resource://{{SHORTNAME}}/modules/Require.jsm');
+  Cu.unload('resource://ancho/modules/Require.jsm');
 }

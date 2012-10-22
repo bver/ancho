@@ -6,9 +6,9 @@
   Cu.import('resource://gre/modules/Services.jsm');
 
   exports.getWindowId = function(window) {
-      return window.QueryInterface(Ci.nsIInterfaceRequestor).
-        getInterface(Ci.nsIDOMWindowUtils).outerWindowID;
-    };
+    return window.QueryInterface(Ci.nsIInterfaceRequestor).
+      getInterface(Ci.nsIDOMWindowUtils).outerWindowID;
+  };
 
   exports.getWindowForRequest = function(request) {
     // First get the load context
@@ -56,4 +56,9 @@
 
     return data;
   };
+
+  exports.getSender = function(extensionId, tabId) {
+    return { id: extensionId, tab: { id: tabId } };
+  };
+
 }).call(this);
