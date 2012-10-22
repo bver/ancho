@@ -26,7 +26,7 @@ var Require = {
   _moduleCache: {},
 
   _resProtocolHandler: Services.io.getProtocolHandler("resource"),
-  
+
   moduleSearchPath: [],
 
   createWrappedXMLHttpRequest: function() { return new WrappedXMLHttpRequest(); },
@@ -106,7 +106,7 @@ var Require = {
           context.jQuery.ajaxSettings.xhr = self.createWrappedXMLHttpRequest;
         }
       }
-      
+
       if ('chrome' in sandbox) {
         context.chrome = sandbox.chrome;
       }
