@@ -25,8 +25,12 @@
 
       window.addEventListener('unload', function(event) {
         window.removeEventListener('unload', arguments.callee, false);
-        delete window.require;
         delete window.chrome;
+        delete window.ancho;
+        delete window.console;
+        delete window.localStorage;
+        delete window.clipboard;
+        delete window.require;
       });
     }
   }
