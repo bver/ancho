@@ -1,10 +1,14 @@
 const { classes: Cc, interfaces: Ci, utils: Cu } = Components;
 
 Cu.import('resource://gre/modules/Services.jsm');
-Cu.import('resource://{{SHORTNAME}}/modules/Require.jsm');
+Cu.import('resource://ancho/modules/Require.jsm');
 
+dump('\n\nWE ARE REALLY HERE!!!\n\n\n');
+// FIXME: this script is not loading yet...
+
+/*
 var sandbox = Cu.Sandbox(window);
-var baseURI = Services.io.newURI('resource://{{SHORTNAME}}/modules/', '', null);
+var baseURI = Services.io.newURI('resource://ancho/modules/', '', null);
 var require = Require.createRequireForWindow(sandbox, baseURI);
 
 var ExtensionState = require('./state');
@@ -80,19 +84,15 @@ function releaseWindowWatcher() {
 
 window.addEventListener('load', function(event) {
   window.removeEventListener('load', arguments.callee, false);
-
   ExtensionState.backgroundWindow = window;
-
   createWindowWatcher();
-
   var browser = document.getElementById('content');
-  loadHtml(document, browser, 'chrome://trusted-ads/content/html/background.html');
+  loadHtml(document, browser, 'chrome://ancho/content/html/background.html');
 }, false);
 
 window.addEventListener('unload', function(event) {
   window.removeEventListener('unload', arguments.callee, false);
-
   releaseWindowWatcher();
-
   ExtensionState.unloadAll();
 }, false);
+*/

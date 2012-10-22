@@ -1,9 +1,10 @@
 EXPORTED_SYMBOLS = ['Require'];
 
 const { classes: Cc, interfaces: Ci, utils: Cu } = Components;
+Cu.import('resource://gre/modules/Services.jsm');
 
 // XHR implementation with no XSS restrictions
-WrappedXMLHttpRequest() {
+function WrappedXMLHttpRequest() {
   this._inner = Cc['@mozilla.org/xmlextras/xmlhttprequest;1'].createInstance();
 }
 
@@ -23,7 +24,8 @@ WrappedXMLHttpRequest.prototype = {
 
 var Require = {
   _moduleCache: {},
-  _resProtocolHandler = Services.io.getProtocolHandler("resource"),
+
+  _resProtocolHandler: Services.io.getProtocolHandler("resource"),
   
   moduleSearchPath: [],
 
@@ -45,6 +47,7 @@ var Require = {
   },
 
   createRequireForWindow: function(sandbox, baseUrl) {
+    var self = this;
     return function require(id, scriptUrl) {
       if (baseUrl && !scriptUrl) {
         scriptUrl = baseUrl;
@@ -65,7 +68,7 @@ var Require = {
       var url;
       if (id[0] != '.' && id[0] != '/') {
         // Try to find the module in the search path
-        url = this.findModuleInPath(id);
+        url = self.findModuleInPath(id);
       }
       else {
         url = Services.io.newURI(id + '.js', '', scriptUrl);
@@ -76,8 +79,8 @@ var Require = {
       }
 
       var spec = url.spec;
-      if (spec in this._moduleCache) {
-        return this._moduleCache[spec];
+      if (spec in self._moduleCache) {
+        return self._moduleCache[spec];
       }
 
       var scriptLoader = Cc['@mozilla.org/moz/jssubscript-loader;1'].
@@ -100,20 +103,31 @@ var Require = {
         if (jQuery) {
           // Use the jQuery from the window.
           context.jQuery = context.$ = jQuery;
-          context.jQuery.ajaxSettings.xhr = this.createWrappedXMLHttpRequest;
+          context.jQuery.ajaxSettings.xhr = self.createWrappedXMLHttpRequest;
         }
       }
-
-      if ('aji' in sandbox) {
-        context.aji = sandbox.aji;
+      
+      if ('chrome' in sandbox) {
+        context.chrome = sandbox.chrome;
+      }
+      if ('ancho' in sandbox) {
+        context.ancho = sandbox.ancho;
+      }
+      if ('console' in sandbox) {
+        context.console = sandbox.console;
+      }
+      if ('localStorage' in sandbox) {
+        context.localStorage = sandbox.localStorage;
+      }
+      if ('clipboard' in sandbox) {
+        context.clipboard = sandbox.clipboard;
       }
 
       // Need to add to the cache here to avoid stack overflow in case of require() cycles
       // (e.g. A requires B which requires A).
-      this._moduleCache[spec] = context.exports = {};
+      self._moduleCache[spec] = context.exports = {};
 
       scriptLoader.loadSubScript(spec, context);
-
       return context.exports;
     }
   }
