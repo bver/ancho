@@ -116,12 +116,9 @@ var Require = {
       if ('console' in sandbox) {
         context.console = sandbox.console;
       }
-      if ('localStorage' in sandbox) {
-        context.localStorage = sandbox.localStorage;
-      }
-      if ('clipboard' in sandbox) {
-        context.clipboard = sandbox.clipboard;
-      }
+      // if ('localStorage' in sandbox) {
+      //   context.localStorage = sandbox.localStorage;
+      // }
 
       // Need to add to the cache here to avoid stack overflow in case of require() cycles
       // (e.g. A requires B which requires A).

@@ -18,8 +18,7 @@
       window.chrome = sandbox.chrome = api.chrome;
       window.ancho = sandbox.ancho = api.ancho;
       window.console = sandbox.console = api.console;
-      window.localStorage = sandbox.localStorage = api.localStorage;
-      window.clipboard = sandbox.clipboard = api.clipboard;
+      // window.localStorage = sandbox.localStorage = api.localStorage;
 
       window.require = sandbox.require = Require.createRequireForWindow(sandbox);
 
@@ -28,8 +27,7 @@
         delete window.chrome;
         delete window.ancho;
         delete window.console;
-        delete window.localStorage;
-        delete window.clipboard;
+        // delete window.localStorage;
         delete window.require;
       });
     }
@@ -48,8 +46,7 @@
       sandbox.chrome = api.chrome;
       sandbox.ancho = api.ancho;
       sandbox.console = api.console;
-      sandbox.localStorage = api.localStorage;
-      sandbox.clipboard = api.clipboard;
+      // sandbox.localStorage = api.localStorage;
       for (var j=0; j<matches.length; j++) {
         if (spec.match(matches[j])) {
           for (var k=0; k<scriptInfo.js.length; k++) {
