@@ -11,11 +11,11 @@
 
   // Ancho APIs
   var ToolbarAPI = require('./toolbar');
+  var ClipboardAPI = require('./clipboard');
 
   // System APIs
   var ConsoleAPI = require('./console');
   var LocalStorageAPI = require('./localStorage');
-  var ClipboardAPI = require('./clipboard');
 
   // export
   function API(contentWindow, extensionState) {
@@ -31,12 +31,12 @@
     };
 
     this.ancho = {
-      toolbar: new ToolbarAPI(extensionState, contentWindow)
+      toolbar: new ToolbarAPI(extensionState, contentWindow),
+      clipboard: new ClipboardAPI(extensionState, contentWindow)
     };
 
     this.console = new ConsoleAPI(extensionState, contentWindow);
     this.localStorage = new LocalStorageAPI(extensionState, contentWindow);
-    this.clipboard = new ClipboardAPI(extensionState, contentWindow);
   }
 
   module.exports = API;
