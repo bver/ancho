@@ -34,10 +34,36 @@ function releasePorts(instanceID) {
   }
 }
 
+var Port = function(aName, aSender) {
+  var self = this;
+  this.postMessage = function(msg) {
+    if (self.otherPort) {
+      self.otherPort.onMessage.fire(msg);
+    }
+  };
+  this.otherPort = null;
+  this.sender = aSender;
+  this.onDisconnect = new Event('port.onDisconnect');
+  this.onMessage = new Event('port.onMessage');
+  this.name = aName;
+
+  this.disconnect = function() {
+    self.otherPort.onDisconnect.fire();
+    self.otherPort = null;
+  }
+  this.release = function() {
+    delete onDisconnect;
+    delete onMessage;
+  }
+};
+
+/*
+Contains both ends (ports) of communication channel used by connect()
+*/
 var PortPair = function(aName, aMessageSender) {
   var self = this;
-  this.near = new API.Port(aName, aMessageSender);
-  this.far = new API.Port(aName, aMessageSender);
+  this.near = new Port(aName, aMessageSender);
+  this.far = new Port(aName, aMessageSender);
 
   this.near.otherPort = this.far;
   this.far.otherPort = this.near;
@@ -81,40 +107,16 @@ var Extension = function(instanceID) {
   //============================================================================
   // private variables
   _instanceID = instanceID;
-  API = this;
   //============================================================================
   // public properties
 
   this.lastError = null;
   this.inIncognitoContext = null;
 
-  API.MessageSender = function(aTab) {
+  this.MessageSender = function(aTab) {
     this.id = addonAPI.id;
     if (aTab) {
       this.tab = aTab; //optional
-    }
-  };
-
-  API.Port = function(aName, aSender) {
-    var self = this;
-    this.postMessage = function(msg) {
-      if (self.otherPort) {
-        self.otherPort.onMessage.fire(msg);
-      }
-    };
-    this.otherPort = null;
-    this.sender = aSender;
-    this.onDisconnect = new Event('port.onDisconnect');
-    this.onMessage = new Event('port.onMessage');
-    this.name = aName;
-
-    this.disconnect = function() {
-      self.otherPort.onDisconnect.fire();
-      self.otherPort = null;
-    }
-    this.release = function() {
-      delete onDisconnect;
-      delete onMessage;
     }
   };
 
@@ -127,7 +129,7 @@ var Extension = function(instanceID) {
   this.connect = function(extensionId, connectInfo) {
     console.debug("extension.connect(..) called");
     var name = (connectInfo != undefined) ? connectInfo.name : undefined;
-    var pair = new PortPair(name, new API.MessageSender());
+    var pair = new PortPair(name, new this.MessageSender());
     addPortPair(pair, _instanceID);
     if (extensionId != undefined && extensionId != addonAPI.id) {
       addonAPI.invokeExternalEventObject(
@@ -136,7 +138,7 @@ var Extension = function(instanceID) {
               [pair.far]
               );
     } else {
-       addonAPI.invokeEventObject(
+      addonAPI.invokeEventObject(
               'extension.onConnect',
               -1, //TODO: after tabs API finished prevent content scripts from notifications
               [pair.far]
@@ -182,9 +184,9 @@ var Extension = function(instanceID) {
   // chrome.extension.sendMessage
   this.sendMessage = function(extensionId, message, responseCallback) {
     console.debug("extension.sendMessage(..) called: " + message);
-    sender = new API.MessageSender();
-    callback = undefined;
-    ret = undefined;
+    var sender = new this.MessageSender();
+    var callback = undefined;
+    var ret = undefined;
     if (responseCallback) {
       callbackWrapper = new CallbackWrapper(responseCallback);
       callback = callbackWrapper.callback;
