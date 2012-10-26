@@ -28,7 +28,7 @@ far we have:
 Since the `require()` function is not implemented natively in Google Chrome
 (yet), the first thing we do in both content and background is that we load
 script file called `require.js` and after that we load the rest. In Firefox,
-however, the `require()` function is implemented differently, so we don``t
+however, the `require()` function is implemented differently, so we don't
 need / want to load the `require.js` script from the hosted extension.
 Therefore all scripts with name `require.js` are NOT loaded in Firefox. If
 you happen to have script with this name in your original extension, and if
