@@ -5,7 +5,10 @@
   var TabsAPI = require('./tabs');
   var WindowsAPI = require('./windows');
   var WebRequestAPI = require('./webRequest');
-  var BrowserActionAPI = require('./browserAction');
+  // FIXME: browserAction API disabled for now:
+  // + windowWatcher used there doesn't load: improper use of new Event()
+  // + too many TODOs there for now...
+  // var BrowserActionAPI = require('./browserAction');
   var CookiesAPI = require('./cookies');
   var HistoryAPI = require('./history');
 
@@ -15,7 +18,6 @@
 
   // System APIs
   var ConsoleAPI = require('./console');
-  var LocalStorageAPI = require('./localStorage');
 
   // export
   function API(contentWindow, extensionState) {
@@ -25,7 +27,7 @@
       tabs: new TabsAPI(extensionState, contentWindow),
       windows: new WindowsAPI(extensionState, contentWindow),
       webRequest: new WebRequestAPI(extensionState, contentWindow),
-      browserAction: new BrowserActionAPI(extensionState, contentWindow),
+      // browserAction: new BrowserActionAPI(extensionState, contentWindow),
       cookies: new CookiesAPI(extensionState, contentWindow),
       history: new HistoryAPI(extensionState, contentWindow)
     };
@@ -36,7 +38,7 @@
     };
 
     this.console = new ConsoleAPI(extensionState, contentWindow);
-    this.localStorage = new LocalStorageAPI(extensionState, contentWindow);
+
   }
 
   module.exports = API;

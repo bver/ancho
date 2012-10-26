@@ -8,8 +8,6 @@
       state.eventDispatcher.removeListener(type, notifyListeners);
     }, false);
 
-    state.eventDispatcher.addListener(type, notifyListeners);
-
     function notifyListeners(targetTab, params) {
       if (!targetTab || (targetTab == tabId)) {
         for (var i = 0; i < listeners.length; i++) {
@@ -17,6 +15,8 @@
         }
       }
     }
+
+    state.eventDispatcher.addListener(type, notifyListeners);
 
     this.addListener = function(listener) {
       listeners.push(listener);
@@ -28,6 +28,7 @@
         listeners.splice(index);
       }
     };
+
   }
 
   module.exports = Event;

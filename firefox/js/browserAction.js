@@ -12,8 +12,10 @@
   var BrowserActionAPI = function() {
     // TODO: this.onClicked = new Event();
     // TODO : get default button icon url
-    var urlPrefix = 'chrome://ancho/content/';
-    this.iconEnabled = Config.browser_action
+    var urlPrefix = 'chrome://ancho/content/chrome-ext/';
+    // FIXME: get default extension icon URL from manifest.json
+    // FIXME: Config undefined here...
+    this.iconEnabled = false && Config.browser_action
         && Config.browser_action.default_icon ? true : false;
     this.currentIcon = this.iconEnabled ? urlPrefix
         + Config.browser_action.default_icon : '';
@@ -56,17 +58,21 @@
           .addEventListener('click', function() {
             iframe.setAttribute('src', 'about:blank');
             panel.openPopup(toolbarButton, "after_start", 0, 0, false, false);
-            // TODO: get popup html
-            loadHtml(document, iframe, 'chrome://allow/content/html/popup.html', function() {
-              var body = iframe.contentDocument.body;
-              panel.height = body.scrollHeight + PANEL_MARGIN_SIZE;
-              panel.width = body.scrollWidth + PANEL_MARGIN_SIZE;
-              iframe.height = body.scrollHeight;
-              iframe.width = body.scrollWidth;
-              iframe.contentWindow.close = function() {
-                panel.hidePopup();
-              };
-            });
+            // FIXME: get popup URL from manifest.json
+            loadHtml(document, iframe,
+              'chrome://ancho/content/chrome-ext/',
+              'html/popup.html',
+              [], function() {
+                var body = iframe.contentDocument.body;
+                panel.height = body.scrollHeight + PANEL_MARGIN_SIZE;
+                panel.width = body.scrollWidth + PANEL_MARGIN_SIZE;
+                iframe.height = body.scrollHeight;
+                iframe.width = body.scrollWidth;
+                iframe.contentWindow.close = function() {
+                  panel.hidePopup();
+                };
+              }
+            );
           });
     }
     this._setIcon(window, this.currentIcon, true);

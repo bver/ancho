@@ -15,11 +15,9 @@ var require = null;
 
 function createBackground() {
 
-  // FIXME: BACKGROUND WINDOW IS NOT LOADING !!!
-
   backgroundWindow = Services.ww.openWindow(
     null, // parent
-    'chrome://ancho/content/xul/background.xul', // url
+    'chrome://ancho/content/xul/background.xul',
     null, // window name
     null, // features
     null  // extra arguments
@@ -75,14 +73,15 @@ function loadConfig(addon) {
   var baseURI = Services.io.newURI('resource://ancho/', '', null);
   require = Require.createRequireForWindow(this, baseURI);
 
-  var contentScripts = require('./js/config').contentScripts;
+  var Config = require('./js/config');
   var readStringFromUrl = require('./js/utils').readStringFromUrl;
 
-  if (addon.hasResource('manifest.json')) {
-    var manifestUrl = addon.getResourceURI('manifest.json');
+  var excludeScriptsRx = /\/require\.js$/;
+
+  if (addon.hasResource('chrome-ext/manifest.json')) {
+    var manifestUrl = addon.getResourceURI('chrome-ext/manifest.json');
     var manifest = readStringFromUrl(manifestUrl);
     var config = JSON.parse(manifest);
-    dump(JSON.stringify(config, null, 2));
     // Set the module search path if any
     if ('module_search_path' in config) {
       for (var i=0; i<config.module_search_path.length; i++) {
@@ -90,7 +89,7 @@ function loadConfig(addon) {
       }
     }
     if ('content_scripts' in config) {
-      for (i=0; i<config.content_scripts.length; i++) {
+      for (var i=0; i<config.content_scripts.length; i++) {
         var scriptInfo = config.content_scripts[i];
         var matches = [];
         for (var j=0; j<scriptInfo.matches.length; j++) {
@@ -98,17 +97,32 @@ function loadConfig(addon) {
           matches.push(scriptInfo.matches[j].replace('*', '.*', 'g'));
         }
         var js = [];
-        for (j=0; j<scriptInfo.js.length; j++) {
+        for (var j=0; j<scriptInfo.js.length; j++) {
           // Prefix ID with ./ so we know to resolve from the base script URL.
           // (Otherwise the module path would be used.)
-          js.push('./' + scriptInfo.js[j]);
+          if (!scriptInfo.js[j].match(excludeScriptsRx)) {
+            js.push('./' + scriptInfo.js[j]);
+          }
         }
-        contentScripts.push({
+        Config.contentScripts.push({
           matches: matches,
           js: js
         });
       }
     }
+    if (config.background) {
+      var bg = config.background;
+      if (bg.page) {
+        Config.backgroundPage = bg.page;
+      }
+      if (bg.scripts) {
+        for (var i=0; i<bg.scripts.length; i++) {
+          if (!bg.scripts[i].match(excludeScriptsRx)) {
+            Config.backgroundScripts.push(bg.scripts[i]);
+          }
+        }
+      }
+    } // background
   }
 }
 

@@ -13,15 +13,18 @@
   var HTTP_ON_EXAMINE_RESPONSE = "http-on-examine-response";
   var HTTP_ON_MODIFY_REQUEST = "http-on-modify-request";
 
-  var WebRequestAPI = function(state, contentWindow) {
-    this.onHeadersReceived = new Event();
-    this.onBeforeRequest = new Event();
+  var WebRequestAPI = function(state, window) {
+    this._state = state;
+    this._tab = Utils.getWindowId(window);
+
+    this.onHeadersReceived = new Event(window, this._tab, this._state, 'wrHeadersReceived');
+    this.onBeforeRequest = new Event(window, this._tab, this._state, 'wrBeforeRequest');
 
     Services.obs.addObserver(this, HTTP_ON_EXAMINE_RESPONSE, false);
     Services.obs.addObserver(this, HTTP_ON_MODIFY_REQUEST, false);
 
     var self = this;
-    contentWindow.addEventListener('unload', function() {
+    window.addEventListener('unload', function() {
       Services.obs.removeObserver(self, HTTP_ON_EXAMINE_RESPONSE);
       Services.obs.removeObserver(self, HTTP_ON_MODIFY_REQUEST);
     });
@@ -38,6 +41,9 @@
   };
 
   WebRequestAPI.prototype.processRequest = function(httpChannel) {
+    // FIXME: this function needs rewriting...
+    return;
+
     if (!this.onBeforeRequest.hasListeners()) {
       return;
     }
@@ -70,8 +76,12 @@
       tabId : tabId,
       type : type
     };
-    var results = this.onBeforeRequest.fire(param);
-    for ( var i = 0; i < results.length; i++) {
+    // FIXME: collect return values from notifyListeners...
+    this._state.eventDispatcher.notifyListeners(
+      'wrBeforeRequest', null, param
+    );
+    var results = []; // FIXME
+    for (var i = 0; i < results.length; i++) {
       if (results[i] && results[i].cancel) {
         httpChannel.cancel(Cr.NS_BINDING_ABORTED);
       }
@@ -79,6 +89,9 @@
   };
 
   WebRequestAPI.prototype.processHeaders = function(httpChannel) {
+    // FIXME: this function needs rewriting...
+    return;
+
     if (!this.onHeadersReceived.hasListeners()) {
       return;
     }
@@ -94,8 +107,10 @@
       responseHeaders : visitor.headers
     };
     // fire event and get list of results from each handler
-    var results = this.onHeadersReceived.fire(param);
-    for ( var i = 0; i < results.length; i++) {
+    this._state.eventDispatcher.notifyListeners('wrHeadersReceived', null, param);
+    // FIXME: result = ... notifyListeners();
+    var results = [];
+    for (var i = 0; i < results.length; i++) {
       if (results[i] && results[i].responseHeaders) {
         // clear removed original headers
         var newHeaders = results[i].responseHeaders;

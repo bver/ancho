@@ -7,6 +7,7 @@
 
   var Utils = require('./utils');
   var Event = require('./event');
+  var loadHtml = require('./scripting').loadHtml;
 
   // Map of popups to the window that contains them.
   // Global for the whole extension.
@@ -73,7 +74,7 @@
 
         if ('url' in createData) {
           var uri = Services.io.newURI(createData.url, '', baseSpec);
-          loadHtml(document, iframe, uri.spec);
+          loadHtml(document, iframe, null, uri.spec, []);
         }
         windowId = Utils.getWindowId(iframe.contentWindow);
         panel.id = 'panel_' + windowId;

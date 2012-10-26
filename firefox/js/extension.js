@@ -29,7 +29,7 @@
       if (path[0] === '/') {
         path = path.substr(1);
       }
-      var baseURI = Services.io.newURI('chrome://ancho/content', '', null);
+      var baseURI = Services.io.newURI('chrome://ancho/content/chrome-ext', '', null);
       var uri = Services.io.newURI(path, '', baseURI);
       return uri.spec;
     }
