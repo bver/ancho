@@ -7,10 +7,6 @@
 #include "stdafx.h"
 #include "AnchoAddonService.h"
 
-#include <shlguid.h>
-#include <OleAcc.h> // For ObjectFromLresult
-#pragma comment(lib, "Oleacc.lib")
-
 #include <sstream>
 #include <algorithm>
 
@@ -22,7 +18,7 @@
 //
 void CAnchoAddonService::OnAddonFinalRelease(BSTR bsID)
 {
-  m_Objects.erase(std::wstring(bsID, SysStringLen(bsID)));
+  m_BackgroundObjects.erase(std::wstring(bsID, SysStringLen(bsID)));
 }
 
 //----------------------------------------------------------------------------
@@ -31,8 +27,8 @@ HRESULT CAnchoAddonService::invokeExternalEventObject(BSTR aExtensionId, BSTR aE
 {
   CAnchoAddonBackgroundComObject* pObject = NULL;
 
-  ObjectsMap::iterator it = m_Objects.find(std::wstring(aExtensionId, SysStringLen(aExtensionId)));
-  if (it != m_Objects.end()) {
+  BackgroundObjectsMap::iterator it = m_BackgroundObjects.find(std::wstring(aExtensionId, SysStringLen(aExtensionId)));
+  if (it != m_BackgroundObjects.end()) {
     ATLASSERT(it->second != NULL);
     return it->second->invokeExternalEventObject(aEventName, aArgs, aRet);
   }
@@ -45,7 +41,7 @@ HRESULT CAnchoAddonService::navigateBrowser(LPUNKNOWN aWebBrowserWin, const std:
 {
   CComQIPtr<IWebBrowser2> webBrowser = aWebBrowserWin;
   if (!webBrowser) {
-    return E_POINTER;
+    return E_NOINTERFACE;
   }
 
   CComVariant vtUrl(url.c_str());
@@ -63,8 +59,6 @@ HRESULT CAnchoAddonService::getActiveWebBrowser(LPUNKNOWN* pUnkWebBrowser)
   if (FAILED(hr)) {
     return hr;
   }
-  HWND hwnd = 0;
-  pWebBrowser->get_HWND((long*)&hwnd);
   return pWebBrowser->QueryInterface(IID_IUnknown, (void**) pUnkWebBrowser);
 }
 //----------------------------------------------------------------------------
@@ -135,7 +129,7 @@ HRESULT CAnchoAddonService::removeTab(INT aTabId, LPDISPATCH aCallback)
     return S_OK;
   } else {
     //If we don't find the tab - call the callback,
-    //so we don't loose track of tabs for removal.
+    //so we don't lose track of tabs for removal.
     CIDispatchHelper callback = aCallback;
     CComVariant tabId(aTabId);
     callback.Invoke1((DISPID)0, &tabId);
@@ -168,7 +162,8 @@ HRESULT CAnchoAddonService::getTabInfo(INT aTabId, LPDISPATCH aCreator, VARIANT*
     ATLASSERT(it->second.runtime);
     return it->second.runtime->fillTabInfo(aRet);
   }
-  return E_FAIL;
+  aRet->vt = VT_EMPTY;
+  return S_OK;
 }
 
 //----------------------------------------------------------------------------
@@ -178,6 +173,7 @@ HRESULT CAnchoAddonService::queryTabs(LPDISPATCH aQueryInfo, LPDISPATCH aCreator
   ENSURE_RETVAL(aRet);
   struct QueryTabFunctor
   {
+  public:
     QueryTabFunctor(VariantVector &aInfos, LPDISPATCH aCreator, CAnchoAddonService &aService ): infos(aInfos), creator(aCreator), service(aService) {}
     void operator()(RuntimeMap::value_type &aRec)
     {
@@ -189,6 +185,7 @@ HRESULT CAnchoAddonService::queryTabs(LPDISPATCH aQueryInfo, LPDISPATCH aCreator
         infos.push_back(info);
       }
     }
+  private:
     VariantVector &infos;
     LPDISPATCH creator;
     CAnchoAddonService &service;
@@ -241,26 +238,26 @@ HRESULT CAnchoAddonService::FinalConstruct()
 //
 void CAnchoAddonService::FinalRelease()
 {
-  ObjectsMap::iterator it = m_Objects.begin();
-  while(it != m_Objects.end())
+  BackgroundObjectsMap::iterator it = m_BackgroundObjects.begin();
+  while(it != m_BackgroundObjects.end())
   {
     ATLASSERT(it->second != NULL);
-    it->second->AddonServiceLost();
+    it->second->OnAddonServiceReleased();
     ++it;
   }
-  m_Objects.clear();
+  m_BackgroundObjects.clear();
 }
 
 //----------------------------------------------------------------------------
 //
-STDMETHODIMP CAnchoAddonService::GetExtension(BSTR bsID, IAnchoAddonBackground ** ppRet)
+STDMETHODIMP CAnchoAddonService::GetAddonBackground(BSTR bsID, IAnchoAddonBackground ** ppRet)
 {
   ENSURE_RETVAL(ppRet);
 
   CComPtr<IAnchoAddonBackground> ptr;
   std::wstring id = std::wstring(bsID, SysStringLen(bsID));
-  ObjectsMap::iterator it = m_Objects.find(id);
-  if (it == m_Objects.end()) {
+  BackgroundObjectsMap::iterator it = m_BackgroundObjects.find(id);
+  if (it == m_BackgroundObjects.end()) {
     // not found, create new instance
     ATLTRACE(_T("ADD OBJECT %s\n"), bsID);
     CAnchoAddonBackgroundComObject* pObject = NULL;
@@ -281,7 +278,7 @@ STDMETHODIMP CAnchoAddonService::GetExtension(BSTR bsID, IAnchoAddonBackground *
       return hr;
     }
     // store in map
-    m_Objects[id] = pObject;
+    m_BackgroundObjects[id] = pObject;
   } else {
     ATLTRACE(_T("FOUND OBJECT %s\n"), bsID);
     // found, create a new intance ID
@@ -349,7 +346,7 @@ STDMETHODIMP CAnchoAddonService::createTabNotification(INT aTabID, INT aRequestI
 //
 STDMETHODIMP CAnchoAddonService::invokeEventObjectInAllExtensions(BSTR aEventName, LPDISPATCH aArgs)
 {
-  for (ObjectsMap::iterator it = m_Objects.begin(); it != m_Objects.end(); ++it) {
+  for (BackgroundObjectsMap::iterator it = m_BackgroundObjects.begin(); it != m_BackgroundObjects.end(); ++it) {
     CComVariant retVal;
     CComBSTR id(it->first.c_str());
     invokeExternalEventObject(id, aEventName, aArgs, &retVal);
@@ -358,57 +355,6 @@ STDMETHODIMP CAnchoAddonService::invokeEventObjectInAllExtensions(BSTR aEventNam
 }
 //----------------------------------------------------------------------------
 //
-
-BOOL CALLBACK EnumBrowserWindows(HWND hwnd, LPARAM lParam)
-{
-  wchar_t className[MAX_PATH];
-  ::GetClassName(hwnd, className, MAX_PATH);
-  if (wcscmp(className, L"Internet Explorer_Server") == 0) {
-    // Now we need to get the IWebBrowser2 from the window.
-    DWORD dwMsg = ::RegisterWindowMessage(L"WM_HTML_GETOBJECT");
-    LRESULT lResult = 0;
-    ::SendMessageTimeout(hwnd, dwMsg, 0, 0, SMTO_ABORTIFHUNG, 1000, (DWORD*) &lResult);
-    if (lResult) {
-      CComPtr<IHTMLDocument2> doc;
-      HRESULT hr = ::ObjectFromLresult(lResult, IID_IHTMLDocument2, 0, (void**) &doc);
-      if (SUCCEEDED(hr)) {
-        CComPtr<IHTMLWindow2> win;
-        hr = doc->get_parentWindow(&win);
-        if (SUCCEEDED(hr)) {
-          CComQIPtr<IServiceProvider> sp(win);
-          CComPtr<IWebBrowser2> pWebBrowser;
-          if (sp) {
-            hr = sp->QueryService(IID_IWebBrowserApp, IID_IWebBrowser2, (void**) &pWebBrowser);
-            if (SUCCEEDED(hr)) {
-              CComPtr<IDispatch> container;
-              pWebBrowser->get_Container(&container);
-              // IWebBrowser2 doesn't have a container if it is an IE tab, so if we have a container
-              // then we must be an embedded web browser (e.g. in an HTML toolbar).
-              if (!container) {
-                // Now get the HWND associated with the tab so we can see if it is active.
-                sp = pWebBrowser;
-                if (sp) {
-                  CComPtr<IOleWindow> oleWindow;
-                  hr = sp->QueryService(SID_SShellBrowser, IID_IOleWindow, (void**) &oleWindow);
-                  if (SUCCEEDED(hr)) {
-                    HWND hTab;
-                    hr = oleWindow->GetWindow(&hTab);
-                    if (SUCCEEDED(hr) && ::IsWindowEnabled(hTab)) {
-                      // Success, we found the active browser!
-                      pWebBrowser.CopyTo((IWebBrowser2 **) lParam);
-                      return FALSE;
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-  return TRUE;
-}
 
 HRESULT CAnchoAddonService::FindActiveBrowser(IWebBrowser2** webBrowser)
 {

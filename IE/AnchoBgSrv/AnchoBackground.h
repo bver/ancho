@@ -71,12 +71,12 @@ public:
                CAnchoAddonServiceCallback * pAddonServiceCallback,
                BSTR                       bsID);
 
-  // AddonServiceLost is called from CAnchoAddonService::FinalRelease, means, when
+  // OnAddonServiceReleased is called from CAnchoAddonService::FinalRelease, means, when
   // CAnchoAddonService gets destroyed. It sets the callback pointer to NULL so
   // that CAnchoAddonService can not be called any more.
   // Since clients might still hold references to this object we can't simply
   // destroy everything here, so cleanup is done in FinalRelease().
-  void AddonServiceLost();
+  void OnAddonServiceReleased();
 
   STDMETHOD(invokeExternalEventObject)(BSTR aEventName, LPDISPATCH aArgs, VARIANT* aRet);
 

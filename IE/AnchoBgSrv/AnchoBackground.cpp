@@ -103,9 +103,9 @@ void CAnchoAddonBackground::FinalRelease()
 
 //----------------------------------------------------------------------------
 //
-void CAnchoAddonBackground::AddonServiceLost()
+void CAnchoAddonBackground::OnAddonServiceReleased()
 {
-  m_BackgroundAPI.AddonServiceLost();
+  m_BackgroundAPI.OnAddonServiceReleased();
   m_pAddonServiceCallback = NULL;
 }
 

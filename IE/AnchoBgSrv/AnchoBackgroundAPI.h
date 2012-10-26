@@ -95,7 +95,7 @@ public:
 
   BOOL GetURL(/*in, out*/ CStringW & sURL);
 
-  void AddonServiceLost();
+  void OnAddonServiceReleased();
 
 public:
   // -------------------------------------------------------------------------

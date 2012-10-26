@@ -22,7 +22,7 @@ interface IAnchoRuntime;
 ]
 interface IAnchoAddonService : IUnknown
 {
-  HRESULT GetExtension([in] BSTR bsID, [out, retval] IAnchoAddonBackground ** ppRet);
+  HRESULT GetAddonBackground([in] BSTR bsID, [out, retval] IAnchoAddonBackground ** ppRet);
   HRESULT GetModulePath([out, retval] BSTR * pbsPath);
 
   HRESULT registerRuntime([in] IAnchoRuntime * aRuntime, [out, retval] INT *aTabID);

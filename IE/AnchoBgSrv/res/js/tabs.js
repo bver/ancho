@@ -24,13 +24,14 @@ var CallbackWrapper = require("extension.js").CallbackWrapper;
 var PortPair = require("extension.js").PortPair;
 var addPortPair = require("extension.js").addPortPair;
 
-//Used for gathering callback from removeTabs
+//Used for gathering callbacks from removeTabs 
+//singleTabRemoveCallback is called from even if the tab was already removed
 var removeCallbackWrapper = function(aTabs, aCallback) {
   var callback = aCallback;
   var tabs = aTabs;
   var count = aTabs.length;
-  var singleTabRemoveCallback = function(aTabID) {
-    console.debug("removeSingleTab callback");
+  this.singleTabRemoveCallback = function(aTabID) {
+    console.debug("removeSingleTab callback for tab: " + aTabID);
     --count;
     if (count == 0) {
       callback();
@@ -43,11 +44,11 @@ var removeCallbackWrapper = function(aTabs, aCallback) {
 var Tabs = function(instanceID) {
   //============================================================================
   // private variables
-  API = this;
+
   //============================================================================
   // public properties
 
-  API.Tab = function() {
+  this.Tab = function() {
     //Either loading or complete.
     this.status = null;
     //The zero-based index of the tab within its window.
@@ -76,7 +77,7 @@ var Tabs = function(instanceID) {
 
   //Details of the script or CSS to inject.
   //Either the code or the file property must be set, but both may not be set at the same time.
-  API.InjectDetails = new function() {
+  this.InjectDetails = new function() {
     //If allFrames is true, implies that the JavaScript or CSS should be injected into all frames of current page. By default, it's false and will only be injected into the top frame.
     this.allFrames = false;
     //JavaScript or CSS code to inject.
@@ -115,7 +116,7 @@ var Tabs = function(instanceID) {
   //----------------------------------------------------------------------------
   // chrome.tabs.create
   this.create = function(createProperties, callback) {
-    var tab = addonAPI.createTab(createProperties, Object, callback);
+    addonAPI.createTab(createProperties, Object, callback);
   };
 
   //----------------------------------------------------------------------------
@@ -138,7 +139,7 @@ var Tabs = function(instanceID) {
     }
     var str = details.code;
     var isInFile = false;
-    var allFrames = details.allFrames ? true : false;
+    var allFrames = !!details.allFrames;
     if (details.code) {
       str = details.code;
       isInFile = false;
@@ -160,9 +161,7 @@ var Tabs = function(instanceID) {
       return;
     }
     var tab = addonAPI.getTabInfo(tabId, Object); //Pass reference to Object - used to create tab info
-    if (callback) {
-      callback(tab);
-    }
+    callback(tab);
   };
 
   //----------------------------------------------------------------------------
@@ -244,11 +243,11 @@ var Tabs = function(instanceID) {
     } else {
       tabs = tabIds;
     }
-    var callBackWrapper = new removeCallbackWrapper(tabs, callback);
+    var callbackWrapper = new removeCallbackWrapper(tabs, callback);
     try {
-      addonAPI.removeTabs(tabs, callBackWrapper.singleTabRemoveCallback);
+      addonAPI.removeTabs(tabs, callbackWrapper.singleTabRemoveCallback);
     } catch (e) {
-      console.error("Error while removing tabs [" + tabs + "] : " + e.message);
+      console.error("Error while removing tabs [" + tabs + "] " + typeof(callbackWrapper.singleTabRemoveCallback) + " : " + e.message);
       throw e;
     }
   };
@@ -271,7 +270,7 @@ var Tabs = function(instanceID) {
             ); //TODO: fill MessageSender
 
 
-    //if responseCallaback not yet called, check if some of the listeners
+    //if responseCallback not yet called, check if some of the listeners
     //requests asynchronous responseCallback, otherwise disable responseCallback
     if (callbackWrapper.callable && ret != undefined) {
       var arr = new VBArray(ret).toArray();
@@ -292,7 +291,7 @@ var Tabs = function(instanceID) {
     addonAPI.updateTab(tabId, updateProperties);
 
     if (callback) {
-      API.get(tabId, callback);
+      this.get(tabId, callback);
     }
   };
 
