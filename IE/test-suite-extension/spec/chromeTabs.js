@@ -12,7 +12,6 @@ define(function() {
 
     it('Has important methods defined', function(){
         expect(chrome.tabs.create).toBeDefined();
-        //expect(event.hasListener).toBeDefined();
     });
 
     it('Can create tabs - callback invoked', function(){
@@ -48,8 +47,7 @@ define(function() {
           //expect(tab.url).toMatch(address);
         });
     });
-    //TODO: Bug in removeTabs
-    xit('Can remove tabs', function(){
+    it('Can remove tabs', function(){
         var tab;
         var tab2;
         var created = false;
@@ -91,29 +89,74 @@ define(function() {
     });
 
     it('Can query tabs', function(){
+        var tabID = 2;
         var tabs;
         var callback2 = function(aTabs){tabs = aTabs;}
-        chrome.tabs.query({'id':2}, callback2);
+        chrome.tabs.query({'id':tabID}, callback2);
 
         expect(tabs).toBeDefined();
         expect(tabs.length).toBe(1);
+        expect(tabs[0].id).toBe(tabID);
+    });
+
+    it('Active tab logic', function(){
+        var tabs;
+        var queryCallbackCalled = false;
+        var queryCallback = function(aTabs){tabs = aTabs; queryCallbackCalled = true; }
+        waits(1000);
+
+        runs(function(){
+          chrome.tabs.query({}, queryCallback);
+        });
+
+        waitsFor(function() {
+          return queryCallbackCalled;
+        }, "Callback for query was not called", 3000);
+
+        runs(function(){
+            var activeCount = 0;
+            for(var i = 0; i < tabs.length; ++i) {
+              if (tabs[i].active) ++activeCount;
+            }
+            expect(activeCount).toBe(1);
+        });
     });
 
 
     it('Can update tabs', function(){
-        chrome.tabs.update(2, {'active':true});
+        chrome.tabs.update(1, {'url':'http://www.salsitasoft.com/'});
     });
 
-    //TODO: Bug in removeTabs
-    xit('Can close all tabs', function(){
+    xit('Can close all tabs except one', function(){
         var tabs;
-        var callback2 = function(aTabs){tabs = aTabs;}
-        chrome.tabs.query({}, callback2);
+        var removeCallbackCalled = false;
+        var queryCallbackCalled = false;
+        var queryCallback = function(aTabs){tabs = aTabs; queryCallbackCalled = true; }
+        chrome.tabs.query({}, queryCallback);
         tabIDs = []
-        for(var i = 0; i < tabs.length; ++i) {
+        for(var i = 1; i < tabs.length; ++i) {
           tabIDs.push(tabs[i].id);
         }
-        chrome.tabs.remove(tabIDs, function(){});
+        runs(function(){
+            chrome.tabs.remove(tabIDs, function(){ removeCallbackCalled = true; });
+        });
+
+        waitsFor(function() {
+          return removeCallbackCalled;
+        }, "Callback for remove was not called", 3000);
+
+        runs(function(){
+          tabs = null;
+          chrome.tabs.query({}, queryCallback);
+        });
+
+        waitsFor(function() {
+          return queryCallbackCalled;
+        }, "Callback for query was not called", 3000);
+
+        runs(function(){
+          expect(tabs.length).toBe(1);
+        });
     });
   });
 

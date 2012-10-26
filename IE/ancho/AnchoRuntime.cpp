@@ -196,7 +196,12 @@ STDMETHODIMP CAnchoRuntime::updateTab(LPDISPATCH aProperties)
   hr = properties.Get<INT, VT_BOOL, INT>(L"active", active);
   if (hr == S_OK) {
     HWND hwnd = getTabWindow();
-    ::EnableWindow(hwnd, TRUE);
+    IAccessible *acc = NULL;
+    //TODO - fix tab activation
+    if (S_OK == AccessibleObjectFromWindow(hwnd, OBJID_WINDOW, IID_IAccessible, (void**)&acc)) {
+      CComVariant var(CHILDID_SELF, VT_I4);
+      acc->accDoDefaultAction(var);
+    }
   }
   return S_OK;
 }
@@ -247,5 +252,5 @@ HWND CAnchoRuntime::getTabWindow()
 bool CAnchoRuntime::isTabActive()
 {
   HWND hwndBrowser = getTabWindow();
-  return hwndBrowser && ::IsWindowEnabled(hwndBrowser);
+  return hwndBrowser && ::IsWindowVisible(hwndBrowser);
 }

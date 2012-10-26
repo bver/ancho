@@ -210,7 +210,7 @@ BOOL CAnchoBackgroundAPI::GetURL(CStringW & sURL)
 }
 //----------------------------------------------------------------------------
 //
-void CAnchoBackgroundAPI::AddonServiceLost()
+void CAnchoBackgroundAPI::OnAddonServiceReleased()
 {
   m_pAddonServiceCallback = NULL;
 }
@@ -460,9 +460,9 @@ struct InvokeSelectedEventFunctor
   }
 };
 
-struct InvokeUnSelectedEventFunctor
+struct InvokeUnselectedEventFunctor
 {
-  InvokeUnSelectedEventFunctor(VariantVector &aArgs, VariantVector &aResults, int aSelectedInstance)
+  InvokeUnselectedEventFunctor(VariantVector &aArgs, VariantVector &aResults, int aSelectedInstance)
     : mArgs(aArgs), mResults(aResults), mSelectedInstance(aSelectedInstance) { }
   VariantVector &mArgs;
   VariantVector &mResults;
@@ -487,7 +487,7 @@ STDMETHODIMP CAnchoBackgroundAPI::invokeEvent(BSTR aEventName, INT aSelectedInst
     return S_OK;
   }
   if(aSkipInstance) {
-    std::for_each(it->second.begin(), it->second.end(), InvokeUnSelectedEventFunctor(aArgs, aResults, aSelectedInstance));
+    std::for_each(it->second.begin(), it->second.end(), InvokeUnselectedEventFunctor(aArgs, aResults, aSelectedInstance));
   } else {
     std::for_each(it->second.begin(), it->second.end(), InvokeSelectedEventFunctor(aArgs, aResults, aSelectedInstance));
   }

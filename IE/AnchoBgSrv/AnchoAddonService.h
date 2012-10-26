@@ -92,7 +92,7 @@ public:
 public:
   // -------------------------------------------------------------------------
   // IAnchoAddonService methods. See .idl for description.
-  STDMETHOD(GetExtension)(BSTR bsID, IAnchoAddonBackground ** ppRet);
+  STDMETHOD(GetAddonBackground)(BSTR bsID, IAnchoAddonBackground ** ppRet);
   STDMETHOD(GetModulePath)(BSTR * pbsPath);
   STDMETHOD(registerRuntime)(IAnchoRuntime * aRuntime, INT *aTabID);
   STDMETHOD(unregisterRuntime)(INT aTabID);
@@ -126,8 +126,8 @@ private:
   // Private members.
 
   // a map containing all addon background objects - one per addon
-  typedef std::map<std::wstring, CAnchoAddonBackgroundComObject*> ObjectsMap;
-  ObjectsMap  m_Objects;
+  typedef std::map<std::wstring, CAnchoAddonBackgroundComObject*> BackgroundObjectsMap;
+  BackgroundObjectsMap  m_BackgroundObjects;
 
   RuntimeMap  m_Runtimes;
   CreateTabCallbackMap m_CreateTabCallbacks;
