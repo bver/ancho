@@ -9,6 +9,7 @@
   var ExtensionState = require('./state');
   var API = require('./api');
   var readStringFromUrl = require('./utils').readStringFromUrl;
+  var contentScripts = require('./config').contentScripts;
 
   function prepareWindow(window) {
     if (!('require' in window)) {
@@ -18,7 +19,6 @@
       window.chrome = sandbox.chrome = api.chrome;
       window.ancho = sandbox.ancho = api.ancho;
       window.console = sandbox.console = api.console;
-      // window.localStorage = sandbox.localStorage = api.localStorage;
 
       window.require = sandbox.require = Require.createRequireForWindow(sandbox);
 
@@ -27,7 +27,6 @@
         delete window.chrome;
         delete window.ancho;
         delete window.console;
-        // delete window.localStorage;
         delete window.require;
       });
     }
@@ -35,8 +34,6 @@
 
   exports.applyContentScripts = function(win, spec) {
     var baseUrl = Services.io.newURI(spec, '', null);
-    var contentScripts = require('./config').contentScripts;
-    var readStringFromUrl = require('./utils').readStringFromUrl;
     for (var i=0; i<contentScripts.length; i++) {
       var scriptInfo = contentScripts[i];
       var matches = scriptInfo.matches;
@@ -46,29 +43,28 @@
       sandbox.chrome = api.chrome;
       sandbox.ancho = api.ancho;
       sandbox.console = api.console;
-      // sandbox.localStorage = api.localStorage;
       for (var j=0; j<matches.length; j++) {
         if (spec.match(matches[j])) {
           for (var k=0; k<scriptInfo.js.length; k++) {
             if (sandbox.jQuery) {
               sandbox.jQuery.ajaxSettings.xhr = Require.createWrappedXMLHttpRequest;
             }
-            var scriptUri = Services.io.newURI('chrome://ancho/content/' + scriptInfo.js[k], '', null);
+            var scriptUri = Services.io.newURI('chrome://ancho/content/chrome-ext/' + scriptInfo.js[k], '', null);
             sandbox.require = Require.createRequireForWindow(sandbox, scriptUri);
             var script = readStringFromUrl(scriptUri);
             Cu.evalInSandbox(script, sandbox);
           }
           break;
         }
-      }
-    }
+      } // for
+    } // for
   }
 
   // When we load a privileged HTML page we want all scripts to load as content
   // scripts so that they have access to the require function and chrome / ancho APIs.
   // So we strip the <script> tags out of the document and load them separately
   // as content scripts.
-  exports.loadHtml = function(document, iframe, htmlSpec, callback) {
+  exports.loadHtml = function(document, iframe, urlPrefix, htmlSpec, scriptSpecs, callback) {
     var targetWindow = iframe.contentWindow;
     document.addEventListener('DOMWindowCreated', function(event) {
       var window = event.target.defaultView.wrappedJSObject;
@@ -76,17 +72,28 @@
         return;
       }
       document.removeEventListener('DOMWindowCreated', arguments.callee, false);
-
       prepareWindow(window);
     }, false);
 
-    if (callback) {
-      iframe.addEventListener('DOMContentLoaded', function(event) {
-        iframe.removeEventListener('DOMContentLoaded', arguments.callee, false);
+    iframe.addEventListener('DOMContentLoaded', function(event) {
+      iframe.removeEventListener('DOMContentLoaded', arguments.callee, false);
+      var window = event.target.defaultView.wrappedJSObject;
+      // Load background scripts:
+      for (var i = 0; i < scriptSpecs.length; i++) {
+        var script = window.document.createElement('script');
+        script.src = urlPrefix + scriptSpecs[i];
+        window.document.body.appendChild(script);
+      }
+      if (callback) {
         callback();
-      }, false);
-    }
+      }
+    }, false);
 
-    iframe.webNavigation.loadURI(htmlSpec, Ci.nsIWebNavigation.LOAD_FLAGS_NONE, null, null, null);
+    var targetSpec = urlPrefix
+      ? (htmlSpec ? urlPrefix + htmlSpec : 'chrome://ancho/content/html/blank.html')
+      : htmlSpec;
+
+    iframe.webNavigation.loadURI(targetSpec,
+      Ci.nsIWebNavigation.LOAD_FLAGS_NONE, null, null, null);
   }
 }).call(this);

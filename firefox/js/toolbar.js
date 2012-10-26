@@ -6,10 +6,11 @@
   Cu.import('resource://gre/modules/Services.jsm');
 
   var State = require('./state');
+  var loadHtml = require('./scripting').loadHtml;
 
   var Toolbar = {
     TOOLBAR_ID: '__ANCHO_TOOLBAR__',
-    EXTENSION_ROOT_DIR: 'chrome://ancho/content',
+    EXTENSION_ROOT_DIR: 'chrome://ancho/content/chrome-ext/',
 
     // Remember the current options of the toolbar.
     // null means there is no active toolbar present.
@@ -54,7 +55,7 @@
       iframe.addEventListener('DOMContentLoaded', function(event) {
         iframe.removeEventListener('DOMContentLoaded', arguments.callee, false);
 
-        loadHtml(win.document, iframe, Toolbar.EXTENSION_ROOT_DIR + options.html);
+        loadHtml(win.document, iframe, Toolbar.EXTENSION_ROOT_DIR, options.html, []);
       }, false);
 
       // Return the unloader

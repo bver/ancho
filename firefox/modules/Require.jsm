@@ -116,15 +116,23 @@ var Require = {
       if ('console' in sandbox) {
         context.console = sandbox.console;
       }
-      // if ('localStorage' in sandbox) {
-      //   context.localStorage = sandbox.localStorage;
-      // }
 
       // Need to add to the cache here to avoid stack overflow in case of require() cycles
       // (e.g. A requires B which requires A).
       self._moduleCache[spec] = context.exports = {};
+      // Support for 'module.exports' (overrides 'exports' if 'module.exports' is used).
+      context.module = {};
 
-      scriptLoader.loadSubScript(spec, context);
+      try {
+        scriptLoader.loadSubScript(spec, context);
+      } catch (reason) {
+        dump('\nERROR: Loading of subscript "' + spec + '" failed:\n');
+        dump(reason + '\n\n');
+      }
+      if (context.module.exports) {
+        context.exports = context.module.exports;
+      }
+      self._moduleCache[spec] = context.exports;
       return context.exports;
     }
   }

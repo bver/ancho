@@ -15,6 +15,6 @@
 
   };
 
-  mnodule.exports = ClipboardAPI;
+  module.exports = ClipboardAPI;
 
 }).call(this);

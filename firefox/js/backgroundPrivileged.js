@@ -3,18 +3,16 @@ const { classes: Cc, interfaces: Ci, utils: Cu } = Components;
 Cu.import('resource://gre/modules/Services.jsm');
 Cu.import('resource://ancho/modules/Require.jsm');
 
-dump('\n\nWE ARE REALLY HERE!!!\n\n\n');
-// FIXME: this script is not loading yet...
-
-/*
 var sandbox = Cu.Sandbox(window);
-var baseURI = Services.io.newURI('resource://ancho/modules/', '', null);
+var baseURI = Services.io.newURI('resource://ancho/js/', '', null);
 var require = Require.createRequireForWindow(sandbox, baseURI);
 
 var ExtensionState = require('./state');
 var applyContentScripts = require('./scripting').applyContentScripts;
+var loadHtml = require('./scripting').loadHtml;
 var BrowserEvents = require('./browserEvents');
 var Toolbar = require('./toolbar');
+var Config = require('./config');
 
 function createWindowUnloader(win) {
   return function(event) {
@@ -87,7 +85,13 @@ window.addEventListener('load', function(event) {
   ExtensionState.backgroundWindow = window;
   createWindowWatcher();
   var browser = document.getElementById('content');
-  loadHtml(document, browser, 'chrome://ancho/content/html/background.html');
+  loadHtml(
+    document,
+    browser,
+    'chrome://ancho/content/chrome-ext/',
+    Config.backgroundPage,
+    Config.backgroundScripts
+  );
 }, false);
 
 window.addEventListener('unload', function(event) {
@@ -95,4 +99,3 @@ window.addEventListener('unload', function(event) {
   releaseWindowWatcher();
   ExtensionState.unloadAll();
 }, false);
-*/

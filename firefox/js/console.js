@@ -23,6 +23,6 @@
     }
   };
 
-  mnodule.exports = ConsoleAPI;
+  module.exports = ConsoleAPI;
 
 }).call(this);

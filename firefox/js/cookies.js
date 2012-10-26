@@ -6,6 +6,7 @@
   Cu.import('resource://gre/modules/Services.jsm');
 
   var Event = require('./event');
+  var Utils = require('./utils');
 
 
   var COOKIE_CHANGED = 'cookie-changed';
@@ -13,9 +14,11 @@
   var COOKIE_CHANGED_DATA_CHANGED = 'changed';
 
   var CookiesAPI = function(state, window) {
+    this._state = state;
+    this._tab = Utils.getWindowId(window);
     this.cookieService = Cc["@mozilla.org/cookieService;1"]
         .getService(Ci.nsICookieService);
-    this.onChanged = new Event();
+    this.onChanged = new Event(window, this._tab, this._state, 'cookieChanged');
     Services.obs.addObserver(this, COOKIE_CHANGED, false);
   };
 
@@ -28,10 +31,14 @@
         // https://developer.mozilla.org/en-US/docs/XPCOM_Interface_Reference/nsICookieService
         if (changed) {
           var cookie = this.toCookie(subject);
-          this.onChanged.fire({
-            cookie : cookie,
-            removed : false
-          });
+          this._state.eventDispatcher.notifyListeners(
+            'cookieChanged',
+            this._tabId,
+            {
+              cookie : cookie,
+              removed : false
+            }
+          );
         }
 
       }
