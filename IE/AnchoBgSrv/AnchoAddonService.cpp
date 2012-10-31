@@ -173,7 +173,6 @@ HRESULT CAnchoAddonService::queryTabs(LPDISPATCH aQueryInfo, LPDISPATCH aCreator
   ENSURE_RETVAL(aRet);
   struct QueryTabFunctor
   {
-  public:
     QueryTabFunctor(VariantVector &aInfos, LPDISPATCH aCreator, CAnchoAddonService &aService ): infos(aInfos), creator(aCreator), service(aService) {}
     void operator()(RuntimeMap::value_type &aRec)
     {
@@ -185,7 +184,6 @@ HRESULT CAnchoAddonService::queryTabs(LPDISPATCH aQueryInfo, LPDISPATCH aCreator
         infos.push_back(info);
       }
     }
-  private:
     VariantVector &infos;
     LPDISPATCH creator;
     CAnchoAddonService &service;
