@@ -67,7 +67,9 @@ WEBSTORE.JS             HTML                    "res\\js\\webstore.js"
 WINDOWS.JS              HTML                    "res\\js\\windows.js"
 JQUERY.JS               HTML                    "res\\logwindow\\jquery.js"
 LOG.HTML                HTML                    "res\\logwindow\\log.html"
-UTILS.JS                HTML                    "res\\js\\utils.js"
+UTILS.JS                HTML                    "res\\js\\utils\\utils.js"
+TYPECHECKING.JS         HTML                    "res\\js\\utils\\typeChecking.js"
+TABS_SPEC.JS            HTML                    "res\\js\\specifications\\tabs_spec.js"
 #endif    // German (Germany) resources
 /////////////////////////////////////////////////////////////////////////////
 

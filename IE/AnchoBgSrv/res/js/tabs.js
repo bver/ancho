@@ -10,6 +10,9 @@
 var Event = require("Event.js").Event;
 var EventFactory = require("utils.js").EventFactory;
 
+require("tabs_spec.js");
+var preprocessArguments = require("typeChecking.js").preprocessArguments;
+
 var EVENT_LIST = ['onActivated',
                   'onAttached',
                   'onCreated',
@@ -116,6 +119,7 @@ var Tabs = function(instanceID) {
   //----------------------------------------------------------------------------
   // chrome.tabs.create
   this.create = function(createProperties, callback) {
+    preprocessArguments('chrome.tabs.create', arguments);
     addonAPI.createTab(createProperties, Object, callback);
   };
 
@@ -247,7 +251,7 @@ var Tabs = function(instanceID) {
     try {
       addonAPI.removeTabs(tabs, callbackWrapper.singleTabRemoveCallback);
     } catch (e) {
-      console.error("Error while removing tabs [" + tabs + "] " + typeof(callbackWrapper.singleTabRemoveCallback) + " : " + e.message);
+      console.error("Error while removing tabs [" + tabs + "] " + typeof (callbackWrapper.singleTabRemoveCallback) + " : " + e.message);
       throw e;
     }
   };

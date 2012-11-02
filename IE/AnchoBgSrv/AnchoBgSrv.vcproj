@@ -475,6 +475,10 @@
 			>
 		</File>
 		<File
+			RelativePath=".\res\js\specifications\tabs_spec.js"
+			>
+		</File>
+		<File
 			RelativePath=".\res\js\topSites.js"
 			>
 		</File>
@@ -487,7 +491,15 @@
 			>
 		</File>
 		<File
+			RelativePath=".\res\js\utils\typeChecking.js"
+			>
+		</File>
+		<File
 			RelativePath=".\res\js\utils.js"
+			>
+		</File>
+		<File
+			RelativePath=".\res\js\utils\utils.js"
 			>
 		</File>
 		<File
