@@ -60,7 +60,7 @@ exports.typeName = function(aArg) {
     'number': exports.isNumber,
     'array': exports.isArray
   };
-  
+
   for (var checker in typeCheckers) {
     if (typeCheckers[checker](aArg)) {
       return checker;

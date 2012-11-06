@@ -268,7 +268,7 @@ var FunctionArgumentsValidator = function(aSpecification) {
       } else {
         if (!spec.required) {
           //If argument was optional change to success
-          valResult.success = true; 
+          valResult.success = true;
 
           //We were testing an optional argument
           processedArguments[spec.id] = spec['default'];
@@ -352,7 +352,7 @@ validatorManager.addValidator('object', ObjectValidator);
 
 var ArrayValidator = function(aSpec) {
   var specification = aSpec;
-  
+
   this.validate = function(aArray) {
     var validationReport = createValidationReportSuccess();
     if (!utils.isArray(aArray)) {
@@ -376,7 +376,7 @@ var ArrayValidator = function(aSpec) {
     for (var i = 0; i < specification.items.length; ++i) {
       var spec = specification.items[i];
       var validator = validatorManager.getValidator(spec);
-      
+
       valResult = validator.validate(aArray[argIdx]);
 
       if (valResult.success) {
@@ -415,7 +415,7 @@ var preprocessArguments = function(aMethodName, aArguments) {
 }
 exports.preprocessArguments = preprocessArguments;
 
-//Used in methods which are not implemented yet - it throws an exception, 
+//Used in methods which are not implemented yet - it throws an exception,
 //but also checks passed arguments - so caller atleast knows that he didn't make a mistake.
 exports.notImplemented = function(aMethodName, aArguments) {
   try {
