@@ -69,6 +69,7 @@ public:
   // Init initializes everything (loads the addon, manifest, magpie etc)
   HRESULT Init(LPCTSTR                    lpszThisPath,
                CAnchoAddonServiceCallback * pAddonServiceCallback,
+               IAnchoServiceApi           * pServiceApi,
                BSTR                       bsID);
 
   // OnAddonServiceReleased is called from CAnchoAddonService::FinalRelease, means, when

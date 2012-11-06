@@ -123,7 +123,7 @@ var Tabs = function(instanceID) {
   // chrome.tabs.create
   this.create = function(createProperties, callback) {
     var args = preprocessArguments('chrome.tabs.create', arguments);
-    addonAPI.createTab(args['createProperties'], Object, args['callback']);
+    serviceAPI.createTab(args['createProperties'], Object, args['callback']);
   };
 
   //----------------------------------------------------------------------------
@@ -152,7 +152,7 @@ var Tabs = function(instanceID) {
       str = args['details'].file;
       isInFile = true;
     }
-    var ret = addonAPI.executeScript(args['tabId'], str, isInFile, allFrames);
+    var ret = serviceAPI.executeScript(addonAPI.id, args['tabId'], str, isInFile, allFrames);
     if (args['callback']) {
       args['callback'](ret);
     }
@@ -163,7 +163,7 @@ var Tabs = function(instanceID) {
   this.get = function(tabId, callback) {
     var args = preprocessArguments('chrome.tabs.get', arguments);
     console.debug("tabs.get(..) called");
-    var tab = addonAPI.getTabInfo(args['tabId'], Object); //Pass reference to Object - used to create tab info
+    var tab = serviceAPI.getTabInfo(args['tabId'], Object); //Pass reference to Object - used to create tab info
     args['callback'](tab);
   };
 
@@ -218,7 +218,7 @@ var Tabs = function(instanceID) {
       return retVal;
     }
 
-    var ret = addonAPI.queryTabs(args['queryInfo'], Object);
+    var ret = serviceAPI.queryTabs(args['queryInfo'], Object);
     var tabs = new VBArray(ret).toArray();
 
     var filteredTabs = [];
@@ -234,7 +234,7 @@ var Tabs = function(instanceID) {
   // chrome.tabs.reload
   this.reload = function(tabId, reloadProperties, callback) {
     var args = preprocessArguments('chrome.tabs.reload', arguments);
-    addonAPI.reloadTab(args['tabId']);
+    serviceAPI.reloadTab(args['tabId']);
     if (args['callback']) {
       args['callback']();
     }
@@ -252,7 +252,7 @@ var Tabs = function(instanceID) {
     }
     var callbackWrapper = new removeCallbackWrapper(tabs, args['callback']);
     try {
-      addonAPI.removeTabs(tabs, callbackWrapper.singleTabRemoveCallback);
+      serviceAPI.removeTabs(tabs, callbackWrapper.singleTabRemoveCallback);
     } catch (e) {
       console.error("Error while removing tabs [" + tabs + "] " + typeof (callbackWrapper.singleTabRemoveCallback) + " : " + e.message);
       throw e;
@@ -298,7 +298,7 @@ var Tabs = function(instanceID) {
   // chrome.tabs.update
   this.update = function(tabId, updateProperties, callback) {
     var args = preprocessArguments('chrome.tabs.update', arguments);
-    addonAPI.updateTab(args['tabId'], args['updateProperties']);
+    serviceAPI.updateTab(args['tabId'], args['updateProperties']);
 
     if (args['callback']) {
       this.get(args['tabId'], args['callback']);

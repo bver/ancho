@@ -31,14 +31,13 @@ public:
   HRESULT FinalConstruct();
   void FinalRelease();
 
-  static HRESULT CreateBackgroundWindow(IDispatch * pDispApiJS, IDispatch * pConsoleObjectJS, LPCWSTR lpszURL, CBackgroundWindowComObject ** ppRet);
+  static HRESULT CreateBackgroundWindow(const DispatchMap &aInjectedObjects, LPCWSTR lpszURL, CBackgroundWindowComObject ** ppRet);
 
   LRESULT OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
   LRESULT OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled);
 
 private:
   CComQIPtr<IWebBrowser2>   m_pWebBrowser;     // Embedded WebBrowserControl
-  CComPtr<IDispatch>        m_pDispApiJS;
-  CComPtr<IDispatch>        m_pConsoleObjectJS;
+  DispatchMap m_InjectedObjects;
   CStringW    m_sURL;
 };

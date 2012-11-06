@@ -26,6 +26,9 @@ const wchar_t * s_AnchoProtocolHandlerScheme =
 const wchar_t * s_AnchoGlobalAPIObjectName =
     L"addonAPI";
 
+const wchar_t * s_AnchoServiceAPIName =
+    L"serviceAPI";
+
 // JS object name of the background API in main API script
 const wchar_t * s_AnchoBackgroundAPIObjectName =
     L"anchoBackgroundAPI";

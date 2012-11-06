@@ -34,8 +34,9 @@ LRESULT CBackgroundWindow::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*l
     return -1;
   }
   CIDispatchHelper script = CIDispatchHelper::GetScriptDispatch(m_pWebBrowser);
-  script.SetProperty((LPOLESTR)s_AnchoBackgroundPageAPIName, CComVariant(m_pDispApiJS));
-  script.SetProperty((LPOLESTR)s_AnchoBackgroundConsoleObjectName, CComVariant(m_pConsoleObjectJS));
+  for (DispatchMap::iterator it = m_InjectedObjects.begin(); it != m_InjectedObjects.end(); ++it) {
+    script.SetProperty((LPOLESTR)(it->first.c_str()), CComVariant(it->second));
+  }
 
   // This AddRef call is paired with the Release call in OnFinalMessage
   // to keep the object alive as long as the window exists.
@@ -47,11 +48,11 @@ LRESULT CBackgroundWindow::OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*
 {
   bHandled = FALSE;
   m_pWebBrowser.Release();
-  m_pDispApiJS.Release();
+//  m_pDispApiJS.Release();
   return 1;
 }
 
-HRESULT CBackgroundWindow::CreateBackgroundWindow(IDispatch * pDispApiJS, IDispatch * pConsoleObjectJS, LPCWSTR lpszURL, CBackgroundWindowComObject ** ppRet)
+HRESULT CBackgroundWindow::CreateBackgroundWindow(const DispatchMap &aInjectedObjects, LPCWSTR lpszURL, CBackgroundWindowComObject ** ppRet)
 {
   ENSURE_RETVAL(ppRet);
   (*ppRet) = NULL;
@@ -59,8 +60,7 @@ HRESULT CBackgroundWindow::CreateBackgroundWindow(IDispatch * pDispApiJS, IDispa
   IF_FAILED_RET(CBackgroundWindowComObject::CreateInstance(&pNewWindow));
   pNewWindow->AddRef();
   pNewWindow->m_sURL = lpszURL;
-  pNewWindow->m_pDispApiJS = pDispApiJS;
-  pNewWindow->m_pConsoleObjectJS = pConsoleObjectJS;
+  pNewWindow->m_InjectedObjects = aInjectedObjects;
   RECT r = {0,0,0,0};
   if (!pNewWindow->Create(NULL, r, NULL, WS_POPUP))
   {

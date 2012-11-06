@@ -270,7 +270,7 @@ STDMETHODIMP CAnchoAddonService::GetAddonBackground(BSTR bsID, IAnchoAddonBackgr
     ///////////////////////////////////////////////////////
     // Init the whole addon. This will load and init the
     // Ancho api.
-    hr = pObject->Init(m_sThisPath, this, bsID);
+    hr = pObject->Init(m_sThisPath, this, static_cast<IAnchoServiceApi*>(this), bsID);
     if (FAILED(hr))
     {
       return hr;

@@ -26,7 +26,7 @@ LPCTSTR CAnchoBackgroundAPI::s_BackgroundLogIdentifyer = _T("background");
 
 //----------------------------------------------------------------------------
 //  Init
-HRESULT CAnchoBackgroundAPI::Init(LPCTSTR lpszThisPath, LPCTSTR lpszRootURL, BSTR bsID, LPCTSTR lpszGUID, LPCTSTR lpszPath, CAnchoAddonServiceCallback *pAddonServiceCallback)
+HRESULT CAnchoBackgroundAPI::Init(LPCTSTR lpszThisPath, LPCTSTR lpszRootURL, BSTR bsID, LPCTSTR lpszGUID, LPCTSTR lpszPath, IAnchoServiceApi *pServiceApi)
 {
   // set our ID
   m_bsID = bsID;
@@ -36,8 +36,8 @@ HRESULT CAnchoBackgroundAPI::Init(LPCTSTR lpszThisPath, LPCTSTR lpszRootURL, BST
 
   CString sPath(lpszPath);
 
-  // set service callback
-  m_pAddonServiceCallback = pAddonServiceCallback;
+  // set service API inteface
+  m_ServiceApi = pServiceApi;
 
   // create logger window
   IF_FAILED_RET(CLogWindow::CreateLogWindow(&m_LogWindow.p));
@@ -92,6 +92,7 @@ HRESULT CAnchoBackgroundAPI::Init(LPCTSTR lpszThisPath, LPCTSTR lpszRootURL, BST
 
   // set ourselfs in magpie as a global accessible object
   IF_FAILED_RET(m_Magpie->AddExtension((LPWSTR)s_AnchoGlobalAPIObjectName, (IAnchoBackgroundAPI*)this));
+  IF_FAILED_RET(m_Magpie->AddExtension((LPWSTR)s_AnchoServiceAPIName, pServiceApi));
 
   // initialize Ancho API
   // api.js will do now additional initialization, like looking at the manifest
@@ -212,7 +213,7 @@ BOOL CAnchoBackgroundAPI::GetURL(CStringW & sURL)
 //
 void CAnchoBackgroundAPI::OnAddonServiceReleased()
 {
-  m_pAddonServiceCallback = NULL;
+  m_ServiceApi.Release();
 }
 //----------------------------------------------------------------------------
 //
@@ -283,7 +284,11 @@ STDMETHODIMP CAnchoBackgroundAPI::startBackgroundWindow(BSTR bsPartialURL)
     return E_FAIL;
   }
 
-  IF_FAILED_RET(CBackgroundWindow::CreateBackgroundWindow(chromeVT.pdispVal, consoleVT.pdispVal, sURL, &m_BackgroundWindow.p));
+  DispatchMap injectedObjects;
+  injectedObjects[s_AnchoBackgroundPageAPIName] = chromeVT.pdispVal;
+  injectedObjects[s_AnchoBackgroundConsoleObjectName] = consoleVT.pdispVal;
+
+  IF_FAILED_RET(CBackgroundWindow::CreateBackgroundWindow(injectedObjects, sURL, &m_BackgroundWindow.p));
   return S_OK;
 }
 
@@ -325,15 +330,7 @@ STDMETHODIMP CAnchoBackgroundAPI::removeEventObject(BSTR aEventName, INT aInstan
 }
 //----------------------------------------------------------------------------
 //
-STDMETHODIMP CAnchoBackgroundAPI::invokeExternalEventObject(BSTR aExtensionId, BSTR aEventName, LPDISPATCH aArgs, VARIANT* aRet)
-{
-  if (!m_pAddonServiceCallback) {
-    return S_OK;
-  }
-  return m_pAddonServiceCallback->invokeExternalEventObject(aExtensionId, aEventName, aArgs, aRet);
-}
-//----------------------------------------------------------------------------
-//
+
 STDMETHODIMP CAnchoBackgroundAPI::callFunction(LPDISPATCH aFunction, LPDISPATCH aArgs, VARIANT* aRet)
 {
   ENSURE_RETVAL(aRet);
@@ -342,79 +339,6 @@ STDMETHODIMP CAnchoBackgroundAPI::callFunction(LPDISPATCH aFunction, LPDISPATCH 
 
   IF_FAILED_RET(addJSArrayToVariantVector(aArgs, args));
   return function.InvokeN((DISPID)0, args.size()>0? &(args[0]): NULL, args.size(), aRet);
-}
-//----------------------------------------------------------------------------
-//
-STDMETHODIMP CAnchoBackgroundAPI::executeScript(INT aTabID, BSTR aCode, BOOL aFileSpecified, BOOL aInAllFrames)
-{
-  if (!m_pAddonServiceCallback) {
-    return E_FAIL;
-  }
-  CComBSTR id;
-  IF_FAILED_RET(get_id(&id));
-  IF_FAILED_RET(m_pAddonServiceCallback->executeScript(id, aTabID, aCode, aFileSpecified, aInAllFrames));
-  return S_OK;
-}
-//----------------------------------------------------------------------------
-//
-STDMETHODIMP CAnchoBackgroundAPI::createTab(LPDISPATCH aProperties, LPDISPATCH aCreator, LPDISPATCH aCallback)
-{
-  if (!m_pAddonServiceCallback) {
-    return E_FAIL;
-  }
-
-  IF_FAILED_RET(m_pAddonServiceCallback->createTab(aProperties, aCreator, aCallback));
-  return S_OK;
-}
-//----------------------------------------------------------------------------
-//
-STDMETHODIMP CAnchoBackgroundAPI::updateTab(INT aTabId, LPDISPATCH aProperties)
-{
-  if (!m_pAddonServiceCallback) {
-    return E_FAIL;
-  }
-  IF_FAILED_RET(m_pAddonServiceCallback->updateTab(aTabId, aProperties));
-  return S_OK;
-}
-//----------------------------------------------------------------------------
-//
-STDMETHODIMP CAnchoBackgroundAPI::getTabInfo(INT aTabId, LPDISPATCH aCreator, VARIANT* aRet)
-{
-  ENSURE_RETVAL(aRet);
-  if (!m_pAddonServiceCallback) {
-    return E_FAIL;
-  }
-
-  IF_FAILED_RET(m_pAddonServiceCallback->getTabInfo(aTabId, aCreator, aRet));
-  return S_OK;
-}
-//----------------------------------------------------------------------------
-//
-STDMETHODIMP CAnchoBackgroundAPI::reloadTab(INT aTabId)
-{
-  if (!m_pAddonServiceCallback) {
-    return E_FAIL;
-  }
-
-  return m_pAddonServiceCallback->reloadTab(aTabId);
-}
-//----------------------------------------------------------------------------
-//
-STDMETHODIMP CAnchoBackgroundAPI::removeTabs(LPDISPATCH aTabs, LPDISPATCH aCallback)
-{
-  if (!m_pAddonServiceCallback) {
-    return E_FAIL;
-  }
-  return m_pAddonServiceCallback->removeTabs(aTabs, aCallback);
-}
-//----------------------------------------------------------------------------
-//
-STDMETHODIMP CAnchoBackgroundAPI::queryTabs(LPDISPATCH aQueryInfo, LPDISPATCH aCreator, VARIANT* aRet)
-{
-  if (!m_pAddonServiceCallback) {
-    return E_FAIL;
-  }
-  return m_pAddonServiceCallback->queryTabs(aQueryInfo, aCreator, aRet);
 }
 
 //----------------------------------------------------------------------------

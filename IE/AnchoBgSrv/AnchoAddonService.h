@@ -21,16 +21,6 @@
 struct CAnchoAddonServiceCallback
 {
   virtual void OnAddonFinalRelease(BSTR bsID) = 0;
-  virtual HRESULT invokeExternalEventObject(BSTR aExtensionId, BSTR aEventName, LPDISPATCH aArgs, VARIANT* aRet) = 0;
-  virtual HRESULT navigateBrowser(LPUNKNOWN aWebBrowserWin, const std::wstring &url) = 0;
-  virtual HRESULT getActiveWebBrowser(LPUNKNOWN* pUnkWebBrowser) = 0;
-  virtual HRESULT createTab(LPDISPATCH aProperties, LPDISPATCH aCreator, LPDISPATCH aCallback) = 0;
-  virtual HRESULT reloadTab(INT aTabId) = 0;
-  virtual HRESULT removeTabs(LPDISPATCH aTabs, LPDISPATCH aCallback) = 0;
-  virtual HRESULT updateTab(INT aTabId, LPDISPATCH aProperties) = 0;
-  virtual HRESULT getTabInfo(INT aTabId, LPDISPATCH aCreator, VARIANT* aRet) = 0;
-  virtual HRESULT queryTabs(LPDISPATCH aQueryInfo, LPDISPATCH aCreator, VARIANT* aRet) = 0;
-  virtual HRESULT executeScript(BSTR aExtensionID, INT aTabID, BSTR aCode, BOOL aFileSpecified, BOOL aInAllFrames) = 0;
 };
 
 /*============================================================================
@@ -40,7 +30,8 @@ class ATL_NO_VTABLE CAnchoAddonService :
   public CAnchoAddonServiceCallback,
   public CComObjectRootEx<CComSingleThreadModel>,
   public CComCoClass<CAnchoAddonService, &CLSID_AnchoAddonService>,
-  public IAnchoAddonService
+  public IAnchoAddonService,
+  public IDispatchImpl<IAnchoServiceApi, &IID_IAnchoServiceApi, &LIBID_AnchoBgSrvLib, /*wMajor =*/ 0xffff, /*wMinor =*/ 0xffff>
 {
 public:
   // -------------------------------------------------------------------------
@@ -62,6 +53,8 @@ public:
   // COM interface map
   BEGIN_COM_MAP(CAnchoAddonService)
     COM_INTERFACE_ENTRY(IAnchoAddonService)
+    COM_INTERFACE_ENTRY(IDispatch)
+    COM_INTERFACE_ENTRY(IAnchoServiceApi)
   END_COM_MAP()
 
 public:
@@ -78,18 +71,19 @@ public:
   // CAnchoAddonServiceCallback implementation
   virtual void OnAddonFinalRelease(BSTR bsID);
 
-  HRESULT invokeExternalEventObject(BSTR aExtensionId, BSTR aEventName, LPDISPATCH aArgs, VARIANT* aRet);
-
   HRESULT navigateBrowser(LPUNKNOWN aWebBrowserWin, const std::wstring &url);
   HRESULT getActiveWebBrowser(LPUNKNOWN* pUnkWebBrowser);
-  HRESULT createTab(LPDISPATCH aProperties, LPDISPATCH aCreator, LPDISPATCH aCallback);
-  HRESULT reloadTab(INT aTabId);
-  HRESULT removeTabs(LPDISPATCH aTabs, LPDISPATCH aCallback);
-  HRESULT updateTab(INT aTabId, LPDISPATCH aProperties);
-  HRESULT getTabInfo(INT aTabId, LPDISPATCH aCreator, VARIANT* aRet);
-  HRESULT queryTabs(LPDISPATCH aQueryInfo, LPDISPATCH aCreator, VARIANT* aRet);
-  HRESULT executeScript(BSTR aExtensionID, INT aTabID, BSTR aCode, BOOL aFileSpecified, BOOL aInAllFrames);
 public:
+  // -------------------------------------------------------------------------
+  // IAnchoServiceApi methods. See .idl for description.
+  STDMETHOD(invokeExternalEventObject)(BSTR aExtensionId, BSTR aEventName, LPDISPATCH aArgs, VARIANT* aRet);
+  STDMETHOD(createTab)(LPDISPATCH aProperties, LPDISPATCH aCreator, LPDISPATCH aCallback);
+  STDMETHOD(reloadTab)(INT aTabId);
+  STDMETHOD(updateTab)(INT aTabId, LPDISPATCH aProperties);
+  STDMETHOD(removeTabs)(LPDISPATCH aTabs, LPDISPATCH aCallback);
+  STDMETHOD(getTabInfo)(INT aTabId, LPDISPATCH aCreator, VARIANT* aRet);
+  STDMETHOD(queryTabs)(LPDISPATCH aQueryInfo, LPDISPATCH aCreator, VARIANT* aRet);
+  STDMETHOD(executeScript)(BSTR aExtensionID, INT aTabID, BSTR aCode, BOOL aFileSpecified, BOOL aInAllFrames);
   // -------------------------------------------------------------------------
   // IAnchoAddonService methods. See .idl for description.
   STDMETHOD(GetAddonBackground)(BSTR bsID, IAnchoAddonBackground ** ppRet);

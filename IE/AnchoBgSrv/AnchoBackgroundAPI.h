@@ -82,7 +82,7 @@ public:
   // Methods
 
   // Init initializes everything (loads the addon, manifest, magpie etc)
-  HRESULT Init(LPCTSTR lpszThisPath, LPCTSTR lpszRootURL, BSTR bsID, LPCTSTR lpszGUID, LPCTSTR lpszPath, CAnchoAddonServiceCallback *pAddonServiceCallback);
+  HRESULT Init(LPCTSTR lpszThisPath, LPCTSTR lpszRootURL, BSTR bsID, LPCTSTR lpszGUID, LPCTSTR lpszPath, IAnchoServiceApi *pServiceApi);
 
   // UnInit is called from CAnchoAddonBackground::FinalRelease, means, when
   // CAnchoAddonBackground gets destroyed. It stops the script engine, which in
@@ -107,16 +107,7 @@ public:
   STDMETHOD(addEventObject)(BSTR aEventName, INT aInstanceId, LPDISPATCH aListener);
   STDMETHOD(removeEventObject)(BSTR aEventName, INT aInstanceId);
   STDMETHOD(invokeEventObject)(BSTR aEventName, INT aSelectedInstance, BOOL aSkipInstance, LPDISPATCH aArgs, VARIANT* aRet);
-  STDMETHOD(invokeExternalEventObject)(BSTR aExtensionId, BSTR aEventName, LPDISPATCH aArgs, VARIANT* aRet);
   STDMETHOD(callFunction)(LPDISPATCH aFunction, LPDISPATCH aArgs, VARIANT* pvRet);
-
-  STDMETHOD(executeScript)(INT aTabID, BSTR aCode, BOOL aFileSpecified, BOOL aInAllFrames);
-  STDMETHOD(createTab)(LPDISPATCH aProperties, LPDISPATCH aCreator, LPDISPATCH aCallback);
-  STDMETHOD(updateTab)(INT aTabId, LPDISPATCH aProperties);
-  STDMETHOD(getTabInfo)(INT aTabId, LPDISPATCH aCreator, VARIANT* aRet);
-  STDMETHOD(reloadTab)(INT aTabId);
-  STDMETHOD(removeTabs)(LPDISPATCH aTabs, LPDISPATCH aCallback);
-  STDMETHOD(queryTabs)(LPDISPATCH aQueryInfo, LPDISPATCH aCreator, VARIANT* aRet);
   // -------------------------------------------------------------------------
   // _IMagpieLoggerEvents methods
   STDMETHOD_(void, OnLog)(VARIANT val, BSTR bsModuleID);
@@ -174,6 +165,6 @@ private:
 
   EventObjectMap                m_EventObjects;
 
-  CAnchoAddonServiceCallback   *m_pAddonServiceCallback;
+  CComPtr<IAnchoServiceApi>     m_ServiceApi;
 };
 

@@ -20,6 +20,7 @@
 HRESULT CAnchoAddonBackground::Init(
   LPCTSTR                     lpszThisPath,
   CAnchoAddonServiceCallback  * pAddonServiceCallback,
+  IAnchoServiceApi            * pServiceApi,
   BSTR                        bsID)
 {
   // set service callback
@@ -73,7 +74,7 @@ HRESULT CAnchoAddonBackground::Init(
     RegisterTemporaryFolderHandler(s_AnchoProtocolHandlerScheme, m_bsID, sPath));
 
   // init API
-  IF_FAILED_RET(m_BackgroundAPI.Init(lpszThisPath, sRootURL, bsID, sGUID, sPath, pAddonServiceCallback));
+  IF_FAILED_RET(m_BackgroundAPI.Init(lpszThisPath, sRootURL, bsID, sGUID, sPath, pServiceApi));
 
   return S_OK;
 }

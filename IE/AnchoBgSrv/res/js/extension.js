@@ -136,7 +136,7 @@ var Extension = function(instanceID) {
     var pair = new PortPair(name, new MessageSender());
     addPortPair(pair, _instanceID);
     if (extensionId != undefined && extensionId != addonAPI.id) {
-      addonAPI.invokeExternalEventObject(
+      serviceAPI.invokeExternalEventObject(
               extensionId,
               'extension.onConnectExternal',
               [pair.far]
@@ -197,7 +197,7 @@ var Extension = function(instanceID) {
       callback = callbackWrapper.callback;
     }
     if (extensionId && extensionId != addonAPI.id) {
-      ret = addonAPI.invokeExternalEventObject(
+      ret = serviceAPI.invokeExternalEventObject(
             extensionId,
             'extension.onMessageExternal',
             [message, sender, callback]
