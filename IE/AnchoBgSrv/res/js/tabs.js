@@ -12,6 +12,7 @@ var EventFactory = require("utils.js").EventFactory;
 
 require("tabs_spec.js");
 var preprocessArguments = require("typeChecking.js").preprocessArguments;
+var notImplemented = require("typeChecking.js").notImplemented;
 
 var EVENT_LIST = ['onActivated',
                   'onAttached',
@@ -97,19 +98,21 @@ var Tabs = function(instanceID) {
   //----------------------------------------------------------------------------
   // chrome.tabs.captureVisibleTab
   this.captureVisibleTab = function(windowId, options, callback) {
-    console.debug("tabs.captureVisibleTab(..) called");
+    var args = notImplemented('chrome.tabs.captureVisibleTab', arguments);
   };
 
   //----------------------------------------------------------------------------
   // chrome.tabs.connect
   //   returns   Port
   this.connect = function(tabId, connectInfo) {
-    var name = (connectInfo != undefined) ? connectInfo.name : undefined;
+    var args = preprocessArguments('chrome.tabs.connect', arguments);
+
+    var name = (args['connectInfo'] != undefined) ? args['connectInfo'].name : undefined;
     var pair = new PortPair(name, new MessageSender());
     addPortPair(pair, _instanceID);
     addonAPI.invokeEventObject(
               'extension.onConnect',
-              tabId,
+              args['tabId'],
               false,
               [pair.far]
               );
@@ -119,90 +122,88 @@ var Tabs = function(instanceID) {
   //----------------------------------------------------------------------------
   // chrome.tabs.create
   this.create = function(createProperties, callback) {
-    preprocessArguments('chrome.tabs.create', arguments);
-    addonAPI.createTab(createProperties, Object, callback);
+    var args = preprocessArguments('chrome.tabs.create', arguments);
+    addonAPI.createTab(args['createProperties'], Object, args['callback']);
   };
 
   //----------------------------------------------------------------------------
   // chrome.tabs.detectLanguage
   this.detectLanguage = function(tabId, callback) {
-    console.debug("tabs.detectLanguage(..) called");
+    var args = notImplemented('chrome.tabs.detectLanguage', arguments);
   };
 
   //----------------------------------------------------------------------------
   // chrome.tabs.executeScript
   this.executeScript = function(tabId, details, callback) {
-    if ((tabId && !(typeof tabId === 'number'))
-      || (!details || (!details.code && !details.file))
-      || (callback && !(typeof callback === 'function'))
-      ) {
+    var args = preprocessArguments('chrome.tabs.executeScript', arguments);
+    if (!args['details'].code && !args['details'].file) {
       throw new Error('Invocation of chrome.tabs.executeScript doesn\'t match definition.');
     }
-    if (details.code && details.file) {
+    if (args['details'].code && args['details'].file) {
       throw new Error('Code and file should not be specified at the same time in the second argument.');
     }
-    var str = details.code;
+    var str = args['details'].code;
     var isInFile = false;
-    var allFrames = !!details.allFrames;
-    if (details.code) {
-      str = details.code;
+    var allFrames = !!args['details'].allFrames;
+    if (args['details'].code) {
+      str = args['details'].code;
       isInFile = false;
     } else {
-      str = details.file;
+      str = args['details'].file;
       isInFile = true;
     }
-    var ret = addonAPI.executeScript(tabId, str, isInFile, allFrames);
-    if (callback) {
-      callback(ret);
+    var ret = addonAPI.executeScript(args['tabId'], str, isInFile, allFrames);
+    if (args['callback']) {
+      args['callback'](ret);
     }
   };
 
   //----------------------------------------------------------------------------
   // chrome.tabs.get
   this.get = function(tabId, callback) {
+    var args = preprocessArguments('chrome.tabs.get', arguments);
     console.debug("tabs.get(..) called");
-    if (!callback) {
-      return;
-    }
-    var tab = addonAPI.getTabInfo(tabId, Object); //Pass reference to Object - used to create tab info
-    callback(tab);
+    var tab = addonAPI.getTabInfo(args['tabId'], Object); //Pass reference to Object - used to create tab info
+    args['callback'](tab);
   };
 
   //----------------------------------------------------------------------------
   // chrome.tabs.getCurrent
   this.getCurrent = function(callback) {
-    console.debug("tabs.getCurrent(..) called");
+    var args = preprocessArguments('chrome.tabs.getCurrent', arguments);
     //if we are not running in tab context - return undefined
     if (instanceID <= 0) {
-      if (callback) {
-        callback(undefined);
+      if (args['callback']) {
+        args['callback'](undefined);
       }
       return;
     }
-    get(instanceID, callback);
+    get(instanceID, args['callback']);
   };
 
   //----------------------------------------------------------------------------
   // chrome.tabs.highlight
   this.highlight = function(highlightInfo, callback) {
-    console.debug("tabs.highlight(..) called");
+    var args = notImplemented('chrome.tabs.highlight', arguments);
   };
 
   //----------------------------------------------------------------------------
   // chrome.tabs.insertCSS
   this.insertCSS = function(tabId, details, callback) {
-    console.debug("tabs.insertCSS(..) called");
+    var args = notImplemented('chrome.tabs.insertCSS', arguments);
   };
 
   //----------------------------------------------------------------------------
   // chrome.tabs.move
   this.move = function(tabIds, moveProperties, callback) {
-    console.debug("tabs.move(..) called");
+    var args = notImplemented('chrome.tabs.move', arguments);
   };
 
   //----------------------------------------------------------------------------
   // chrome.tabs.query
   this.query = function(queryInfo, callback) {
+    var args = preprocessArguments('chrome.tabs.query', arguments);
+
     function checkTabForQueryInfo(aTab, aQueryInfo) {
       var retVal = true;
       if (aQueryInfo.url) {
@@ -217,7 +218,7 @@ var Tabs = function(instanceID) {
       return retVal;
     }
 
-    var ret = addonAPI.queryTabs(queryInfo, Object);
+    var ret = addonAPI.queryTabs(args['queryInfo'], Object);
     var tabs = new VBArray(ret).toArray();
 
     var filteredTabs = [];
@@ -226,28 +227,30 @@ var Tabs = function(instanceID) {
         filteredTabs.push(tabs[i]);
       }
     }
-    callback(filteredTabs);
+    args['callback'](filteredTabs);
   };
 
   //----------------------------------------------------------------------------
   // chrome.tabs.reload
   this.reload = function(tabId, reloadProperties, callback) {
-    addonAPI.reloadTab(tabId);
-    if (callback) {
-      callback();
+    var args = preprocessArguments('chrome.tabs.reload', arguments);
+    addonAPI.reloadTab(args['tabId']);
+    if (args['callback']) {
+      args['callback']();
     }
   };
 
   //----------------------------------------------------------------------------
   // chrome.tabs.remove
   this.remove = function(tabIds, callback) {
+    var args = preprocessArguments('chrome.tabs.remove', arguments);
     var tabs;
-    if (typeof tabIds === 'number') {
-      tabs = [tabIds];
+    if (typeof (args['tabIds']) === 'number') {
+      tabs = [args['tabIds']];
     } else {
-      tabs = tabIds;
+      tabs = args['tabIds'];
     }
-    var callbackWrapper = new removeCallbackWrapper(tabs, callback);
+    var callbackWrapper = new removeCallbackWrapper(tabs, args['callback']);
     try {
       addonAPI.removeTabs(tabs, callbackWrapper.singleTabRemoveCallback);
     } catch (e) {
@@ -259,16 +262,18 @@ var Tabs = function(instanceID) {
   //----------------------------------------------------------------------------
   // chrome.tabs.sendMessage
   this.sendMessage = function(tabId, message, responseCallback) {
+    var args = preprocessArguments('chrome.tabs.sendMessage', arguments);
+
     sender = new MessageSender();
     callback = undefined;
     ret = undefined;
     if (responseCallback) {
-      callbackWrapper = new CallbackWrapper(responseCallback);
+      callbackWrapper = new CallbackWrapper(args['responseCallback']);
       callback = callbackWrapper.callback;
     }
     ret = addonAPI.invokeEventObject(
             'extension.onMessage',
-            tabId,
+            args['tabId'],
             false, //we are selecting tab with tabId
             [message, sender, callback]
             ); //TODO: fill MessageSender
@@ -292,10 +297,11 @@ var Tabs = function(instanceID) {
   //----------------------------------------------------------------------------
   // chrome.tabs.update
   this.update = function(tabId, updateProperties, callback) {
-    addonAPI.updateTab(tabId, updateProperties);
+    var args = preprocessArguments('chrome.tabs.update', arguments);
+    addonAPI.updateTab(args['tabId'], args['updateProperties']);
 
-    if (callback) {
-      this.get(tabId, callback);
+    if (args['callback']) {
+      this.get(args['tabId'], args['callback']);
     }
   };
 

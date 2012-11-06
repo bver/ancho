@@ -23,3 +23,48 @@ exports.EventFactory = {
     }
   }
 };
+
+
+exports.isArray = function(aArg) {
+  return Object.prototype.toString.call(aArg) === '[object Array]';
+}
+
+exports.isObject = function(aArg) {
+  return typeof (aArg);
+}
+
+exports.isString = function(aArg) {
+  return Object.prototype.toString.call(aArg) === '[object String]';
+}
+
+exports.isInteger = function(aArg) {
+  return (typeof(aArg) === 'number') && (Math.ceil(aArg) === aArg);
+}
+
+exports.isNumber = function(aArg) {
+  return (typeof (aArg) === 'number');
+}
+
+exports.isFunction = function(aArg) {
+  return Object.prototype.toString.call(aArg) === '[object Function]'
+    || aArg.constructor.toString().match('function Function');
+}
+
+exports.typeName = function(aArg) {
+  if (aArg === undefined) {
+    return undefined;
+  }
+
+  var typeCheckers = {
+    'function': exports.isFunction,
+    'number': exports.isNumber,
+    'array': exports.isArray
+  };
+  
+  for (var checker in typeCheckers) {
+    if (typeCheckers[checker](aArg)) {
+      return checker;
+    }
+  }
+  return typeof (aArg);
+}

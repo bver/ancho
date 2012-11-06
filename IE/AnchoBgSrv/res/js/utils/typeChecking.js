@@ -1,4 +1,6 @@
 
+var utils = require("utils.js");
+
 var validationError = {
     'OK' : 0,
     'TOO_MANY_ARGUMENTS' : 1,
@@ -49,10 +51,10 @@ function createValidationReportError(aError, aErrorCode){
 }
 
 function simpleTypeValidation(aTypename, aArg) {
-  if (typeof(aArg) === aTypename) {
+  if (utils.typeName(aArg) === aTypename) {
     return createValidationReportSuccess();
   } else {
-    var e = "Type \'" + typeof(aArg) + "\' differs from \'" + aTypename + "\'";
+    var e = "Type \'" + utils.typeName(aArg) + "\' differs from \'" + aTypename + "\'";
     return createValidationReportError(e, validationError.DIFFERENT_TYPE);
   }
 }
@@ -66,16 +68,16 @@ var ValidatorManager = function() {
     if (!aSpec) {
       throw new Error('Unspecified validator name!');
     }
-    if (typeof (aSpec) === 'string') {
+    if (utils.isString(aSpec)) {
       console.log("getting validator for " + aSpec);
       if (!validators[aSpec]) {
         throw new Error('Unavailable validator :' + aSpec);
       }
       return new validators[aSpec]();
     }
-    if (typeof (aSpec.type) != 'string') {
+    if (!utils.isString(aSpec.type)) {
       //console.log("getting validator for " + JSON.stringify(aSpec.type));
-      if (Array.isArray(aSpec.type)) {
+      if (utils.isArray(aSpec.type)) {
         return new MultiTypeValidator(aSpec);
       }
       if (aSpec.type.type) {
@@ -94,7 +96,7 @@ var ValidatorManager = function() {
     if (!aValidator) {
       throw new Error('Wrong validator!');
     }
-    if (!aValidatorName || typeof (aValidatorName) != 'string') {
+    if (!aValidatorName || !utils.isString(aValidatorName)) {
       throw new Error('Wrong validator name!');
     }
     console.debug('Adding validator :' + aValidatorName);
@@ -103,7 +105,7 @@ var ValidatorManager = function() {
 
 
   this.addSpecValidatorWrapper = function(aName, aSpecification) {
-    if (!aName || typeof (aName) != 'string') {
+    if (!aName || !utils.isString(aName)) {
       throw new Error('Wrong validator name!');
     }
     var validatorBase = validators[aSpecification.type];
@@ -145,7 +147,7 @@ var ValidatorManager = function() {
 
   this.addValidator('null', function() {
     this.validate = function(aArg) {
-      if (typeof (aArg) === aTypename) {
+      if (utils.isNull(aArg)) {
         return createValidationReportSuccess();
       } else {
         var e = "Specified object is not \'null\'";
@@ -156,7 +158,7 @@ var ValidatorManager = function() {
 
   this.addValidator('integer', function() {
     this.validate = function(aArg) {
-      if ((typeof (aArg) == 'number') && (Math.ceil(aArg) === aArg)) {
+      if (utils.isInteger(aArg)) {
         return createValidationReportSuccess();
       } else {
         var e = "Specified object \'" + JSON.stringify(aArg) + "\'is not an \'integer\'";
@@ -190,24 +192,24 @@ var validatorManager = new ValidatorManager;
 exports.validatorManager = validatorManager;
 
 
-var FunctionArgumentsValidator = function(aSpecification){
-  
+var FunctionArgumentsValidator = function(aSpecification) {
+
   var specification = aSpecification;
 
   this.getFunctionCallString = function(aFunctionName, aArguments) {
     var tmp = aFunctionName + '(';
-    for (var i = 0; i < aArguments.length-1; ++i) {
-      tmp += typeof(aArguments[i]) + ', ';
+    for (var i = 0; i < aArguments.length - 1; ++i) {
+      tmp += utils.typeName(aArguments[i]) + ', ';
     }
-    tmp += aArguments.length > 0 ? (typeof(aArguments[i]) + ')') : ')';
+    tmp += aArguments.length > 0 ? (utils.typeName(aArguments[i]) + ')') : ')';
     return tmp;
   }
 
   this.getTypeDescription = function(aType) {
-    if (typeof(aType) === 'string') {
+    if (utils.isString(aType)) {
       return aType;
     }
-    if (Array.isArray(aType)) {
+    if (utils.isArray(aType)) {
       if (aType.length == 0) {
         throw Error('Empty type array!');
       }
@@ -218,7 +220,7 @@ var FunctionArgumentsValidator = function(aSpecification){
       return result;
     }
     if (aType.type) {
-      if (aType.type === 'array' && typeof(aType.items) === 'string') {
+      if (aType.type === 'array' && utils.isString(aType.items)) {
         return 'array of ' + aType.items;
       }
       return this.getTypeDescription(aType.type);
@@ -231,7 +233,7 @@ var FunctionArgumentsValidator = function(aSpecification){
     for (var i = 0; i < specification.items.length; ++i) {
       var spec = specification.items[i];
       var modifier = spec.required ? '' : 'optional ';
-      var delimiter = ((i+1 != specification.items.length) ? ', ' : '')
+      var delimiter = ((i + 1 != specification.items.length) ? ', ' : '')
       tmp += modifier + this.getTypeDescription(spec.type) + ' ' + spec.id + delimiter;
     }
     tmp += ')';
@@ -239,36 +241,39 @@ var FunctionArgumentsValidator = function(aSpecification){
   }
 
   this.getIncompatibleCallErrorMessage = function(aArguments) {
-    var tmp = 'Invocation of form ' 
-      + this.getFunctionCallString(specification.id, aArguments) 
-      + ' doesn\'t match definition ' 
+    var tmp = 'Invocation of form '
+      + this.getFunctionCallString(specification.id, aArguments)
+      + ' doesn\'t match definition '
       + this.getFunctionSpecificationString(specification);
     return tmp;
   }
 
-  
 
-  this.validate = function (aArguments) {
-    var validationReport = { 'success': true, 'processedArguments' : {}, 'error' : null, 'errorCode' : validationError.OK };
+
+  this.validate = function(aArguments) {
+    var validationReport = { 'success': true, 'processedArguments': {}, 'error': null, 'errorCode': validationError.OK };
     var processedArguments = {};
     var argIdx = 0;
     var valResult = null;
     for (var i = 0; i < specification.items.length; ++i) {
-    
+
       var spec = specification.items[i];
       var validator = validatorManager.getValidator(spec);
-      
+
       valResult = validator.validate(aArguments[argIdx]);
-      
+
       if (valResult.success) {
         processedArguments[spec.id] = aArguments[argIdx];
         ++argIdx;
       } else {
         if (!spec.required) {
+          //If argument was optional change to success
+          valResult.success = true; 
+
           //We were testing an optional argument
           processedArguments[spec.id] = spec['default'];
           //if optional argument passed as undefined we need to move to the next argument
-          if(aArguments[argIdx] === undefined) {
+          if (aArguments[argIdx] === undefined) {
             ++argIdx;
           }
         } else {
@@ -279,17 +284,18 @@ var FunctionArgumentsValidator = function(aSpecification){
     }
     //Inspect last validation error
     if (!valResult.success) {
+      console.error("ERROR :" + valResult.error);
       validationReport.errorCode = valResult.errorCode;
       validationReport.success = false;
-      
-      
-      switch(valResult.errorCode) {
-      case validationError.INVALID_VALUE:
-        validationReport.error = ('Invalid value for argument ' + (argIdx+1) + '. Value does not match any valid type choices.');
-        break;
-      default:
-        validationReport.error = this.getIncompatibleCallErrorMessage(aArguments);
-        break;
+
+
+      switch (valResult.errorCode) {
+        case validationError.INVALID_VALUE:
+          validationReport.error = ('Invalid value for argument ' + (argIdx + 1) + '. Value does not match any valid type choices.');
+          break;
+        default:
+          validationReport.error = this.getIncompatibleCallErrorMessage(aArguments);
+          break;
       }
       return validationReport;
     }
@@ -311,9 +317,9 @@ var ObjectValidator = function(aSpec) {
   var specification = aSpec;
   this.validate = function (aObject) {
     var validationReport = createValidationReportSuccess();
-    
-    if (typeof(aObject) != 'object') {
-      var e = 'Object expected instead of :' + typeof(aObject);
+
+    if (!utils.isObject(aObject)) {
+      var e = 'Object expected instead of :' + utils.typeName(aObject);
       return createValidationReportError(e, validationError.NOT_AN_OBJECT);
     }
 
@@ -349,13 +355,13 @@ var ArrayValidator = function(aSpec) {
   
   this.validate = function(aArray) {
     var validationReport = createValidationReportSuccess();
-    if (!Array.isArray(aArray)) {
+    if (!utils.isArray(aArray)) {
       return createValidationReportError('Not an array!', validationError.DIFFERENT_TYPE);
     }
     if (!specification.items) {
       return validationReport;
     }
-    if (!Array.isArray(specification.items)) {
+    if (!utils.isArray(specification.items)) {
       var spec = specification.items;
       var validator = validatorManager.getValidator(spec);
       for (var i = 0; i < aArray.length; ++i) {
@@ -391,13 +397,14 @@ var ArrayValidator = function(aSpec) {
 }
 validatorManager.addValidator('array', ArrayValidator);
 
-
+//Validation procedure - throws an exception when validation error uccured.
 var preprocessArguments = function(aMethodName, aArguments) {
   var validator = null;
   try {
     validator = validatorManager.getValidator(aMethodName);
   } catch (e) {
     console.error('Cannot obtain right validator for :' + aMethodName + '\n\t' + e.message);
+    throw e;
   }
   var report = validator.validate(aArguments);
 
@@ -407,3 +414,14 @@ var preprocessArguments = function(aMethodName, aArguments) {
   throw new Error(report.error);
 }
 exports.preprocessArguments = preprocessArguments;
+
+//Used in methods which are not implemented yet - it throws an exception, 
+//but also checks passed arguments - so caller atleast knows that he didn't make a mistake.
+exports.notImplemented = function(aMethodName, aArguments) {
+  try {
+    preprocessArguments(aMethodName, aArguments);
+  } catch (e) {
+    throw new Error('Function \'' + aMethodName + '\' not yet implemented. Also problem with arguments : ' + e.message);
+  }
+  throw new Error('Function \'' + aMethodName + '\' not yet implemented. Arguments were OK.');
+}
