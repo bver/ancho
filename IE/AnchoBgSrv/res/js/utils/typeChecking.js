@@ -12,6 +12,8 @@ var validationError = {
     'NOT_NULL' : 7
   };
 
+//Used when value can be of more than one type - 
+//does checking for all types and succeeds when at least one succeeds.
 var MultiTypeValidator = function(aSpec) {
   var spec = aSpec;
   var types = aSpec.type;
@@ -58,8 +60,8 @@ function simpleTypeValidation(aTypename, aArg) {
     return createValidationReportError(e, validationError.DIFFERENT_TYPE);
   }
 }
-
-
+//--------------------------------------------
+// Manages all validators
 var ValidatorManager = function() {
 
   var validators = {};
@@ -76,14 +78,12 @@ var ValidatorManager = function() {
       return new validators[aSpec]();
     }
     if (!utils.isString(aSpec.type)) {
-      //console.log("getting validator for " + JSON.stringify(aSpec.type));
       if (utils.isArray(aSpec.type)) {
         return new MultiTypeValidator(aSpec);
       }
       if (aSpec.type.type) {
         return new validators[aSpec.type.type](aSpec.type);
       }
-      //console.log(aSpec +'  ' + typeof(aSpec));
       throw new Error('Unsupported type specifier');
     }
     if (!validators[aSpec.type]) {
@@ -120,7 +120,8 @@ var ValidatorManager = function() {
 
 
 
-
+  //---------------------------------------
+  //  Initialize manager by basic validators
   this.addValidator('number', function() {
     this.validate = function(aArg) {
       return simpleTypeValidation('number', aArg);
@@ -161,7 +162,7 @@ var ValidatorManager = function() {
       if (utils.isInteger(aArg)) {
         return createValidationReportSuccess();
       } else {
-        var e = "Specified object \'" + JSON.stringify(aArg) + "\'is not an \'integer\'";
+        var e = "Specified object \'" + aArg + "\'is not an \'integer\'";
         return createValidationReportError(e, validationError.DIFFERENT_TYPE);
       }
     }

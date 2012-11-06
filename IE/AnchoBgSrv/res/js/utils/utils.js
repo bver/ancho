@@ -24,7 +24,8 @@ exports.EventFactory = {
   }
 };
 
-
+//Type checking utilities - instanceof and typeof are not working well when used 
+//on objects from different script dispach instances
 exports.isArray = function(aArg) {
   return Object.prototype.toString.call(aArg) === '[object Array]';
 }
