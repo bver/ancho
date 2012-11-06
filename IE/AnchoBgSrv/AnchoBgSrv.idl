@@ -129,15 +129,7 @@ library AnchoBgSrvLib
     HRESULT removeEventObject([in]BSTR aEventName, [in] INT aInstanceId);
 
     HRESULT invokeEventObject([in] BSTR aEventName, [in] INT aSelectedInstance, [in] BOOL aSkipInstance, [in] LPDISPATCH aArgs, [out, retval] VARIANT* aRet);
-    //HRESULT invokeExternalEventObject([in] BSTR aExtensionId, [in] BSTR aEventName, [in] LPDISPATCH aArgs, [out, retval] VARIANT* aRet);
     HRESULT callFunction([in] LPDISPATCH aFunction, [in] LPDISPATCH aArgs, [out, retval] VARIANT* aRet);
-
-    //HRESULT executeScript([in] INT aTabID, [in] BSTR aCode, [in] BOOL aFileSpecified, [in] BOOL aInAllFrames);
-    //HRESULT createTab([in] LPDISPATCH aProperties, [in] LPDISPATCH aCreator, [in] LPDISPATCH aCallback);
-    //HRESULT updateTab([in] INT aTabId, [in] LPDISPATCH aProperties);
-    //HRESULT getTabInfo([in] INT aTabId, [in] LPDISPATCH aCreator, [out, retval] VARIANT* aRet);
-    //HRESULT removeTabs([in] LPDISPATCH aTabs, [in] LPDISPATCH aCallback);
-    //HRESULT queryTabs([in] LPDISPATCH aQueryInfo, [in] LPDISPATCH aCreator, [out, retval] VARIANT* aRet);
   };
 
 /*==========================================================================*/
