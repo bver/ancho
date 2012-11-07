@@ -118,7 +118,7 @@ HRESULT CAnchoRuntime::InitBrowserEventSource()
   IF_FAILED_RET(hr);
 
   m_pBrowserEventSource = pBrowserEventSource;
-  
+
   AtlAdvise(m_pBrowserEventSource, (IUnknown*)(TAnchoBrowserEvents*) this, IID_DAnchoBrowserEvents,
     &m_AnchoBrowserEventsCookie);
 

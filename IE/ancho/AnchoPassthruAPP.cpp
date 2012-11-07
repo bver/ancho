@@ -125,7 +125,7 @@ STDMETHODIMP CAnchoProtocolSink::ReportProgress(
 
     m_Url = szStatusText;
   }
-  
+
   ATLASSERT(m_spInternetProtocolSink != 0);
   HRESULT hr = m_spInternetProtocolSink ?
     m_spInternetProtocolSink->ReportProgress(ulStatusCode, szStatusText) :

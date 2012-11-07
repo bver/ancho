@@ -53,7 +53,7 @@ HRESULT CAnchoBrowserEvents::FireEvent(DISPID dispid, VARIANTARG* pvars, unsigne
 {
   int nConnectionIndex;
   int nConnections = m_vec.GetSize();
-  
+
   HRESULT hr = S_OK;
   Lock();
   for (nConnectionIndex = 0; nConnectionIndex < nConnections; nConnectionIndex++)
