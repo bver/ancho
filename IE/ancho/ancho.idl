@@ -40,10 +40,26 @@ library anchoLib
   interface IAnchoAddon : IUnknown
   {
     HRESULT Init([in] LPCOLESTR lpsExtensionID, [in] IAnchoAddonService * pService, [in] IWebBrowser2 * pWebBrowser);
+    HRESULT ApplyContentScripts([in] IWebBrowser2 * pWebBrowser, [in] BSTR bstrUrl, [in] BSTR bstrPhase);
     HRESULT Shutdown();
   };
 
-	[
+  [
+	  object,
+	  uuid(AEBCA26A-1917-11E2-845E-E50E6188709B),
+	  dual,
+	  nonextensible,
+	  helpstring("DAnchoBrowserEvents Interface"),
+	  pointer_default(unique)
+  ]
+  interface DAnchoBrowserEvents : IDispatch
+  {
+    [id(1)] HRESULT OnFrameStart([in] BSTR bstrUrl, [in] VARIANT_BOOL bIsMainFrame);
+    [id(2)] HRESULT OnFrameEnd([in] BSTR bstrUrl, [in] VARIANT_BOOL IsMainFrame);
+    [id(3)] HRESULT OnFrameRedirect([in] BSTR bstrOldUrl, [in] BSTR bstrNewUrl);
+  };
+
+  [
 		uuid(BC66BD3D-2AB6-4672-8EF3-DB2BD089CD60),
 		helpstring("AnchoRuntime Class")
 	]

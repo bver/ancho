@@ -17,18 +17,16 @@
  * class CAnchoAddon
  */
 class CAnchoAddon;
-typedef IDispEventImpl<1, CAnchoAddon, &DIID_DWebBrowserEvents2, &LIBID_SHDocVw, 1, 0> DWebBrowserEvents2Ancho;
 typedef CComObject<CAnchoAddon> CAnchoAddonComObject;
 
 class ATL_NO_VTABLE CAnchoAddon :
   public CComObjectRootEx<CComSingleThreadModel>,
-  public DWebBrowserEvents2Ancho,
   public IAnchoAddon
 {
 public:
   // -------------------------------------------------------------------------
   // ctor
-  CAnchoAddon() : m_InstanceID(0), m_dwAdviseSinkWebBrowser(0)
+  CAnchoAddon() : m_InstanceID(0)
   {
   }
 
@@ -45,12 +43,6 @@ public:
   END_COM_MAP()
 
   // -------------------------------------------------------------------------
-  // COM sink map
-  BEGIN_SINK_MAP(CAnchoAddon)
-    SINK_ENTRY_EX(1, DIID_DWebBrowserEvents2, DISPID_NAVIGATECOMPLETE2, BrowserNavigateCompleteEvent)
-  END_SINK_MAP()
-
-  // -------------------------------------------------------------------------
   // COM standard methods
   HRESULT FinalConstruct()
   {
@@ -65,12 +57,10 @@ public:
 public:
   // -------------------------------------------------------------------------
   // IAnchoAddon methods. See .idl for description.
-  STDMETHOD(Init)(LPCOLESTR lpsExtensionID, IAnchoAddonService * pService, IWebBrowser2 * pWebBrowser);
+  STDMETHOD(Init)(LPCOLESTR lpsExtensionID, IAnchoAddonService * pService,
+    IWebBrowser2 * pWebBrowser);
+  STDMETHOD(ApplyContentScripts)(IWebBrowser2* pBrowser, BSTR bstrUrl, BSTR bstrPhase);
   STDMETHOD(Shutdown)();
-
-  // -------------------------------------------------------------------------
-  // DWebBrowserEvents2 methods
-  STDMETHOD_(void, BrowserNavigateCompleteEvent)(IDispatch *pDisp, VARIANT *URL);
 
 private:
   // -------------------------------------------------------------------------
@@ -82,7 +72,6 @@ private:
   ULONG                                 m_InstanceID;
 
   CComQIPtr<IWebBrowser2>               m_pWebBrowser;
-  DWORD                                 m_dwAdviseSinkWebBrowser;     // Cookie for AtlAdvise
 
   CComPtr<IAnchoAddonService>           m_pAnchoService;
   CComPtr<IAnchoAddonBackground>        m_pAddonBackground;

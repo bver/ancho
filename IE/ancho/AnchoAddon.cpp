@@ -16,7 +16,8 @@ extern class CanchoModule _AtlModule;
 
 //----------------------------------------------------------------------------
 //  Init
-STDMETHODIMP CAnchoAddon::Init(LPCOLESTR lpsExtensionID, IAnchoAddonService * pService, IWebBrowser2 * pWebBrowser)
+STDMETHODIMP CAnchoAddon::Init(LPCOLESTR lpsExtensionID, IAnchoAddonService * pService,
+  IWebBrowser2 * pWebBrowser)
 {
   m_pWebBrowser = pWebBrowser;
   m_pAnchoService = pService;
@@ -56,10 +57,6 @@ STDMETHODIMP CAnchoAddon::Init(LPCOLESTR lpsExtensionID, IAnchoAddonService * pS
   {
     return HRESULT_FROM_WIN32(ERROR_INVALID_DATA);
   }
-
-  // advise DWebBrowserEvents2
-  ATLASSERT(!m_dwAdviseSinkWebBrowser);
-  AtlAdvise(m_pWebBrowser, (IUnknown*)(DWebBrowserEvents2Ancho*)this, DIID_DWebBrowserEvents2, &m_dwAdviseSinkWebBrowser);
 
   // get addon instance
   IF_FAILED_RET(m_pAnchoService->GetExtension(CComBSTR(m_sExtensionName), &m_pAddonBackground));
@@ -121,11 +118,6 @@ STDMETHODIMP CAnchoAddon::Shutdown()
 
   if (m_pWebBrowser)
   {
-    if (m_dwAdviseSinkWebBrowser)
-    {
-      AtlUnadvise(m_pWebBrowser, DIID_DWebBrowserEvents2, m_dwAdviseSinkWebBrowser);
-      m_dwAdviseSinkWebBrowser = 0;
-    }
     m_pWebBrowser.Release();
   }
   return S_OK;
@@ -133,21 +125,22 @@ STDMETHODIMP CAnchoAddon::Shutdown()
 
 //----------------------------------------------------------------------------
 //  BrowserNavigateCompleteEvent
-STDMETHODIMP_(void) CAnchoAddon::BrowserNavigateCompleteEvent(IDispatch *pDisp, VARIANT *URL)
+STDMETHODIMP CAnchoAddon::ApplyContentScripts(IWebBrowser2* pBrowser, BSTR bstrUrl, BSTR bstrPhase)
 {
   // content script handling happens here
 
   // no frame handling
   // TODO: decide how to handle frames
-  if (!m_pWebBrowser.IsEqualObject(pDisp))
-  {
-    // pDisp is the webbrowser control of a frame
-    return;
+  if (!m_pWebBrowser.IsEqualObject(pBrowser)) {
+    return S_OK;
   }
 
-  if (!m_pContentAPI)
-  {
-    return;
+  if (CComBSTR(L"end") != bstrPhase) {
+    return S_OK;
+  }
+
+  if (!m_pContentAPI) {
+    return S_OK;
   }
 
   // TODO: URL matching
@@ -156,23 +149,23 @@ STDMETHODIMP_(void) CAnchoAddon::BrowserNavigateCompleteEvent(IDispatch *pDisp, 
   HRESULT hr = m_Magpie->Init();
   if (FAILED(hr))
   {
-    return;
+    return hr;
   }
 
   // add a loader for scripts in the extension filesystem
   hr = m_Magpie->AddFilesystemScriptLoader((LPWSTR)(LPCWSTR)m_sExtensionPath);
   if (FAILED(hr))
   {
-    return;
+    return hr;
   }
 
   // inject items: chrome, console and window with global members
 //  CComQIPtr<IDispatch> pDispConsole;
-  CComQIPtr<IWebBrowser2> pWebBrowser(pDisp);
+  CComQIPtr<IWebBrowser2> pWebBrowser(pBrowser);
   CIDispatchHelper script = CIDispatchHelper::GetScriptDispatch(pWebBrowser);
   if (!script)
   {
-    return;
+    return S_OK;
   }
 
   m_Magpie->AddNamedItem(L"chrome", m_pContentAPI, SCRIPTITEM_ISVISIBLE|SCRIPTITEM_CODEONLY);
@@ -183,5 +176,7 @@ STDMETHODIMP_(void) CAnchoAddon::BrowserNavigateCompleteEvent(IDispatch *pDisp, 
   //       for now we run a hardcoded script "content.js"
   // and run content script
   m_Magpie->Run(L"content.js");
+
+  return S_OK;
 }
 
