@@ -174,7 +174,9 @@ STDMETHODIMP_(void) CAnchoAddon::BrowserNavigateCompleteEvent(IDispatch *pDisp, 
   // TODO: URL matching
   // (re)initialize magpie for this page
   m_Magpie->Shutdown();
-  HRESULT hr = m_Magpie->Init(L"Ancho content");
+  CString s;
+  s.Format(_T("Ancho content [%s]"), m_sExtensionName);
+  HRESULT hr = m_Magpie->Init((LPWSTR)(LPCWSTR)s);
   if (FAILED(hr))
   {
     return;

@@ -61,6 +61,10 @@ HRESULT CAnchoBackgroundAPI::Init(LPCTSTR lpszThisPath, LPCTSTR lpszRootURL, BST
   }
   IF_FAILED_RET(CreateMagpieInstance(&m_Magpie));
 #endif
+  CString appName;
+  appName.Format(_T("Ancho background [%s]"), m_bsID);
+  m_Magpie->Init((LPWSTR)(LPCWSTR)appName);
+
   // add a loader for scripts in the extension filesystem
   IF_FAILED_RET(m_Magpie->AddFilesystemScriptLoader((LPWSTR)(LPCWSTR)sPath));
 

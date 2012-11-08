@@ -28,8 +28,9 @@ LRESULT CLogView::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
   return 0;
 }
 
-void CLogView::Log(LogFacility logType, BSTR bsSource, BSTR bsModuleID, SAFEARRAY* pVals)
+void CLogView::LogIntro(LogFacility logType, BSTR bsSource, BSTR bsModuleID)
 {
+  // set color, set bold, print date, logtype, source and module
   CHARFORMAT cf = {0};
   cf.cbSize = sizeof(CHARFORMAT);
   cf.dwMask = CFM_COLOR;
@@ -70,84 +71,51 @@ void CLogView::Log(LogFacility logType, BSTR bsSource, BSTR bsModuleID, SAFEARRA
   cf.dwMask |= CFM_BOLD;
   cf.dwEffects = CFE_BOLD;
   SetSelectionCharFormat(cf);
+  // the view has now bold font with the correct color selected
+}
 
-  size_t dispParamsCount = pVals->rgsabound[0].cElements + 2;
-  CComVariant * vts = new CComVariant[dispParamsCount];
-
-  ATLASSERT(0 == pVals->rgsabound[0].lLbound);
-  VARIANT* pVariants = (VARIANT*)pVals->pvData;
-  ULONG n = 0;
-  for(n; n < pVals->rgsabound[0].cElements; n++)
-  {
-    CComVariant vt;
-    vt.ChangeType(VT_BSTR, &pVariants[pVals->rgsabound[0].cElements - n - 1]);
-    if (vt.vt != VT_BSTR)
-    {
-      vt = _T("???");
-    }
-    AppendText(vt.bstrVal);
-  }
-
+void CLogView::LogExtro()
+{
+  // reset color
+  CHARFORMAT cf = {0};
+  cf.cbSize = sizeof(CHARFORMAT);
   cf.dwMask = CFM_COLOR;
   cf.crTextColor = LOG_DEFAULTCOLOR;
   SetSelectionCharFormat(cf);
   AppendText(_T("\r\n"));
 }
 
-void CLogView::Log(LogFacility logType, BSTR bsSource, BSTR bsModuleID, VARIANT vtValue)
+void CLogView::LogVariant(VARIANT & value)
 {
-  CHARFORMAT cf = {0};
-  cf.cbSize = sizeof(CHARFORMAT);
-  cf.dwMask = CFM_COLOR;
-  CString sType;
-  switch(logType)
-  {
-    case LT_DEBUG:
-      sType = _T("debug");
-      cf.crTextColor = LOG_COLOR_DEBUG;
-      break;
-    case LT_INFO:
-      sType = _T("info");
-      cf.crTextColor = LOG_COLOR_INFO;
-      break;
-    case LT_WARN:
-      sType = _T("warning");
-      cf.crTextColor = LOG_COLOR_WARN;
-      break;
-    case LT_ERROR:
-      sType = _T("error");
-      cf.crTextColor = LOG_COLOR_ERROR;
-      break;
-    default:
-      sType = _T("log");
-      cf.crTextColor = LOG_DEFAULTCOLOR;
-      break;
-  }
-
-  CTime ts = CTime::GetCurrentTime();
-  CString sDate(ts.Format(_T("%H:%M:%S")));
-
   CComVariant vt;
-  vt.ChangeType(VT_BSTR, &vtValue);
+  vt.ChangeType(VT_BSTR, &value);
   if (vt.vt != VT_BSTR)
   {
     vt = _T("???");
   }
-  CString s;
-  s.Format(_T("%s %s [%s: %s]: "), sDate, sType, bsSource, bsModuleID);
-
-  SetSelectionCharFormat(cf);
-  AppendText(s);
-
-  cf.dwMask |= CFM_BOLD;
-  cf.dwEffects = CFE_BOLD;
-  SetSelectionCharFormat(cf);
   AppendText(vt.bstrVal);
+}
 
-  cf.dwMask = CFM_COLOR;
-  cf.crTextColor = LOG_DEFAULTCOLOR;
-  SetSelectionCharFormat(cf);
-  AppendText(_T("\r\n"));
+void CLogView::Log(LogFacility logType, BSTR bsSource, BSTR bsModuleID, SAFEARRAY* pVals)
+{
+  LogIntro(logType, bsSource, bsModuleID);
+
+  ATLASSERT(0 == pVals->rgsabound[0].lLbound);
+  VARIANT* pVariants = (VARIANT*)pVals->pvData;
+  for(ULONG n = 0; n < pVals->rgsabound[0].cElements; n++)
+  {
+    LogVariant(pVariants[pVals->rgsabound[0].cElements - n - 1]);
+    AppendText(_T(" "));
+  }
+
+  LogExtro();
+}
+
+void CLogView::Log(LogFacility logType, BSTR bsSource, BSTR bsModuleID, VARIANT vtValue)
+{
+  LogIntro(logType, bsSource, bsModuleID);
+  LogVariant(vtValue);
+  LogExtro();
 }
 
 void CLogView::ClearLog()
