@@ -10,6 +10,10 @@
 var Event = require("Event.js").Event;
 var EventFactory = require("utils.js").EventFactory;
 
+require("cookies_spec.js");
+var preprocessArguments = require("typeChecking.js").preprocessArguments;
+var notImplemented = require("typeChecking.js").notImplemented;
+
 var EVENT_LIST = ['onChanged'];
 var API_NAME = 'cookies';
 //******************************************************************************
@@ -25,31 +29,32 @@ var Cookies = function(instanceID) {
   //----------------------------------------------------------------------------
   // chrome.cookies.get
   this.get = function(details, callback) {
-    console.debug("cookies.get(..) called");
+    var args = preprocessArguments('chrome.cookies.get', arguments);
+
   };
 
   //----------------------------------------------------------------------------
   // chrome.cookies.getAll
   this.getAll = function(details, callback) {
-    console.debug("cookies.getAll(..) called");
+    var args = preprocessArguments('chrome.cookies.getAll', arguments);
   };
 
   //----------------------------------------------------------------------------
   // chrome.cookies.getAllCookieStores
   this.getAllCookieStores = function(callback) {
-    console.debug("cookies.getAllCookieStores(..) called");
+    var args = preprocessArguments('chrome.cookies.getAllCookieStores', arguments);
   };
 
   //----------------------------------------------------------------------------
   // chrome.cookies.remove
   this.remove = function(details, callback) {
-    console.debug("cookies.remove(..) called");
+    var args = preprocessArguments('chrome.cookies.remove', arguments);
   };
 
   //----------------------------------------------------------------------------
   // chrome.cookies.set
   this.set = function(details, callback) {
-    console.debug("cookies.set(..) called");
+    var args = preprocessArguments('chrome.cookies.set', arguments);
   };
 
   //============================================================================

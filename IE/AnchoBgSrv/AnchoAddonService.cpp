@@ -229,6 +229,13 @@ HRESULT CAnchoAddonService::FinalConstruct()
   PathRemoveFileSpec(psc);
   PathAddBackslash(psc);
   m_sThisPath.ReleaseBuffer();
+
+  HRESULT hr;
+  CComObject<CIECookieManager> * pCookiesManager = NULL;
+  hr = CComObject<CIECookieManager>::CreateInstance(&pCookiesManager);
+  IF_FAILED_RET(hr);
+  m_Cookies = pCookiesManager;
+
   return S_OK;
 }
 

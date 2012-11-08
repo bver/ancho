@@ -35,6 +35,45 @@ interface IAnchoAddonService : IUnknown
 /*==========================================================================*/
 [
   object,
+  uuid(0F317CA8-BB88-4141-906F-257DA0603639),
+  dual,
+  nonextensible,
+  pointer_default(unique)
+]
+interface IIECookie : IDispatch{
+  [id(1), propget, helpstring("property name")] 
+  HRESULT name([out, retval] BSTR * pbsRet);
+
+  [id(2), propget, helpstring("property value")] 
+  HRESULT value([out, retval] BSTR * pbsRet);
+
+  [id(3), propget, helpstring("property domain")] 
+  HRESULT domain([out, retval] BSTR * pbsRet);
+
+  [id(4), propget, helpstring("property path")] 
+  HRESULT path([out, retval] BSTR * pbsRet);
+};
+
+[
+  object,
+  uuid(5DB362D1-77BF-49CA-AA1C-9AAA5AA6320F),
+  dual,
+  nonextensible,
+  pointer_default(unique)
+]
+interface IIECookieManager : IDispatch{
+  [id(1), helpstring("enumCookies")] 
+  HRESULT enumCookies([in] LPDISPATCH pCallback);
+  [id(2), propput, helpstring("property cookiesChangedCallback")] 
+  HRESULT cookiesChangedCallback([in]LPDISPATCH pOnCookiesChangedCallback);
+  [id(3), helpstring("removeCookie")] 
+  HRESULT removeCookie([in] BSTR * pbsUrl, [in] BSTR * pbsName);
+};
+
+
+/*==========================================================================*/
+[
+  object,
   uuid(921C5C5B-3353-42d1-B9D3-BE7FFA912F2A),
   oleautomation,
   nonextensible,
@@ -191,4 +230,18 @@ library AnchoBgSrvLib
 		[default] interface IAnchoAddonBackground;
 	};
 
+  [
+    uuid(91B40A1B-C72A-4887-8C63-036D0649CDDA)
+  ]
+  coclass IECookie
+  {
+    [default] interface IIECookie;
+  };
+  [
+    uuid(DE9A7F77-BBCC-4B18-BF38-F9C90262BB6F)
+  ]
+  coclass IECookieManager
+  {
+    [default] interface IIECookieManager;
+  };
 };
