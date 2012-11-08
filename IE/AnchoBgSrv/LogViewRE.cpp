@@ -28,6 +28,72 @@ LRESULT CLogView::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
   return 0;
 }
 
+void CLogView::Log(LogFacility logType, BSTR bsSource, BSTR bsModuleID, SAFEARRAY* pVals)
+{
+  CHARFORMAT cf = {0};
+  cf.cbSize = sizeof(CHARFORMAT);
+  cf.dwMask = CFM_COLOR;
+  CString sType;
+  switch(logType)
+  {
+    case LT_DEBUG:
+      sType = _T("debug");
+      cf.crTextColor = LOG_COLOR_DEBUG;
+      break;
+    case LT_INFO:
+      sType = _T("info");
+      cf.crTextColor = LOG_COLOR_INFO;
+      break;
+    case LT_WARN:
+      sType = _T("warning");
+      cf.crTextColor = LOG_COLOR_WARN;
+      break;
+    case LT_ERROR:
+      sType = _T("error");
+      cf.crTextColor = LOG_COLOR_ERROR;
+      break;
+    default:
+      sType = _T("log");
+      cf.crTextColor = LOG_DEFAULTCOLOR;
+      break;
+  }
+
+  CTime ts = CTime::GetCurrentTime();
+  CString sDate(ts.Format(_T("%H:%M:%S")));
+
+  CString s;
+  s.Format(_T("%s %s [%s: %s]: "), sDate, sType, bsSource, bsModuleID);
+
+  SetSelectionCharFormat(cf);
+  AppendText(s);
+
+  cf.dwMask |= CFM_BOLD;
+  cf.dwEffects = CFE_BOLD;
+  SetSelectionCharFormat(cf);
+
+  size_t dispParamsCount = pVals->rgsabound[0].cElements + 2;
+  CComVariant * vts = new CComVariant[dispParamsCount];
+
+  ATLASSERT(0 == pVals->rgsabound[0].lLbound);
+  VARIANT* pVariants = (VARIANT*)pVals->pvData;
+  ULONG n = 0;
+  for(n; n < pVals->rgsabound[0].cElements; n++)
+  {
+    CComVariant vt;
+    vt.ChangeType(VT_BSTR, &pVariants[pVals->rgsabound[0].cElements - n - 1]);
+    if (vt.vt != VT_BSTR)
+    {
+      vt = _T("???");
+    }
+    AppendText(vt.bstrVal);
+  }
+
+  cf.dwMask = CFM_COLOR;
+  cf.crTextColor = LOG_DEFAULTCOLOR;
+  SetSelectionCharFormat(cf);
+  AppendText(_T("\r\n"));
+}
+
 void CLogView::Log(LogFacility logType, BSTR bsSource, BSTR bsModuleID, VARIANT vtValue)
 {
   CHARFORMAT cf = {0};

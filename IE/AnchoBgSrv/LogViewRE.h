@@ -5,6 +5,7 @@
 class CLogView : public CWindowImpl<CLogView, CRichEditCtrl>
 {
 public:
+  void Log(LogFacility logType, BSTR bsSource, BSTR bsModuleID, SAFEARRAY* pVals);
   void Log(LogFacility logType, BSTR bsSource, BSTR bsModuleID, VARIANT vtValue);
   void ClearLog();
 

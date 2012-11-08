@@ -41,9 +41,9 @@ using namespace MagpieLib;
 
 // addon framework
 #ifdef _DEBUG
-# import "..\Debug\AnchoBgSrv.exe" named_guids no_smart_pointers raw_interfaces_only raw_native_types no_auto_exclude
+# import "..\Debug\AnchoBgSrv.exe" named_guids no_smart_pointers raw_interfaces_only raw_native_types exclude("tagSAFEARRAYBOUND")
 #else
-# import "..\Release\AnchoBgSrv.exe" named_guids no_smart_pointers raw_interfaces_only raw_native_types no_auto_exclude
+# import "..\Release\AnchoBgSrv.exe" named_guids no_smart_pointers raw_interfaces_only raw_native_types exclude("tagSAFEARRAYBOUND")
 #endif
 using namespace AnchoBgSrvLib;
 

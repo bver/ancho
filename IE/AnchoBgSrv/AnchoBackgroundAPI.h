@@ -110,11 +110,11 @@ public:
   STDMETHOD(callFunction)(LPDISPATCH aFunction, LPDISPATCH aArgs, VARIANT* pvRet);
   // -------------------------------------------------------------------------
   // _IMagpieLoggerEvents methods
-  STDMETHOD_(void, OnLog)(VARIANT val, BSTR bsModuleID);
-  STDMETHOD_(void, OnDebug)(VARIANT val, BSTR bsModuleID);
-  STDMETHOD_(void, OnInfo)(VARIANT val, BSTR bsModuleID);
-  STDMETHOD_(void, OnWarn)(VARIANT val, BSTR bsModuleID);
-  STDMETHOD_(void, OnError)(VARIANT val, BSTR bsModuleID);
+  STDMETHOD_(void, OnLog)(BSTR bsModuleID, SAFEARRAY* pVals);
+  STDMETHOD_(void, OnDebug)(BSTR bsModuleID, SAFEARRAY* pVals);
+  STDMETHOD_(void, OnInfo)(BSTR bsModuleID, SAFEARRAY* pVals);
+  STDMETHOD_(void, OnWarn)(BSTR bsModuleID, SAFEARRAY* pVals);
+  STDMETHOD_(void, OnError)(BSTR bsModuleID, SAFEARRAY* pVals);
 
   struct EventObjectRecord
   {

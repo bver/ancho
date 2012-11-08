@@ -68,32 +68,32 @@ HRESULT CLogWindow::CreateLogWindow(CLogWindowComObject ** ppRet)
   return S_OK;
 }
 
-STDMETHODIMP CLogWindow::log(BSTR bsSource, BSTR bsModuleID, VARIANT val)
+STDMETHODIMP CLogWindow::log(BSTR bsSource, BSTR bsModuleID, SAFEARRAY* pVals)
 {
-  m_view.Log(LT_LOG, bsSource, bsModuleID, val);
+  m_view.Log(LT_LOG, bsSource, bsModuleID, pVals);
   return S_OK;
 }
 
-STDMETHODIMP CLogWindow::debug(BSTR bsSource, BSTR bsModuleID, VARIANT val)
+STDMETHODIMP CLogWindow::debug(BSTR bsSource, BSTR bsModuleID, SAFEARRAY* pVals)
 {
-  m_view.Log(LT_DEBUG, bsSource, bsModuleID, val);
+  m_view.Log(LT_DEBUG, bsSource, bsModuleID, pVals);
   return S_OK;
 }
 
-STDMETHODIMP CLogWindow::info(BSTR bsSource, BSTR bsModuleID, VARIANT val)
+STDMETHODIMP CLogWindow::info(BSTR bsSource, BSTR bsModuleID, SAFEARRAY* pVals)
 {
-  m_view.Log(LT_INFO, bsSource, bsModuleID, val);
+  m_view.Log(LT_INFO, bsSource, bsModuleID, pVals);
   return S_OK;
 }
 
-STDMETHODIMP CLogWindow::warn(BSTR bsSource, BSTR bsModuleID, VARIANT val)
+STDMETHODIMP CLogWindow::warn(BSTR bsSource, BSTR bsModuleID, SAFEARRAY* pVals)
 {
-  m_view.Log(LT_WARN, bsSource, bsModuleID, val);
+  m_view.Log(LT_WARN, bsSource, bsModuleID, pVals);
   return S_OK;
 }
 
-STDMETHODIMP CLogWindow::error(BSTR bsSource, BSTR bsModuleID, VARIANT val)
+STDMETHODIMP CLogWindow::error(BSTR bsSource, BSTR bsModuleID, SAFEARRAY* pVals)
 {
-  m_view.Log(LT_ERROR, bsSource, bsModuleID, val);
+  m_view.Log(LT_ERROR, bsSource, bsModuleID, pVals);
   return S_OK;
 }

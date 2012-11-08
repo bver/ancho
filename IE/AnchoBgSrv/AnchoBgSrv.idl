@@ -148,27 +148,27 @@ library AnchoBgSrvLib
     [id(1), helpstring(
       "Method log"
     )]
-    HRESULT log([in] BSTR bsSource, [in] BSTR bsModuleID, [in] VARIANT val);
+    HRESULT log([in] BSTR bsSource, [in] BSTR bsModuleID, [in] SAFEARRAY(VARIANT) pVals);
 
     [id(2), helpstring(
       "Method debug"
     )]
-    HRESULT debug([in] BSTR bsSource, [in] BSTR bsModuleID, [in] VARIANT val);
+    HRESULT debug([in] BSTR bsSource, [in] BSTR bsModuleID, [in] SAFEARRAY(VARIANT) pVals);
 
     [id(3), helpstring(
       "Method info"
     )]
-    HRESULT info([in] BSTR bsSource, [in] BSTR bsModuleID, [in] VARIANT val);
+    HRESULT info([in] BSTR bsSource, [in] BSTR bsModuleID, [in] SAFEARRAY(VARIANT) pVals);
 
     [id(4), helpstring(
       "Method warn"
     )]
-    HRESULT warn([in] BSTR bsSource, [in] BSTR bsModuleID, [in] VARIANT val);
+    HRESULT warn([in] BSTR bsSource, [in] BSTR bsModuleID, [in] SAFEARRAY(VARIANT) pVals);
 
     [id(5), helpstring(
       "Method error"
     )]
-    HRESULT error([in] BSTR bsSource, [in] BSTR bsModuleID, [in] VARIANT val);
+    HRESULT error([in] BSTR bsSource, [in] BSTR bsModuleID, [in] SAFEARRAY(VARIANT) pVals);
   };
 
 /*==========================================================================*/

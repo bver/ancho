@@ -91,11 +91,11 @@ public:
 
   // -------------------------------------------------------------------------
   // IAnchoBackgroundConsole methods. See .idl for description.
-  STDMETHOD(log)(BSTR bsSource, BSTR bsModuleID, VARIANT val);
-  STDMETHOD(debug)(BSTR bsSource, BSTR bsModuleID, VARIANT val);
-  STDMETHOD(info)(BSTR bsSource, BSTR bsModuleID, VARIANT val);
-  STDMETHOD(warn)(BSTR bsSource, BSTR bsModuleID, VARIANT val);
-  STDMETHOD(error)(BSTR bsSource, BSTR bsModuleID, VARIANT val);
+  STDMETHOD(log)(BSTR bsSource, BSTR bsModuleID, SAFEARRAY* pVals);
+  STDMETHOD(debug)(BSTR bsSource, BSTR bsModuleID, SAFEARRAY* pVals);
+  STDMETHOD(info)(BSTR bsSource, BSTR bsModuleID, SAFEARRAY* pVals);
+  STDMETHOD(warn)(BSTR bsSource, BSTR bsModuleID, SAFEARRAY* pVals);
+  STDMETHOD(error)(BSTR bsSource, BSTR bsModuleID, SAFEARRAY* pVals);
 
 private:
   // -------------------------------------------------------------------------

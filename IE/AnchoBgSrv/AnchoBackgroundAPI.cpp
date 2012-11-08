@@ -18,7 +18,7 @@
 
 #ifndef MAGPIE_REGISTERED
 // need the function info for logging in case magpie is not registered
-_ATL_FUNC_INFO CAnchoBackgroundAPI::info_Console_LogFunction = {CC_STDCALL,VT_EMPTY,2,{VT_VARIANT,VT_BSTR}};
+_ATL_FUNC_INFO CAnchoBackgroundAPI::info_Console_LogFunction = {CC_STDCALL,VT_EMPTY,2,{VT_BSTR,VT_ARRAY|VT_VARIANT}};
 #endif
 
 // string identifyer used in console logging for background
@@ -422,50 +422,50 @@ STDMETHODIMP CAnchoBackgroundAPI::invokeEvent(BSTR aEventName, INT aSelectedInst
 
 //----------------------------------------------------------------------------
 //
-STDMETHODIMP_(void) CAnchoBackgroundAPI::OnLog(VARIANT val, BSTR bsModuleID)
+STDMETHODIMP_(void) CAnchoBackgroundAPI::OnLog(BSTR bsModuleID, SAFEARRAY* pVals)
 {
   if (m_LogWindow)
   {
-    m_LogWindow->log(CComBSTR(s_BackgroundLogIdentifyer), bsModuleID, val);
+    m_LogWindow->log(CComBSTR(s_BackgroundLogIdentifyer), bsModuleID, pVals);
   }
 }
 
 //----------------------------------------------------------------------------
 //
-STDMETHODIMP_(void) CAnchoBackgroundAPI::OnDebug(VARIANT val, BSTR bsModuleID)
+STDMETHODIMP_(void) CAnchoBackgroundAPI::OnDebug(BSTR bsModuleID, SAFEARRAY* pVals)
 {
   if (m_LogWindow)
   {
-    m_LogWindow->debug(CComBSTR(s_BackgroundLogIdentifyer), bsModuleID, val);
+    m_LogWindow->debug(CComBSTR(s_BackgroundLogIdentifyer), bsModuleID, pVals);
   }
 }
 
 //----------------------------------------------------------------------------
 //
-STDMETHODIMP_(void) CAnchoBackgroundAPI::OnInfo(VARIANT val, BSTR bsModuleID)
+STDMETHODIMP_(void) CAnchoBackgroundAPI::OnInfo(BSTR bsModuleID, SAFEARRAY* pVals)
 {
   if (m_LogWindow)
   {
-    m_LogWindow->info(CComBSTR(s_BackgroundLogIdentifyer), bsModuleID, val);
+    m_LogWindow->info(CComBSTR(s_BackgroundLogIdentifyer), bsModuleID, pVals);
   }
 }
 
 //----------------------------------------------------------------------------
 //
-STDMETHODIMP_(void) CAnchoBackgroundAPI::OnWarn(VARIANT val, BSTR bsModuleID)
+STDMETHODIMP_(void) CAnchoBackgroundAPI::OnWarn(BSTR bsModuleID, SAFEARRAY* pVals)
 {
   if (m_LogWindow)
   {
-    m_LogWindow->warn(CComBSTR(s_BackgroundLogIdentifyer), bsModuleID, val);
+    m_LogWindow->warn(CComBSTR(s_BackgroundLogIdentifyer), bsModuleID, pVals);
   }
 }
 
 //----------------------------------------------------------------------------
 //
-STDMETHODIMP_(void) CAnchoBackgroundAPI::OnError(VARIANT val, BSTR bsModuleID)
+STDMETHODIMP_(void) CAnchoBackgroundAPI::OnError(BSTR bsModuleID, SAFEARRAY* pVals)
 {
   if (m_LogWindow)
   {
-    m_LogWindow->error(CComBSTR(s_BackgroundLogIdentifyer), bsModuleID, val);
+    m_LogWindow->error(CComBSTR(s_BackgroundLogIdentifyer), bsModuleID, pVals);
   }
 }
