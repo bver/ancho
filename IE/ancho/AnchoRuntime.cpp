@@ -5,8 +5,14 @@
  ****************************************************************************/
 
 #include "stdafx.h"
+#include <map>
+
+#include "ProtocolCF.h"
+
 #include "AnchoRuntime.h"
 #include "AnchoAddon.h"
+#include "AnchoBrowserEvents.h"
+#include "AnchoPassthruAPP.h"
 #include "dllmain.h"
 
 #include <string>
@@ -16,6 +22,9 @@
 
 extern class CanchoModule _AtlModule;
 
+typedef PassthroughAPP::CMetaFactory<PassthroughAPP::CComClassFactoryProtocol,
+  CAnchoPassthruAPP> MetaFactory;
+
 /*============================================================================
  * class CAnchoRuntime
  */
@@ -24,31 +33,6 @@ extern class CanchoModule _AtlModule;
 //  InitAddons
 HRESULT CAnchoRuntime::InitAddons()
 {
-  ATLASSERT(m_spUnkSite);
-
-  // get IServiceProvider to get IWebBrowser2 and IOleWindow
-  CComQIPtr<IServiceProvider> pServiceProvider = m_spUnkSite;
-  if (!pServiceProvider)
-  {
-    return E_FAIL;
-  }
-
-  // get IWebBrowser2
-  pServiceProvider->QueryService(SID_SWebBrowserApp, IID_IWebBrowser2, (LPVOID*)&m_pWebBrowser.p);
-  if (!m_pWebBrowser)
-  {
-    return E_FAIL;
-  }
-  AtlAdvise(m_pWebBrowser, (IUnknown*)(DWebBrowserEvents2AnchoRuntime*)this, DIID_DWebBrowserEvents2, &m_dwAdviseSinkWebBrowser);
-
-  // create addon service object
-  IF_FAILED_RET(m_pAnchoService.CoCreateInstance(CLSID_AnchoAddonService));
-
-  //Registering tab in service - obtains tab id and assigns it to the tab as property
-  IF_FAILED_RET(m_pAnchoService->registerRuntime(this, &m_TabID));
-  HWND hwnd;  m_pWebBrowser->get_HWND((long*)&hwnd);
-  ::SetProp(hwnd, s_AnchoTabIDPropertyName, (HANDLE)m_TabID);
-
   // create all addons
   // open the registry key where all extensions are registered,
   // iterate subkeys and load each extension
@@ -101,43 +85,82 @@ void CAnchoRuntime::DestroyAddons()
   m_pAnchoService.Release();
   if (m_pWebBrowser)
   {
-    if (m_dwAdviseSinkWebBrowser)
-    {
-      AtlUnadvise(m_pWebBrowser, DIID_DWebBrowserEvents2, m_dwAdviseSinkWebBrowser);
-      m_dwAdviseSinkWebBrowser = 0;
-    }
     m_pWebBrowser.Release();
   }
 }
 
 //----------------------------------------------------------------------------
-//  SetSite
-STDMETHODIMP CAnchoRuntime::SetSite(IUnknown *pUnkSite)
+//  DestroyAddons
+HRESULT CAnchoRuntime::DeinitBrowserEventSource()
 {
-  HRESULT hr = IObjectWithSiteImpl<CAnchoRuntime>::SetSite(pUnkSite);
+  AtlUnadvise(m_pWebBrowser, DIID_DWebBrowserEvents2, m_WebBrowserEventsCookie);
+  AtlUnadvise(m_pBrowserEventSource, IID_DAnchoBrowserEvents, m_AnchoBrowserEventsCookie);
+
+  return S_OK;
+}
+
+//----------------------------------------------------------------------------
+//  InitBrowserEventSink
+HRESULT CAnchoRuntime::InitBrowserEventSource()
+{
+  ATLASSERT(m_spUnkSite);
+
+  // get IServiceProvider to get IWebBrowser2 and IOleWindow
+  CComQIPtr<IServiceProvider> pServiceProvider = m_spUnkSite;
+  if (!pServiceProvider)
+  {
+    return E_FAIL;
+  }
+
+  // get IWebBrowser2
+  pServiceProvider->QueryService(SID_SWebBrowserApp, IID_IWebBrowser2, (LPVOID*)&m_pWebBrowser.p);
+  if (!m_pWebBrowser)
+  {
+    return E_FAIL;
+  }
+
+  AtlAdvise(m_pWebBrowser, (IUnknown *)(TWebBrowserEvents *) this, DIID_DWebBrowserEvents2, &m_WebBrowserEventsCookie);
+
+  // create addon service object
+  IF_FAILED_RET(m_pAnchoService.CoCreateInstance(CLSID_AnchoAddonService));
+
+  // Registering tab in service - obtains tab id and assigns it to the tab as property
+  IF_FAILED_RET(m_pAnchoService->registerRuntime(this, &m_TabID));
+  HWND hwnd;
+  m_pWebBrowser->get_HWND((long*)&hwnd);
+  ::SetProp(hwnd, s_AnchoTabIDPropertyName, (HANDLE)m_TabID);
+
+  CComObject<CAnchoBrowserEvents>* pBrowserEventSource;
+  HRESULT hr = CComObject<CAnchoBrowserEvents>::CreateInstance(&pBrowserEventSource);
   IF_FAILED_RET(hr);
-  if (pUnkSite)
-  {
-    hr = InitAddons();
-  }
-  else
-  {
-    DestroyAddons();
-  }
+
+  m_pBrowserEventSource = pBrowserEventSource;
+
+  AtlAdvise(m_pBrowserEventSource, (IUnknown*)(TAnchoBrowserEvents*) this, IID_DAnchoBrowserEvents,
+    &m_AnchoBrowserEventsCookie);
+
+  // Set the sink as property of the browser so it can be retrieved if someone wants to send
+  // us events.
+  hr = m_pWebBrowser->PutProperty(L"_anchoBrowserEvents", CComVariant(m_pBrowserEventSource));
+
   return hr;
 }
+
 //----------------------------------------------------------------------------
-//
-STDMETHODIMP_(void) CAnchoRuntime::browserBeforeNavigateEvent(LPDISPATCH pDisp, VARIANT *pURL, VARIANT *Flags, VARIANT *TargetFrameName, VARIANT *PostData, VARIANT *Headers, BOOL *Cancel)
+//  OnBrowserBeforeNavigate2
+STDMETHODIMP_(void) CAnchoRuntime::OnBrowserBeforeNavigate2(LPDISPATCH pDisp, VARIANT *pURL, VARIANT *Flags,
+  VARIANT *TargetFrameName, VARIANT *PostData, VARIANT *Headers, BOOL *Cancel)
 {
-  //Here we ensure that callback for createTab will be invoked by passing requestID for current tab back into the service
+  // Add the frame to the frames map so we can retrieve the IWebBrowser2 object using the URL.
+  ATLASSERT(pURL->vt == VT_BSTR && pURL->bstrVal != NULL);
   CComQIPtr<IWebBrowser2> pWebBrowser(pDisp);
-  if (!pWebBrowser) {
-    return;
-  }
-  if(pURL->vt != VT_BSTR) {
-    return;
-  }
+  ATLASSERT(pWebBrowser != NULL);
+  CComBSTR bstrUrl;
+  removeUrlFragment(pURL->bstrVal, &bstrUrl);
+  m_Frames[(BSTR) bstrUrl] = pWebBrowser;
+
+  // Check if this is a new tab we are creating programmatically.
+  // If so redirect it to the correct URL.
   std::wstring url(pURL->bstrVal, SysStringLen(pURL->bstrVal));
   //TODO - use headers instead of url
   size_t first = url.find_first_of(L'#');
@@ -159,6 +182,98 @@ STDMETHODIMP_(void) CAnchoRuntime::browserBeforeNavigateEvent(LPDISPATCH pDisp, 
 
   m_pAnchoService->createTabNotification(m_TabID, requestID);
 }
+
+//----------------------------------------------------------------------------
+//  OnFrameStart
+STDMETHODIMP CAnchoRuntime::OnFrameStart(BSTR bstrUrl, VARIANT_BOOL bIsMainFrame)
+{
+  return ApplyContentScripts(bstrUrl, bIsMainFrame, L"start");
+}
+
+//----------------------------------------------------------------------------
+//  OnFrameEnd
+STDMETHODIMP CAnchoRuntime::OnFrameEnd(BSTR bstrUrl, VARIANT_BOOL bIsMainFrame)
+{
+  return ApplyContentScripts(bstrUrl, bIsMainFrame, L"end");
+}
+
+//----------------------------------------------------------------------------
+//  OnFrameRedirect
+STDMETHODIMP CAnchoRuntime::OnFrameRedirect(BSTR bstrOldUrl, BSTR bstrNewUrl)
+{
+  CComBSTR url;
+  removeUrlFragment(bstrOldUrl, &url);
+  std::map<std::wstring, CComPtr<IWebBrowser2> >::iterator it = m_Frames.find(bstrOldUrl);
+  if (it != m_Frames.end()) {
+    removeUrlFragment(bstrNewUrl, &url);
+    m_Frames[(BSTR) url] = it->second;
+    m_Frames.erase(it);
+  }
+  return S_OK;
+}
+
+//----------------------------------------------------------------------------
+//  ApplyContentScripts
+HRESULT CAnchoRuntime::ApplyContentScripts(BSTR bstrUrl, VARIANT_BOOL bIsMainFrame, BSTR bstrPhase)
+{
+  CComPtr<IWebBrowser2> webBrowser;
+  if (bIsMainFrame) {
+    webBrowser = m_pWebBrowser;
+  }
+  else {
+    CComBSTR url;
+    removeUrlFragment(bstrUrl, &url);
+    std::map<std::wstring, CComPtr<IWebBrowser2> >::iterator it = m_Frames.find((BSTR) url);
+    if (it == m_Frames.end()) {
+      ATLASSERT(CComBSTR("end") == bstrPhase);
+      // Assume we have removed this frame while waiting for the document to complete.
+      return S_FALSE;
+    }
+    webBrowser = it->second;
+  }
+  // We have to check whether we are the main web browser since the event source can't
+  // always tell us if we are the main frame.
+  if ((bIsMainFrame || webBrowser == m_pWebBrowser) && (CComBSTR(L"start") == bstrPhase)) {
+    m_Frames.clear();
+  }
+  AddonMap::iterator it = m_Addons.begin();
+  while(it != m_Addons.end()) {
+    it->second->ApplyContentScripts(webBrowser, bstrUrl, bstrPhase);
+    ++it;
+  }
+
+  return S_OK;
+}
+
+//----------------------------------------------------------------------------
+//  SetSite
+STDMETHODIMP CAnchoRuntime::SetSite(IUnknown *pUnkSite)
+{
+  CComPtr<IInternetSession> pInternetSession;
+  IF_FAILED_RET(CoInternetGetSession(0, &pInternetSession, 0));
+
+  IF_FAILED_RET(MetaFactory::CreateInstance(CLSID_HttpProtocol, &m_CFHTTP));
+  IF_FAILED_RET(pInternetSession->RegisterNameSpace(m_CFHTTP, CLSID_NULL, L"http", 0, 0, 0));
+
+  IF_FAILED_RET(MetaFactory::CreateInstance(CLSID_HttpSProtocol, &m_CFHTTPS));
+  IF_FAILED_RET(pInternetSession->RegisterNameSpace(m_CFHTTPS, CLSID_NULL, L"https", 0, 0, 0));
+
+  HRESULT hr = IObjectWithSiteImpl<CAnchoRuntime>::SetSite(pUnkSite);
+  IF_FAILED_RET(hr);
+  if (pUnkSite)
+  {
+    hr = InitBrowserEventSource();
+    if (SUCCEEDED(hr)) {
+      hr = InitAddons();
+    }
+  }
+  else
+  {
+    DestroyAddons();
+  }
+  return hr;
+}
+
 //----------------------------------------------------------------------------
 //
 STDMETHODIMP CAnchoRuntime::reloadTab()
@@ -167,12 +282,14 @@ STDMETHODIMP CAnchoRuntime::reloadTab()
   m_pWebBrowser->Refresh2(&var);
   return S_OK;
 }
+
 //----------------------------------------------------------------------------
 //
 STDMETHODIMP CAnchoRuntime::closeTab()
 {
   return m_pWebBrowser->Quit();
 }
+
 //----------------------------------------------------------------------------
 //
 STDMETHODIMP CAnchoRuntime::executeScript(BSTR aExtensionId, BSTR aCode, INT aFileSpecified)
@@ -180,6 +297,7 @@ STDMETHODIMP CAnchoRuntime::executeScript(BSTR aExtensionId, BSTR aCode, INT aFi
   //TODO: check permissions from manifest
   return S_OK;
 }
+
 //----------------------------------------------------------------------------
 //
 STDMETHODIMP CAnchoRuntime::updateTab(LPDISPATCH aProperties)
@@ -205,6 +323,7 @@ STDMETHODIMP CAnchoRuntime::updateTab(LPDISPATCH aProperties)
   }
   return S_OK;
 }
+
 //----------------------------------------------------------------------------
 //
 STDMETHODIMP CAnchoRuntime::fillTabInfo(VARIANT* aInfo)
@@ -228,6 +347,7 @@ STDMETHODIMP CAnchoRuntime::fillTabInfo(VARIANT* aInfo)
   obj.SetProperty(L"active", CComVariant(isTabActive()));
   return S_OK;
 }
+
 //----------------------------------------------------------------------------
 //
 HWND CAnchoRuntime::getTabWindow()
