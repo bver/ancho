@@ -1,0 +1,6 @@
+[submodule "IE/libbhohelper"]
+	path = IE/libbhohelper
+	url = git@github.com:salsita/libbhohelper.git
+[submodule "IE/Magpie"]
+	path = IE/Magpie
+	url = git@github.com:salsita/Magpie.git
