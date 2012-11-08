@@ -6,6 +6,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AnchoBgSrv", "AnchoBgSrv\An
 		{0FE0872C-8BDD-4D12-8025-0FE85C8A9631} = {0FE0872C-8BDD-4D12-8025-0FE85C8A9631}
 		{E2EDE153-1F28-4B43-85F6-BFE85D626A28} = {E2EDE153-1F28-4B43-85F6-BFE85D626A28}
 		{BD432C91-5D1F-4B38-A4D5-0E5709EB58F3} = {BD432C91-5D1F-4B38-A4D5-0E5709EB58F3}
+		{9D2487D1-7046-4665-9E66-8D81A9221438} = {9D2487D1-7046-4665-9E66-8D81A9221438}
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ancho", "ancho\ancho.vcproj", "{50B17414-D115-4F76-B5A4-F357AC84001C}"
@@ -29,6 +30,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Magpie", "Magpie\Magpie\Mag
 	ProjectSection(ProjectDependencies) = postProject
 		{B3C4AA4F-C452-45D4-B4EC-DF670F777F55} = {B3C4AA4F-C452-45D4-B4EC-DF670F777F55}
 	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libprothandlers", "libprothandlers\libprothandlers\libprothandlers.vcproj", "{9D2487D1-7046-4665-9E66-8D81A9221438}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -60,6 +63,10 @@ Global
 		{E2EDE153-1F28-4B43-85F6-BFE85D626A28}.Debug|Win32.Build.0 = Debug|Win32
 		{E2EDE153-1F28-4B43-85F6-BFE85D626A28}.Release|Win32.ActiveCfg = Release|Win32
 		{E2EDE153-1F28-4B43-85F6-BFE85D626A28}.Release|Win32.Build.0 = Release|Win32
+		{9D2487D1-7046-4665-9E66-8D81A9221438}.Debug|Win32.ActiveCfg = Debug|Win32
+		{9D2487D1-7046-4665-9E66-8D81A9221438}.Debug|Win32.Build.0 = Debug|Win32
+		{9D2487D1-7046-4665-9E66-8D81A9221438}.Release|Win32.ActiveCfg = Release|Win32
+		{9D2487D1-7046-4665-9E66-8D81A9221438}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

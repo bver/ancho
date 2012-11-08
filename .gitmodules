@@ -4,3 +4,9 @@
 [submodule "IE/Magpie"]
 	path = IE/Magpie
 	url = git@github.com:salsita/Magpie.git
+[submodule "IE/libprothandlers"]
+	path = IE/libprothandlers
+	url = git@github.com:salsita/libprothandlers.git
+[submodule "IE/passthruapp"]
+	path = IE/passthruapp
+	url = https://github.com/salsita/passthruapp.git

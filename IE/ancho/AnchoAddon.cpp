@@ -171,7 +171,7 @@ STDMETHODIMP CAnchoAddon::ApplyContentScripts(IWebBrowser2* pBrowser, BSTR bstrU
   m_Magpie->Shutdown();
   CString s;
   s.Format(_T("Ancho content [%s] [%i]"), m_sExtensionName, m_InstanceID);
-  HRESULT hr = m_Magpie->Init((LPWSTR)(LPCWSTR)s);
+  m_Magpie->Init((LPWSTR)(LPCWSTR)s);
   if (FAILED(hr))
   {
     return hr;

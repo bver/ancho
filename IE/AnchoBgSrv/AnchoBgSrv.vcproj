@@ -46,7 +46,7 @@
 				MkTypLibCompatible="false"
 				TargetEnvironment="1"
 				GenerateStublessProxies="true"
-				TypeLibraryName="$(IntDir)/AnchoBgSrv.tlb"
+				TypeLibraryName="$(OutDir)/AnchoBgSrv.tlb"
 				HeaderFileName="AnchoBgSrv_i.h"
 				DLLDataFileName=""
 				InterfaceIdentifierFileName="AnchoBgSrv_i.c"
@@ -56,7 +56,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)Magpie\include&quot;;&quot;$(SolutionDir)Magpie\Magpie\$(ConfigurationName)&quot;;&quot;$(SolutionDir)libbhohelper\libbhohelper&quot;;&quot;$(SolutionDir)libprothandlers\include&quot;;&quot;$(SolutionDir)anchocommons&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)Magpie\include&quot;;&quot;$(SolutionDir)libbhohelper\libbhohelper&quot;;&quot;$(SolutionDir)libprothandlers\include&quot;;&quot;$(SolutionDir)anchocommons&quot;;&quot;$(OutDir)&quot;"
 				PreprocessorDefinitions="WIN32;_WINDOWS;_DEBUG"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -72,7 +72,7 @@
 				Name="VCResourceCompilerTool"
 				PreprocessorDefinitions="_DEBUG"
 				Culture="1033"
-				AdditionalIncludeDirectories="$(IntDir)"
+				AdditionalIncludeDirectories="$(OutDir)"
 			/>
 			<Tool
 				Name="VCPreLinkEventTool"
@@ -82,7 +82,7 @@
 				IgnoreImportLibrary="true"
 				AdditionalDependencies="libbhohelper.lib libprothandlers.lib Wininet.lib anchocommons.lib"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="&quot;$(SolutionDir)libbhohelper\$(ConfigurationName)&quot;;&quot;$(SolutionDir)libprothandlers\$(ConfigurationName)&quot;;&quot;$(SolutionDir)anchocommons\$(ConfigurationName)&quot;"
+				AdditionalLibraryDirectories="&quot;$(OutDir)&quot;;&quot;$(SolutionDir)anchocommons\$(ConfigurationName)&quot;"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				TargetMachine="1"
@@ -141,7 +141,7 @@
 				MkTypLibCompatible="false"
 				TargetEnvironment="1"
 				GenerateStublessProxies="true"
-				TypeLibraryName="$(IntDir)/AnchoBgSrv.tlb"
+				TypeLibraryName="$(OutDir)/AnchoBgSrv.tlb"
 				HeaderFileName="AnchoBgSrv_i.h"
 				DLLDataFileName=""
 				InterfaceIdentifierFileName="AnchoBgSrv_i.c"
@@ -151,7 +151,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="2"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)Magpie\include&quot;;&quot;$(SolutionDir)Magpie\Magpie\$(ConfigurationName)&quot;;&quot;$(SolutionDir)libbhohelper\libbhohelper&quot;;&quot;$(SolutionDir)libprothandlers\include&quot;;&quot;$(SolutionDir)anchocommons&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)Magpie\include&quot;;&quot;$(SolutionDir)libbhohelper\libbhohelper&quot;;&quot;$(SolutionDir)libprothandlers\include&quot;;&quot;$(SolutionDir)anchocommons&quot;;&quot;$(OutDir)&quot;"
 				PreprocessorDefinitions="WIN32;_WINDOWS;NDEBUG"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="2"
@@ -165,7 +165,7 @@
 				Name="VCResourceCompilerTool"
 				PreprocessorDefinitions="NDEBUG"
 				Culture="1033"
-				AdditionalIncludeDirectories="$(IntDir)"
+				AdditionalIncludeDirectories="$(OutDir)"
 			/>
 			<Tool
 				Name="VCPreLinkEventTool"
@@ -175,7 +175,7 @@
 				IgnoreImportLibrary="true"
 				AdditionalDependencies="libbhohelper.lib libprothandlers.lib Wininet.lib anchocommons.lib"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="&quot;$(SolutionDir)libbhohelper\$(ConfigurationName)&quot;;&quot;$(SolutionDir)libprothandlers\$(ConfigurationName)&quot;;&quot;$(SolutionDir)anchocommons\$(ConfigurationName)&quot;"
+				AdditionalLibraryDirectories="&quot;$(OutDir)&quot;;&quot;$(SolutionDir)anchocommons\$(ConfigurationName)&quot;"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				OptimizeReferences="2"
@@ -496,11 +496,11 @@
 			>
 		</File>
 		<File
-			RelativePath=".\res\js\utils.js"
+			RelativePath=".\res\js\utils\utils.js"
 			>
 		</File>
 		<File
-			RelativePath=".\res\js\utils\utils.js"
+			RelativePath=".\res\js\utils.js"
 			>
 		</File>
 		<File
