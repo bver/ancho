@@ -38,9 +38,9 @@ using namespace ATL;
 
 // Magpie
 #ifdef _DEBUG
-# import "..\Magpie\Debug\Magpie.dll" named_guids raw_interfaces_only raw_native_types no_smart_pointers exclude("tagSAFEARRAYBOUND")
+# import "Magpie.tlb" named_guids raw_interfaces_only raw_native_types no_smart_pointers exclude("tagSAFEARRAYBOUND")
 #else
-# import "..\Magpie\Release\Magpie.dll" named_guids raw_interfaces_only raw_native_types no_smart_pointers exclude("tagSAFEARRAYBOUND")
+# import "Magpie.tlb" named_guids raw_interfaces_only raw_native_types no_smart_pointers exclude("tagSAFEARRAYBOUND")
 #endif
 using namespace MagpieLib;
 #include "CreateMagpieInstance.h"

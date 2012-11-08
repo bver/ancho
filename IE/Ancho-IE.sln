@@ -4,15 +4,31 @@ Microsoft Visual Studio Solution File, Format Version 10.00
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AnchoBgSrv", "AnchoBgSrv\AnchoBgSrv.vcproj", "{B955A8E6-B44F-4AAF-8659-27668A1ED0FE}"
 	ProjectSection(ProjectDependencies) = postProject
 		{0FE0872C-8BDD-4D12-8025-0FE85C8A9631} = {0FE0872C-8BDD-4D12-8025-0FE85C8A9631}
+		{E2EDE153-1F28-4B43-85F6-BFE85D626A28} = {E2EDE153-1F28-4B43-85F6-BFE85D626A28}
+		{BD432C91-5D1F-4B38-A4D5-0E5709EB58F3} = {BD432C91-5D1F-4B38-A4D5-0E5709EB58F3}
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ancho", "ancho\ancho.vcproj", "{50B17414-D115-4F76-B5A4-F357AC84001C}"
 	ProjectSection(ProjectDependencies) = postProject
 		{0FE0872C-8BDD-4D12-8025-0FE85C8A9631} = {0FE0872C-8BDD-4D12-8025-0FE85C8A9631}
+		{E2EDE153-1F28-4B43-85F6-BFE85D626A28} = {E2EDE153-1F28-4B43-85F6-BFE85D626A28}
+		{BD432C91-5D1F-4B38-A4D5-0E5709EB58F3} = {BD432C91-5D1F-4B38-A4D5-0E5709EB58F3}
 		{B955A8E6-B44F-4AAF-8659-27668A1ED0FE} = {B955A8E6-B44F-4AAF-8659-27668A1ED0FE}
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "anchocommons", "anchocommons\anchocommons.vcproj", "{0FE0872C-8BDD-4D12-8025-0FE85C8A9631}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libbhohelper", "libbhohelper\libbhohelper\libbhohelper.vcproj", "{BD432C91-5D1F-4B38-A4D5-0E5709EB58F3}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libmagpie", "Magpie\libmagpie\libmagpie.vcproj", "{B3C4AA4F-C452-45D4-B4EC-DF670F777F55}"
+	ProjectSection(ProjectDependencies) = postProject
+		{BD432C91-5D1F-4B38-A4D5-0E5709EB58F3} = {BD432C91-5D1F-4B38-A4D5-0E5709EB58F3}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Magpie", "Magpie\Magpie\Magpie.vcproj", "{E2EDE153-1F28-4B43-85F6-BFE85D626A28}"
+	ProjectSection(ProjectDependencies) = postProject
+		{B3C4AA4F-C452-45D4-B4EC-DF670F777F55} = {B3C4AA4F-C452-45D4-B4EC-DF670F777F55}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -32,6 +48,18 @@ Global
 		{0FE0872C-8BDD-4D12-8025-0FE85C8A9631}.Debug|Win32.Build.0 = Debug|Win32
 		{0FE0872C-8BDD-4D12-8025-0FE85C8A9631}.Release|Win32.ActiveCfg = Release|Win32
 		{0FE0872C-8BDD-4D12-8025-0FE85C8A9631}.Release|Win32.Build.0 = Release|Win32
+		{BD432C91-5D1F-4B38-A4D5-0E5709EB58F3}.Debug|Win32.ActiveCfg = Debug|Win32
+		{BD432C91-5D1F-4B38-A4D5-0E5709EB58F3}.Debug|Win32.Build.0 = Debug|Win32
+		{BD432C91-5D1F-4B38-A4D5-0E5709EB58F3}.Release|Win32.ActiveCfg = Release|Win32
+		{BD432C91-5D1F-4B38-A4D5-0E5709EB58F3}.Release|Win32.Build.0 = Release|Win32
+		{B3C4AA4F-C452-45D4-B4EC-DF670F777F55}.Debug|Win32.ActiveCfg = Debug|Win32
+		{B3C4AA4F-C452-45D4-B4EC-DF670F777F55}.Debug|Win32.Build.0 = Debug|Win32
+		{B3C4AA4F-C452-45D4-B4EC-DF670F777F55}.Release|Win32.ActiveCfg = Release|Win32
+		{B3C4AA4F-C452-45D4-B4EC-DF670F777F55}.Release|Win32.Build.0 = Release|Win32
+		{E2EDE153-1F28-4B43-85F6-BFE85D626A28}.Debug|Win32.ActiveCfg = Debug|Win32
+		{E2EDE153-1F28-4B43-85F6-BFE85D626A28}.Debug|Win32.Build.0 = Debug|Win32
+		{E2EDE153-1F28-4B43-85F6-BFE85D626A28}.Release|Win32.ActiveCfg = Release|Win32
+		{E2EDE153-1F28-4B43-85F6-BFE85D626A28}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -29,7 +29,7 @@
 				Name="VCPreBuildEventTool"
 				Description="Copying files..."
 				CommandLine="xcopy /q /y /D &quot;$(SolutionDir)Magpie\$(ConfigurationName)\Magpie.dll&quot; &quot;$(OutDir)&quot;"
-				ExcludedFromBuild="false"
+				ExcludedFromBuild="true"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -56,7 +56,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)Magpie\include&quot;;&quot;$(SolutionDir)libbhohelper\libbhohelper&quot;;&quot;$(SolutionDir)libprothandlers\include&quot;;&quot;$(SolutionDir)anchocommons&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)Magpie\include&quot;;&quot;$(SolutionDir)Magpie\Magpie\$(ConfigurationName)&quot;;&quot;$(SolutionDir)libbhohelper\libbhohelper&quot;;&quot;$(SolutionDir)libprothandlers\include&quot;;&quot;$(SolutionDir)anchocommons&quot;"
 				PreprocessorDefinitions="WIN32;_WINDOWS;_DEBUG"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -124,6 +124,7 @@
 				Name="VCPreBuildEventTool"
 				Description="Copying files..."
 				CommandLine="xcopy /q /y /D &quot;$(SolutionDir)Magpie\$(ConfigurationName)\Magpie.dll&quot; &quot;$(OutDir)&quot;"
+				ExcludedFromBuild="true"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -150,7 +151,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="2"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)Magpie\include&quot;;&quot;$(SolutionDir)libbhohelper\libbhohelper&quot;;&quot;$(SolutionDir)libprothandlers\include&quot;;&quot;$(SolutionDir)anchocommons&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)Magpie\include&quot;;&quot;$(SolutionDir)Magpie\Magpie\$(ConfigurationName)&quot;;&quot;$(SolutionDir)libbhohelper\libbhohelper&quot;;&quot;$(SolutionDir)libprothandlers\include&quot;;&quot;$(SolutionDir)anchocommons&quot;"
 				PreprocessorDefinitions="WIN32;_WINDOWS;NDEBUG"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="2"
@@ -495,11 +496,11 @@
 			>
 		</File>
 		<File
-			RelativePath=".\res\js\utils\utils.js"
+			RelativePath=".\res\js\utils.js"
 			>
 		</File>
 		<File
-			RelativePath=".\res\js\utils.js"
+			RelativePath=".\res\js\utils\utils.js"
 			>
 		</File>
 		<File
