@@ -9,11 +9,18 @@
 //#include "Magpie.h"
 #include "AnchoBgSrv_i.h"
 #include "IECookie.h"
+#include <vector>
+#include <memory>
 
 #if defined(_WIN32_WCE) && !defined(_CE_DCOM) && !defined(_CE_ALLOW_SINGLE_THREADED_OBJECTS_IN_MTA)
 #error "Single-threaded COM objects are not properly supported on Windows CE platform, such as the Windows Mobile platforms that do not include full DCOM support. Define _CE_ALLOW_SINGLE_THREADED_OBJECTS_IN_MTA to force ATL to support creating single-thread COM object's and allow use of it's single-threaded COM object implementations. The threading model in your rgs file was set to 'Free' as that is the only threading model supported in non DCOM Windows CE platforms."
 #endif
-
+/*============================================================================*/
+struct ACookieCallbackFunctor
+{
+  typedef std::auto_ptr<ACookieCallbackFunctor> APtr;
+  virtual void operator()(CComVariant &aCookie)=0;
+};
 /*============================================================================
  * class CIECookieManager
  * Implements the cookie manager.
@@ -21,7 +28,7 @@
 class ATL_NO_VTABLE CIECookieManager :
 	public CComObjectRootEx<CComSingleThreadModel>,
 	public CComCoClass<CIECookieManager, &CLSID_IECookieManager>,
-	public IDispatchImpl<IIECookieManager, &IID_IIECookieManager, &LIBID_MagpieLib,
+	public IDispatchImpl<IIECookieManager, &IID_IIECookieManager, &LIBID_AnchoBgSrvLib,
                       /*wMajor =*/ 0xffff, /*wMinor =*/ 0xffff>
 {
 public:
@@ -51,6 +58,12 @@ public:
   HRESULT OnCookieFileChanged(LPCTSTR lpszFileName);
   static HRESULT GetCookieFolder(CString& sPath);
   static void FileWatcher(void* args);
+
+  void startWatching();
+  void setNotificationCallback(ACookieCallbackFunctor::APtr aCallback)
+  {
+    m_OnCookiesChangedCallback = aCallback;
+  }
 public:
   // -------------------------------------------------------------------------
   // Getters.
@@ -58,8 +71,9 @@ public:
   // -------------------------------------------------------------------------
   // IIECookieManager methods. See .idl for description.
   STDMETHOD(enumCookies)(LPDISPATCH pCallback);
-  STDMETHOD(put_cookiesChangedCallback)(LPDISPATCH pOnCookiesChangedCallback);
-  STDMETHOD(removeCookie)(BSTR * pbsUrl, BSTR * pbsName);
+  //STDMETHOD(put_cookiesChangedCallback)(LPDISPATCH pOnCookiesChangedCallback);
+  STDMETHOD(removeCookie)(BSTR aUrl, BSTR aName);
+  STDMETHOD(setCookie)(BSTR aUrl, BSTR aName, BSTR aData);
 
 protected:
   // -------------------------------------------------------------------------
@@ -69,7 +83,7 @@ protected:
 private:
   // -------------------------------------------------------------------------
   // types and classes.
-  typedef CAtlArray< CComPtr<CIECookieComObject> >  CCookieArray;
+  typedef std::vector<CComPtr<CIECookieComObject> >  CCookieArray;
 
   class ParseBuffer
   {
@@ -90,6 +104,10 @@ private:
   {
   public:
     CIECookieManager * m_IECookieManager;
+    ~CCookieHelperWindow()
+    {
+      ATLTRACE(L"ANCHO IECOOKIEMANAGER::HELPERWINDOW DESTRUCTOR\n");
+    }
   public:
     DECLARE_WND_CLASS(_T("CIECookiManager::CCookieHelperWindow"))
 
@@ -109,8 +127,10 @@ private:
 private:
   // -------------------------------------------------------------------------
   // Private members.
-  CComPtr<IDispatch> m_pOnCookiesChangedCallback;
+  //CComPtr<IDispatch> m_pOnCookiesChangedCallback;
   CCookieHelperWindow m_CookieHelperWindow;
+
+  ACookieCallbackFunctor::APtr m_OnCookiesChangedCallback;
 };
 
 OBJECT_ENTRY_AUTO(__uuidof(IECookieManager), CIECookieManager)

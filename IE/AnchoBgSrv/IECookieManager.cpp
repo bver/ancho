@@ -9,6 +9,20 @@
 #include <set>
 #include <Shlobj.h>
 
+
+CString lastErrorMessage(const DWORD& dwErrorCode)
+{
+	LPTSTR lpErrorText = NULL;
+ 
+	::FormatMessage( FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER, 
+		0, dwErrorCode, 0, lpErrorText, MAX_PATH, 0 );
+ 
+  CString msg = lpErrorText;
+	::LocalFree( lpErrorText );
+  return msg;
+}
+
+
 CIECookieManager::ParseBuffer::ParseBuffer(size_t size) :
   m_Size(size)
 {
@@ -69,7 +83,7 @@ HRESULT CIECookieManager::ParseCookies(ParseBuffer & parseBuffer, size_t sLen, C
           // add cookie
           CComPtr<CIECookieComObject> pCookie;
           IF_FAILED_RET(CIECookie::CreateObject(cookieData, pCookie.p));
-          cookies.Add(pCookie);
+          cookies.push_back(pCookie);
           cookieData.Reset();
         }
         pStart = &parseBuffer[n+1];
@@ -185,7 +199,7 @@ void CIECookieManager::FileWatcher(void* args) {
 //  CTOR
 CIECookieManager::CIECookieManager()
 {
-  m_pOnCookiesChangedCallback = NULL;
+  //m_pOnCookiesChangedCallback = NULL;
   HWND hwnd = m_CookieHelperWindow.Create(NULL);
   m_CookieHelperWindow.m_IECookieManager = this;
   HRESULT hr = GetLastError();
@@ -213,7 +227,9 @@ HRESULT CIECookieManager::ParseCookieFile(LPCTSTR lpszFilename, CCookieArray & c
   // this usually fails when the cookie is changed twice in a short time and filewatcher
   // recognizes file delete in following bulk of file changes. The cookie storage file is
   // recreated after each change of cookie
-  IF_FAILED_RET(hr);
+  if (FAILED(hr)) {
+    return hr;
+  }
 
   ULONGLONG nLen = 0;
   IF_FAILED_RET(f.GetSize(nLen));
@@ -256,7 +272,7 @@ STDMETHODIMP CIECookieManager::enumCookies(LPDISPATCH pCallback)
       CCookieArray cookies;
       dwEntrySize = MAX_CACHE_ENTRY_INFO_SIZE;
       ReadCookieFile(entry->lpszSourceUrlName, cookies);
-      for(size_t n = 0; n < cookies.GetCount(); n++) {
+      for(size_t n = 0; n < cookies.size(); ++n) {
         cookieVT = cookies[n];
         callback.Call(NULL, &params);
         nCount++;
@@ -272,27 +288,33 @@ STDMETHODIMP CIECookieManager::enumCookies(LPDISPATCH pCallback)
 }
 HRESULT CIECookieManager::OnCookieFileChanged(LPCTSTR lpszFileName) {
   // continue with cookie change event
-  if (m_pOnCookiesChangedCallback != NULL) {
+  if (m_OnCookiesChangedCallback.get()/*m_pOnCookiesChangedCallback != NULL*/) {
     CCookieArray cookies;
-    IF_FAILED_RET(ParseCookieFile(lpszFileName, cookies));
+    HRESULT hr = ParseCookieFile(lpszFileName, cookies);
+    if (S_OK != hr ) {
+      return hr;
+    }
     m_CookieHelperWindow.SendMessageW(WM_ONCOOKIEMESSAGE, (WPARAM)&cookies);
   }
   return S_OK;
 }
-HRESULT CIECookieManager::put_cookiesChangedCallback(LPDISPATCH apOnCookiesChangedCallback) {
+//STDMETHODIMP CIECookieManager::put_cookiesChangedCallback(LPDISPATCH apOnCookiesChangedCallback) 
+void CIECookieManager::startWatching()
+{
+  _beginthread(CIECookieManager::FileWatcher, 0,this);
   // file watcher must be started only from background script, otherwise the callback gets garbage collected
-  BOOL startFileWatcher = !m_pOnCookiesChangedCallback && apOnCookiesChangedCallback != NULL;
+  /*BOOL startFileWatcher = !m_pOnCookiesChangedCallback && apOnCookiesChangedCallback != NULL;
   m_pOnCookiesChangedCallback = apOnCookiesChangedCallback;
   if (startFileWatcher) {
     _beginthread(CIECookieManager::FileWatcher, 0,this);
   }
-  return S_OK;
+  return S_OK;*/
 }
 
-HRESULT CIECookieManager::removeCookie(BSTR * pbsUrl, BSTR * pbsName) {
-  CString url = CString(*pbsUrl);
+STDMETHODIMP CIECookieManager::removeCookie(BSTR aUrl, BSTR aName) {
+  CString url = CString(aUrl);
   // set Expires attribute to old time removes given cookie
-  CString value = CString(*pbsName) + CString("=; Expires=Thu, 01 Jan 1970 00:00:01 GMT");
+  CString value = CString(aName) + CString("; Expires=Thu, 01 Jan 1970 00:00:01 GMT");
   if (!InternetSetCookie(url, NULL, value)) {
     HRESULT hr = GetLastError();
     ATLTRACE(_T("Could not remove cookie. Error: %d\n"), hr);
@@ -301,16 +323,31 @@ HRESULT CIECookieManager::removeCookie(BSTR * pbsUrl, BSTR * pbsName) {
   return S_OK;
 }
 
+STDMETHODIMP CIECookieManager::setCookie(BSTR aUrl, BSTR aName, BSTR aData)
+{
+  if (!InternetSetCookie(aUrl, aName, aData)) {
+    HRESULT hr = GetLastError();
+    ATLTRACE(_T("Could not set cookie. Error: %d : %s\n"), hr, lastErrorMessage(hr));
+    return hr;
+  }
+  return S_OK;
+}
+
+
 LRESULT CIECookieManager::CCookieHelperWindow::OnCookieMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled) {
+  ATLASSERT(m_IECookieManager);
+  ATLASSERT(m_IECookieManager->m_OnCookiesChangedCallback.get());
   CCookieArray * cookies = (CCookieArray *)wParam;
   CComVariant cookieVT;
-  DISPPARAMS params = {&cookieVT, NULL, 1, 0};
-  CIDispatchHelper callback(m_IECookieManager->m_pOnCookiesChangedCallback.p);
-  for(size_t n = 0; n < cookies->GetCount(); n++)
+  //DISPPARAMS params = {&cookieVT, NULL, 1, 0};
+  //CIDispatchHelper callback(m_IECookieManager->m_pOnCookiesChangedCallback.p);
+  for(size_t i = 0; i < cookies->size(); ++i)
   {
-    cookieVT = cookies->operator[](n);
-    HRESULT hr = callback.Call(NULL, &params);
-    ATLASSERT(hr == 0);
+    cookieVT = (*cookies)[i];
+    (m_IECookieManager->m_OnCookiesChangedCallback)->operator ()(cookieVT);
+    ATLTRACE(L"ANCHO COOKIE MANAGER CALLBACK\n");
+    //HRESULT hr = callback.Call(NULL, &params);
+    //ATLASSERT(hr == 0);
   }
   return 0;
 }

@@ -32,43 +32,6 @@ interface IAnchoAddonService : IUnknown
 };
 
 
-/*==========================================================================*/
-[
-  object,
-  uuid(0F317CA8-BB88-4141-906F-257DA0603639),
-  dual,
-  nonextensible,
-  pointer_default(unique)
-]
-interface IIECookie : IDispatch{
-  [id(1), propget, helpstring("property name")] 
-  HRESULT name([out, retval] BSTR * pbsRet);
-
-  [id(2), propget, helpstring("property value")] 
-  HRESULT value([out, retval] BSTR * pbsRet);
-
-  [id(3), propget, helpstring("property domain")] 
-  HRESULT domain([out, retval] BSTR * pbsRet);
-
-  [id(4), propget, helpstring("property path")] 
-  HRESULT path([out, retval] BSTR * pbsRet);
-};
-
-[
-  object,
-  uuid(5DB362D1-77BF-49CA-AA1C-9AAA5AA6320F),
-  dual,
-  nonextensible,
-  pointer_default(unique)
-]
-interface IIECookieManager : IDispatch{
-  [id(1), helpstring("enumCookies")] 
-  HRESULT enumCookies([in] LPDISPATCH pCallback);
-  [id(2), propput, helpstring("property cookiesChangedCallback")] 
-  HRESULT cookiesChangedCallback([in]LPDISPATCH pOnCookiesChangedCallback);
-  [id(3), helpstring("removeCookie")] 
-  HRESULT removeCookie([in] BSTR * pbsUrl, [in] BSTR * pbsName);
-};
 
 
 /*==========================================================================*/
@@ -126,6 +89,9 @@ library AnchoBgSrvLib
   ]
   interface IAnchoServiceApi : IDispatch
   {
+    [propget, id(1)]
+    HRESULT cookieManager([out, retval] VARIANT* ppRet);
+
     HRESULT createTab([in] LPDISPATCH aProperties, [in] LPDISPATCH aCreator, [in] LPDISPATCH aCallback);
     HRESULT updateTab([in] INT aTabId, [in] LPDISPATCH aProperties);
     HRESULT getTabInfo([in] INT aTabId, [in] LPDISPATCH aCreator, [out, retval] VARIANT* aRet);
@@ -134,6 +100,50 @@ library AnchoBgSrvLib
 
     HRESULT executeScript([in] BSTR aExtensionId, [in] INT aTabID, [in] BSTR aCode, [in] BOOL aFileSpecified, [in] BOOL aInAllFrames);
     HRESULT invokeExternalEventObject([in] BSTR aExtensionId, [in] BSTR aEventName, [in] LPDISPATCH aArgs, [out, retval] VARIANT* aRet);
+  };
+
+  /*==========================================================================*/
+  [
+    object,
+    uuid(0F317CA8-BB88-4141-906F-257DA0603639),
+    dual,
+    nonextensible,
+    pointer_default(unique)
+  ]
+  interface IIECookie : IDispatch{
+    [id(1), propget, helpstring("property name")] 
+    HRESULT name([out, retval] BSTR * pbsRet);
+
+    [id(2), propget, helpstring("property value")] 
+    HRESULT value([out, retval] BSTR * pbsRet);
+
+    [id(3), propget, helpstring("property domain")] 
+    HRESULT domain([out, retval] BSTR * pbsRet);
+
+    [id(4), propget, helpstring("property path")] 
+    HRESULT path([out, retval] BSTR * pbsRet);
+
+    [id(5), propget, helpstring("property expirationDate")] 
+    HRESULT expirationDate([out, retval] VARIANT * aRet);
+  };
+
+  [
+    object,
+    uuid(5DB362D1-77BF-49CA-AA1C-9AAA5AA6320F),
+    dual,
+    nonextensible,
+    pointer_default(unique)
+  ]
+  interface IIECookieManager : IDispatch{
+    [id(1), helpstring("enumCookies")] 
+    HRESULT enumCookies([in] LPDISPATCH pCallback);
+    /*[id(2), propput, helpstring("property cookiesChangedCallback")] 
+    HRESULT cookiesChangedCallback([in]LPDISPATCH pOnCookiesChangedCallback);*/
+    
+    [id(3), helpstring("removeCookie")] 
+    HRESULT removeCookie([in] BSTR aUrl, [in] BSTR aName);
+
+    HRESULT setCookie([in] BSTR aUrl, [in] BSTR aName, [in] BSTR aData);
   };
 
 
@@ -168,6 +178,8 @@ library AnchoBgSrvLib
     HRESULT removeEventObject([in]BSTR aEventName, [in] INT aInstanceId);
 
     HRESULT invokeEventObject([in] BSTR aEventName, [in] INT aSelectedInstance, [in] BOOL aSkipInstance, [in] LPDISPATCH aArgs, [out, retval] VARIANT* aRet);
+    HRESULT invokeEventWithIDispatchArgument([in] BSTR aEventName, [in] LPDISPATCH aArg);
+    HRESULT setIDispatchEventInvocationHandler([in] LPDISPATCH aFunction);
     HRESULT callFunction([in] LPDISPATCH aFunction, [in] LPDISPATCH aArgs, [out, retval] VARIANT* aRet);
   };
 

@@ -107,7 +107,11 @@ public:
   STDMETHOD(addEventObject)(BSTR aEventName, INT aInstanceId, LPDISPATCH aListener);
   STDMETHOD(removeEventObject)(BSTR aEventName, INT aInstanceId);
   STDMETHOD(invokeEventObject)(BSTR aEventName, INT aSelectedInstance, BOOL aSkipInstance, LPDISPATCH aArgs, VARIANT* aRet);
+  STDMETHOD(invokeEventWithIDispatchArgument)(BSTR aEventName, LPDISPATCH aArg);
+  STDMETHOD(setIDispatchEventInvocationHandler)(LPDISPATCH aFunction);
   STDMETHOD(callFunction)(LPDISPATCH aFunction, LPDISPATCH aArgs, VARIANT* pvRet);
+  
+
   // -------------------------------------------------------------------------
   // _IMagpieLoggerEvents methods
   STDMETHOD_(void, OnLog)(VARIANT val, BSTR bsModuleID);
@@ -166,5 +170,7 @@ private:
   EventObjectMap                m_EventObjects;
 
   CComPtr<IAnchoServiceApi>     m_ServiceApi;
+
+  CIDispatchHelper              m_InvokeEventWithIDispatch;
 };
 

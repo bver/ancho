@@ -10,7 +10,7 @@ define(function() {
 
     });
 
-    it('can getAllCookieStores() cookies', function(){
+    xit('can getAllCookieStores() cookies', function(){
         var cookieStores = null;
         var callback = function(aCookieStores){cookieStores = aCookieStores;}
         runs( function() {
@@ -39,22 +39,33 @@ define(function() {
 
         runs( function(){
             expect(cookies).not.toBe(null);
+            console.log("Cookies " + cookies.length);
+            for (var i = 0; i < cookies.length; ++i) {
+              console.log("cookie " + cookies[i].name + "=" + cookies[i].value); 
+            }
         });
     });
     
     it('Can set, get and remove cookies', function(){
-      
+        var expirationDate = new Date;
+        expirationDate.setHours( expirationDate.getHours()+1 );
+        console.log("expirationDate " + new Date(expirationDate.getTime()/1000).toUTCString());
+        expirationDate = expirationDate.getTime()/1000;
         var cookie = null;
         var cookieWasSet = false;
         var callback = function(aCookie){cookie = aCookie; cookieWasSet = true;}
         var cookieRemoveCalled = false;
         var removedCookieDetails = null;
         var removeCallback = function(aCookieDetails){removedCookieDetails = aCookieDetails; cookieRemoveCalled = true;}
-        var testUrl = 'www.myweb.tst';
+        var testUrl = 'http://www.myweb.tst';
         var testValue = 'TEST';
         var testName = 'testName'
+        chrome.cookies.onChanged.addListener(function(aChangeInfo){console.log("AAAAAAAAAA EVENT ------------- " 
+            + aChangeInfo.cookie.name + "=" 
+            + aChangeInfo.cookie.value 
+            + 'Expiration date: ' + aChangeInfo.cookie.expirationDate );});
         runs( function() {
-            chrome.cookies.set({url: testUrl, value : testValue, name : testName}, callback);
+            chrome.cookies.set({url: testUrl, value : testValue, name : testName, expirationDate: expirationDate}, callback);
         });
         waitsFor(function() {
           return cookieWasSet;
@@ -106,6 +117,27 @@ define(function() {
           cookie = null;
           cookieWasSet = false;
           chrome.cookies.remove({url: testUrl, name : testName}, removeCallback);
+        });
+        
+    });
+    
+    it('can getAll() cookies 2', function(){
+        var cookies = null;
+        var callback = function(aCookies){cookies = aCookies;}
+        runs( function() {
+            chrome.cookies.getAll({}, callback);
+        });
+
+        waitsFor(function() {
+          return cookies != null;
+        }, "getAll cookies failed", 3000);
+
+        runs( function(){
+            expect(cookies).not.toBe(null);
+            console.log("Cookies " + cookies.length);
+            for (var i = 0; i < cookies.length; ++i) {
+              console.log("cookie " + cookies[i].name + "=" + cookies[i].value); 
+            }
         });
     });
     

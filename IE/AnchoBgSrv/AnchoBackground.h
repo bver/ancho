@@ -80,7 +80,7 @@ public:
   void OnAddonServiceReleased();
 
   STDMETHOD(invokeExternalEventObject)(BSTR aEventName, LPDISPATCH aArgs, VARIANT* aRet);
-
+  STDMETHOD(invokeEventWithIDispatchArgument)(BSTR aEventName, LPDISPATCH aArg);
 public:
   // -------------------------------------------------------------------------
   // IAnchoAddonBackground methods. See .idl for description.

@@ -77,6 +77,7 @@ public:
 public:
   // -------------------------------------------------------------------------
   // IAnchoServiceApi methods. See .idl for description.
+  STDMETHOD(get_cookieManager)(VARIANT* ppRet);
   STDMETHOD(invokeExternalEventObject)(BSTR aExtensionId, BSTR aEventName, LPDISPATCH aArgs, VARIANT* aRet);
   STDMETHOD(createTab)(LPDISPATCH aProperties, LPDISPATCH aCreator, LPDISPATCH aCallback);
   STDMETHOD(reloadTab)(INT aTabId);
@@ -93,6 +94,7 @@ public:
   STDMETHOD(unregisterRuntime)(INT aTabID);
   STDMETHOD(createTabNotification)(INT aTabID, INT aRequestID);
   STDMETHOD(invokeEventObjectInAllExtensions)(BSTR aEventName, LPDISPATCH aArgs);
+  STDMETHOD(invokeEventObjectInAllExtensionsWithIDispatchArgument)(BSTR aEventName, LPDISPATCH aArg);
 private:
   HRESULT removeTab(INT aTabId, LPDISPATCH aCallback);
   HRESULT executeScriptInTab(BSTR aExtensionID, INT aTabID, BSTR aCode, BOOL aFileSpecified);

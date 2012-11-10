@@ -40,7 +40,7 @@ typedef CComObject<CIECookie> CIECookieComObject;
 class ATL_NO_VTABLE CIECookie :
 	public CComObjectRootEx<CComSingleThreadModel>,
 	public CComCoClass<CIECookie, &CLSID_IECookie>,
-	public IDispatchImpl<IIECookie, &IID_IIECookie, &LIBID_MagpieLib,
+	public IDispatchImpl<IIECookie, &IID_IIECookie, &LIBID_AnchoBgSrvLib,
                       /*wMajor =*/ 0xffff, /*wMinor =*/ 0xffff>
 {
 public:
@@ -83,7 +83,7 @@ public:
   STDMETHOD(get_value)(BSTR * pbsRet);
   STDMETHOD(get_domain)(BSTR * pbsRet);
   STDMETHOD(get_path)(BSTR * pbsRet);
-
+  STDMETHOD(get_expirationDate)(VARIANT * aRet);
 protected:
   // -------------------------------------------------------------------------
   // ctor

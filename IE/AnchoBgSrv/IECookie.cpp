@@ -7,6 +7,26 @@
 #include "StdAfx.h"
 #include "IECookie.h"
 
+#include <ctime>
+
+#define EPOCH_DIFF 0x019DB1DED53E8000LL /* 116444736000000000 nsecs */
+#define RATE_DIFF 10000000 /* 100 nsecs */
+
+typedef INT64 filetime_t;
+
+/* Convert a UNIX time_t into a Windows filetime_t */
+filetime_t unixTimeToFileTime(time_t utime) {
+        INT64 tconv = ((INT64)utime * RATE_DIFF) + EPOCH_DIFF;
+        return tconv;
+}
+
+/* Convert a Windows filetime_t into a UNIX time_t */
+time_t fileTimeToUnixTime(filetime_t ftime) {
+        INT64 tconv = (ftime - EPOCH_DIFF) / RATE_DIFF;
+        return (time_t)tconv;
+}
+
+
 CookieParsedData::CookieParsedData()
 {
   Reset();
@@ -127,5 +147,13 @@ STDMETHODIMP CIECookie::get_path(BSTR * pbsRet)
 {
   ENSURE_RETVAL(pbsRet);
   (*pbsRet) = m_sPath.AllocSysString();
+  return S_OK;
+}
+
+STDMETHODIMP CIECookie::get_expirationDate(VARIANT * aRet)
+{
+  ENSURE_RETVAL(aRet);
+  aRet->vt = VT_R8;
+  aRet->dblVal = fileTimeToUnixTime(*reinterpret_cast<filetime_t*>(&m_ExpirationTime));
   return S_OK;
 }

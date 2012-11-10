@@ -10,8 +10,26 @@
 #include <sstream>
 #include <algorithm>
 
+struct CookieNotificationCallback: public ACookieCallbackFunctor
+{
+  CookieNotificationCallback(CAnchoAddonService &aService): service(aService)
+  {}
+
+  void operator()(CComVariant &aCookie)
+  {
+    ATLASSERT(aCookie.vt == VT_DISPATCH);
+    CComBSTR eventName(L"cookies.onChanged");
+    
+    service.invokeEventObjectInAllExtensionsWithIDispatchArgument(eventName, aCookie.pdispVal);
+    ATLTRACE("NOTIFICATION ");
+  }
+
+  CAnchoAddonService &service;
+};
+
+
 /*============================================================================
- * class CAnchoAddonBackground
+ * class CAnchoAddonService
  */
 
 //----------------------------------------------------------------------------
@@ -20,7 +38,16 @@ void CAnchoAddonService::OnAddonFinalRelease(BSTR bsID)
 {
   m_BackgroundObjects.erase(std::wstring(bsID, SysStringLen(bsID)));
 }
-
+//----------------------------------------------------------------------------
+//
+HRESULT CAnchoAddonService::get_cookieManager(VARIANT* ppRet)
+{
+  ENSURE_RETVAL(ppRet);
+  ppRet->vt = VT_DISPATCH;
+  ppRet->pdispVal = m_Cookies.p;
+  return S_OK;
+  //return m_Cookies.QueryInterface(ppRet);
+}
 //----------------------------------------------------------------------------
 //
 HRESULT CAnchoAddonService::invokeExternalEventObject(BSTR aExtensionId, BSTR aEventName, LPDISPATCH aArgs, VARIANT* aRet)
@@ -230,12 +257,12 @@ HRESULT CAnchoAddonService::FinalConstruct()
   PathAddBackslash(psc);
   m_sThisPath.ReleaseBuffer();
 
-  HRESULT hr;
   CComObject<CIECookieManager> * pCookiesManager = NULL;
-  hr = CComObject<CIECookieManager>::CreateInstance(&pCookiesManager);
-  IF_FAILED_RET(hr);
+  IF_FAILED_RET(CComObject<CIECookieManager>::CreateInstance(&pCookiesManager));
   m_Cookies = pCookiesManager;
 
+  static_cast<CIECookieManager*>(m_Cookies.p)->setNotificationCallback(ACookieCallbackFunctor::APtr(new CookieNotificationCallback(*this)));
+  static_cast<CIECookieManager*>(m_Cookies.p)->startWatching();
   return S_OK;
 }
 
@@ -355,6 +382,15 @@ STDMETHODIMP CAnchoAddonService::invokeEventObjectInAllExtensions(BSTR aEventNam
     CComVariant retVal;
     CComBSTR id(it->first.c_str());
     invokeExternalEventObject(id, aEventName, aArgs, &retVal);
+  }
+  return S_OK;
+}
+//----------------------------------------------------------------------------
+//
+STDMETHODIMP CAnchoAddonService::invokeEventObjectInAllExtensionsWithIDispatchArgument(BSTR aEventName, LPDISPATCH aArg)
+{
+  for (BackgroundObjectsMap::iterator it = m_BackgroundObjects.begin(); it != m_BackgroundObjects.end(); ++it) {
+    it->second->invokeEventWithIDispatchArgument(aEventName, aArg);
   }
   return S_OK;
 }

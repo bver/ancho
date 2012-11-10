@@ -100,6 +100,14 @@ exports.releaseContentAPI = function(instanceID) {
   }
 };
 
+function invokeEvent(aEventName, aIDispatchData) {
+  console.log("INVOKE EVENT!");
+
+  require("cookies.js").invokeEventWithIDispatch(aEventName, aIDispatchData);
+  console.log("INVOKE EVENT DONE!");
+}
+addonAPI.setIDispatchEventInvocationHandler(invokeEvent);
+
 //------------------------------------------------------------------------------
 // MAIN
 //------------------------------------------------------------------------------

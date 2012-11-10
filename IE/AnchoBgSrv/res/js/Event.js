@@ -26,7 +26,7 @@
     }
 
     this.fire = function() {
-      //console.debug('Fire event ' + _eventName + ' - ' + _listeners.length + ' instance:' + _instanceID);
+      console.debug('Fire event ' + _eventName + ' - ' + _listeners.length + ' instance:' + _instanceID);
       var results = [];
       for (var i = 0; i < _listeners.length; ++i) {
         //We cannot use apply - doesn't work for arrays from different script engines
