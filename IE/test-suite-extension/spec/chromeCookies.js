@@ -60,20 +60,22 @@ define(function() {
         var testUrl = 'http://www.myweb.tst';
         var testValue = 'TEST';
         var testName = 'testName'
-        chrome.cookies.onChanged.addListener(function(aChangeInfo){console.log("AAAAAAAAAA EVENT ------------- " 
-            + aChangeInfo.cookie.name + "=" 
-            + aChangeInfo.cookie.value 
-            + 'Expiration date: ' + aChangeInfo.cookie.expirationDate );});
+        var eventInvoked = false;
+        chrome.cookies.onChanged.addListener(function(aChangeInfo){ 
+                  eventInvoked = eventInvoked || (aChangeInfo.cookie.name === testName && aChangeInfo.cookie.value === testValue);                
+                });
+        
         runs( function() {
             chrome.cookies.set({url: testUrl, value : testValue, name : testName, expirationDate: expirationDate}, callback);
         });
         waitsFor(function() {
           return cookieWasSet;
-        }, "Callback for getting cookie was not called", 3000);
+        }, "Callback for setting cookie was not called", 3000);
 
         runs(function(){
           expect(cookie).not.toBe(null);
           expect(cookie.value).toBe(testValue);
+          expect(eventInvoked).toBe(true);
           cookie = null;
           cookieWasSet = false;
         });
@@ -145,5 +147,8 @@ define(function() {
 
 });
 
-
+/*console.log("COOKIE ONCHANGED EVENT " 
+            + aChangeInfo.cookie.name + "=" 
+            + aChangeInfo.cookie.value 
+            + '; Expiration date: ' + (new Date(aChangeInfo.cookie.expirationDate*1000)).toUTCString() );*/
 

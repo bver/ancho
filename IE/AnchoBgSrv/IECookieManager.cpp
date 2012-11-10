@@ -333,6 +333,28 @@ STDMETHODIMP CIECookieManager::setCookie(BSTR aUrl, BSTR aName, BSTR aData)
   return S_OK;
 }
 
+STDMETHODIMP CIECookieManager::getCookie(BSTR aUrl, BSTR aName, VARIANT *aData)
+{
+  ENSURE_RETVAL(aData);
+  DWORD size = 0;
+  if (!InternetGetCookie(aUrl, aName, NULL, &size)){
+    HRESULT hr = GetLastError();
+    ATLTRACE(_T("Could not set cookie. Error: %d : %s\n"), hr, lastErrorMessage(hr));
+    return hr;
+  }
+  
+  aData->vt = VT_BSTR;
+  aData->bstrVal = SysAllocStringByteLen(NULL,(size + 10));
+
+  if (!InternetGetCookie(aUrl, aName, aData->bstrVal, &size)){
+    HRESULT hr = GetLastError();
+    ATLTRACE(_T("Could not set cookie. Error: %d : %s\n"), hr, lastErrorMessage(hr));
+    SysFreeString(aData->bstrVal);
+    return hr;
+  }
+  //TODO construct IECookie object from string
+  return S_OK;
+}
 
 LRESULT CIECookieManager::CCookieHelperWindow::OnCookieMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled) {
   ATLASSERT(m_IECookieManager);

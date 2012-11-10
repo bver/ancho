@@ -71,9 +71,9 @@ public:
   // -------------------------------------------------------------------------
   // IIECookieManager methods. See .idl for description.
   STDMETHOD(enumCookies)(LPDISPATCH pCallback);
-  //STDMETHOD(put_cookiesChangedCallback)(LPDISPATCH pOnCookiesChangedCallback);
   STDMETHOD(removeCookie)(BSTR aUrl, BSTR aName);
   STDMETHOD(setCookie)(BSTR aUrl, BSTR aName, BSTR aData);
+  STDMETHOD(getCookie)(BSTR aUrl, BSTR aName, VARIANT *aData);
 
 protected:
   // -------------------------------------------------------------------------

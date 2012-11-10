@@ -40,13 +40,10 @@ void CAnchoAddonService::OnAddonFinalRelease(BSTR bsID)
 }
 //----------------------------------------------------------------------------
 //
-HRESULT CAnchoAddonService::get_cookieManager(VARIANT* ppRet)
+HRESULT CAnchoAddonService::get_cookieManager(LPDISPATCH* ppRet)
 {
   ENSURE_RETVAL(ppRet);
-  ppRet->vt = VT_DISPATCH;
-  ppRet->pdispVal = m_Cookies.p;
-  return S_OK;
-  //return m_Cookies.QueryInterface(ppRet);
+  return m_Cookies.QueryInterface(ppRet);
 }
 //----------------------------------------------------------------------------
 //
@@ -259,10 +256,10 @@ HRESULT CAnchoAddonService::FinalConstruct()
 
   CComObject<CIECookieManager> * pCookiesManager = NULL;
   IF_FAILED_RET(CComObject<CIECookieManager>::CreateInstance(&pCookiesManager));
+  pCookiesManager->setNotificationCallback(ACookieCallbackFunctor::APtr(new CookieNotificationCallback(*this)));
+  pCookiesManager->startWatching();
+  
   m_Cookies = pCookiesManager;
-
-  static_cast<CIECookieManager*>(m_Cookies.p)->setNotificationCallback(ACookieCallbackFunctor::APtr(new CookieNotificationCallback(*this)));
-  static_cast<CIECookieManager*>(m_Cookies.p)->startWatching();
   return S_OK;
 }
 

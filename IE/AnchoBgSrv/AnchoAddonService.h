@@ -77,7 +77,7 @@ public:
 public:
   // -------------------------------------------------------------------------
   // IAnchoServiceApi methods. See .idl for description.
-  STDMETHOD(get_cookieManager)(VARIANT* ppRet);
+  STDMETHOD(get_cookieManager)(LPDISPATCH* ppRet);
   STDMETHOD(invokeExternalEventObject)(BSTR aExtensionId, BSTR aEventName, LPDISPATCH aArgs, VARIANT* aRet);
   STDMETHOD(createTab)(LPDISPATCH aProperties, LPDISPATCH aCreator, LPDISPATCH aCallback);
   STDMETHOD(reloadTab)(INT aTabId);

@@ -14,6 +14,8 @@ require("cookies_spec.js");
 var preprocessArguments = require("typeChecking.js").preprocessArguments;
 var notImplemented = require("typeChecking.js").notImplemented;
 
+var cleanWS = require("utils.js").cleanWhiteSpace;
+
 var EVENT_LIST = ['onChanged'];
 var API_NAME = 'cookies';
 
@@ -21,13 +23,23 @@ var API_NAME = 'cookies';
 
 // this function just copies IECookie objects to plain Javascript objects,
 // so the caller can modificate it
-function createCookieCopy(cookie) {
+function createCookieCopy(aCookie) {
   return {
-    domain: cookie.domain,
-    path: cookie.path,
-    name: cookie.name,
-    value: cookie.value,
-    expirationDate: cookie.expirationDate
+    domain: cleanWS(aCookie.domain),
+    path: cleanWS(aCookie.path),
+    name: cleanWS(aCookie.name),
+    value: cleanWS(aCookie.value),
+    expirationDate: aCookie.expirationDate
+  };
+}
+
+function parseCookieString(aCookie) {
+  var idx = aCookie.indexOf('=');
+  var name = cleanWS(aCookie.substr(0, idx));
+  var value = cleanWS(aCookie.substr(idx + 1));
+  return {
+    name: name,
+    value: value
   };
 }
 
@@ -43,7 +55,6 @@ exports.invokeEventWithIDispatch = function(aEventName, aIDispatchData) {
     removed: 'false',
     cookie: cookie
   };
-  console.debug('Invoking event');
   addonAPI.invokeEventObject(
             'cookies.onChanged',
             -1,
@@ -65,7 +76,11 @@ var Cookies = function(instanceID) {
   // chrome.cookies.get
   this.get = function(details, callback) {
     var args = preprocessArguments('chrome.cookies.get', arguments);
-
+    var data = serviceAPI.cookieManager.getCookie(args['details'].url, args['details'].name);
+    var cookie = parseCookieString(data);
+    cookie.url = args['details'].url;
+    
+    args['callback'](cookie);
   };
 
   //----------------------------------------------------------------------------
@@ -73,10 +88,10 @@ var Cookies = function(instanceID) {
   this.getAll = function(details, callback) {
     var args = preprocessArguments('chrome.cookies.getAll', arguments);
     var cookies = [];
-    /*serviceAPI.cookieManager.enumCookies(function(cookie) {
+    serviceAPI.cookieManager.enumCookies(function(cookie) {
       cookies.push(createCookieCopy(cookie));
     });
-    callback(cookies);*/
+    callback(cookies);
   };
 
   //----------------------------------------------------------------------------
@@ -90,7 +105,10 @@ var Cookies = function(instanceID) {
   this.remove = function(details, callback) {
     var args = preprocessArguments('chrome.cookies.remove', arguments);
     serviceAPI.cookieManager.removeCookie(args['details'].url, args['details'].name);
-    //TODO callback
+    if (args['callback']) {
+      //TODO storeId
+      args['callback']({ url: args['details'].url, name: args['details'].name });
+    }
   };
 
   //----------------------------------------------------------------------------
@@ -128,7 +146,13 @@ var Cookies = function(instanceID) {
     console.debug('Stored cookie : ' + args['details'].url + ' : ' + data);
     serviceAPI.cookieManager.setCookie(args['details'].url, args['details'].name, data);
 
-    //TODO callback
+    if (args['callback']) {
+      //TODO additional properties
+      var data = serviceAPI.cookieManager.getCookie(args['details'].url, args['details'].name);
+      var cookie = parseCookieString(data);
+      cookie.url = args['details'].url;
+      args['callback'](cookie);
+    }
   };
 
   //============================================================================
