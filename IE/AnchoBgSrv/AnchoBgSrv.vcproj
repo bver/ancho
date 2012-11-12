@@ -244,6 +244,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\IECookie.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\IECookieManager.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\LogView.cpp"
 				>
 			</File>
@@ -299,6 +307,14 @@
 			</File>
 			<File
 				RelativePath=".\BackgroundWindow.h"
+				>
+			</File>
+			<File
+				RelativePath=".\IECookie.h"
+				>
+			</File>
+			<File
+				RelativePath=".\IECookieManager.h"
 				>
 			</File>
 			<File
@@ -401,6 +417,10 @@
 		</File>
 		<File
 			RelativePath=".\res\js\cookies.js"
+			>
+		</File>
+		<File
+			RelativePath=".\res\js\specifications\cookies_spec.js"
 			>
 		</File>
 		<File

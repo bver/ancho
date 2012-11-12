@@ -364,6 +364,26 @@ STDMETHODIMP CAnchoBackgroundAPI::invokeEventObject(BSTR aEventName, INT aSelect
   }
   return constructSafeArrayFromVector(results, *aRet);
 }
+
+//----------------------------------------------------------------------------
+//
+STDMETHODIMP CAnchoBackgroundAPI::invokeEventWithIDispatchArgument(BSTR aEventName, LPDISPATCH aArg)
+{
+  if (!m_InvokeEventWithIDispatch) {
+    return E_FAIL;
+  }
+  CComVariant eventName(aEventName);
+  CComVariant dispatchObject(aArg);
+  return m_InvokeEventWithIDispatch.Invoke2((DISPID)0, &eventName, &dispatchObject);
+}
+
+//----------------------------------------------------------------------------
+//
+STDMETHODIMP CAnchoBackgroundAPI::setIDispatchEventInvocationHandler(LPDISPATCH aFunction)
+{
+  m_InvokeEventWithIDispatch = aFunction;
+  return S_OK;
+}
 //----------------------------------------------------------------------------
 //
 

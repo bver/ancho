@@ -117,6 +117,12 @@ STDMETHODIMP CAnchoAddonBackground::invokeExternalEventObject(BSTR aEventName, L
   return m_BackgroundAPI.invokeEventObject(aEventName, -1, true, aArgs, aRet);
 }
 //----------------------------------------------------------------------------
+//
+STDMETHODIMP CAnchoAddonBackground::invokeEventWithIDispatchArgument(BSTR aEventName, LPDISPATCH aArg)
+{
+  return m_BackgroundAPI.invokeEventWithIDispatchArgument(aEventName, aArg);
+}
+//----------------------------------------------------------------------------
 //  IAnchoAddonBackground methods
 //----------------------------------------------------------------------------
 
