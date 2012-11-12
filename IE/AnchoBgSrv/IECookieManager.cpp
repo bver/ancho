@@ -342,16 +342,20 @@ STDMETHODIMP CIECookieManager::getCookie(BSTR aUrl, BSTR aName, VARIANT *aData)
     ATLTRACE(_T("Could not set cookie. Error: %d : %s\n"), hr, lastErrorMessage(hr));
     return hr;
   }
-  
-  aData->vt = VT_BSTR;
-  aData->bstrVal = SysAllocStringByteLen(NULL,(size + 10));
-
-  if (!InternetGetCookie(aUrl, aName, aData->bstrVal, &size)){
+  CString data;
+  //Size was returned in bytes not in number of characters.
+  TCHAR * buffer = data.GetBuffer(size/sizeof(TCHAR) + 1);
+  if (!InternetGetCookie(aUrl, aName, buffer, &size)){
+    data.ReleaseBuffer();
     HRESULT hr = GetLastError();
     ATLTRACE(_T("Could not set cookie. Error: %d : %s\n"), hr, lastErrorMessage(hr));
     SysFreeString(aData->bstrVal);
     return hr;
   }
+  data.ReleaseBuffer();
+  aData->vt = VT_BSTR;
+  aData->bstrVal = data.AllocSysString();
+
   //TODO construct IECookie object from string
   return S_OK;
 }

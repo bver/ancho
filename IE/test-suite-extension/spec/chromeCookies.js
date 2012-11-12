@@ -39,17 +39,12 @@ define(function() {
 
         runs( function(){
             expect(cookies).not.toBe(null);
-            console.log("Cookies " + cookies.length);
-            for (var i = 0; i < cookies.length; ++i) {
-              console.log("cookie " + cookies[i].name + "=" + cookies[i].value); 
-            }
         });
     });
     
     it('Can set, get and remove cookies', function(){
         var expirationDate = new Date;
         expirationDate.setHours( expirationDate.getHours()+1 );
-        console.log("expirationDate " + new Date(expirationDate.getTime()/1000).toUTCString());
         expirationDate = expirationDate.getTime()/1000;
         var cookie = null;
         var cookieWasSet = false;
@@ -61,94 +56,68 @@ define(function() {
         var testValue = 'TEST';
         var testName = 'testName'
         var eventInvoked = false;
-        chrome.cookies.onChanged.addListener(function(aChangeInfo){ 
-                  eventInvoked = eventInvoked || (aChangeInfo.cookie.name === testName && aChangeInfo.cookie.value === testValue);                
+        describe('setting cookie', function(){
+          it('can set cookie, call the callback and catch an event', function(){
+            chrome.cookies.onChanged.addListener(function(aChangeInfo){ 
+                  eventInvoked = eventInvoked || (aChangeInfo.cookie.name.indexOf(testName) != -1 && aChangeInfo.cookie.value === testValue);                
                 });
         
-        runs( function() {
-            chrome.cookies.set({url: testUrl, value : testValue, name : testName, expirationDate: expirationDate}, callback);
-        });
-        waitsFor(function() {
-          return cookieWasSet;
-        }, "Callback for setting cookie was not called", 3000);
-
-        runs(function(){
-          expect(cookie).not.toBe(null);
-          expect(cookie.value).toBe(testValue);
-          expect(eventInvoked).toBe(true);
-          cookie = null;
-          cookieWasSet = false;
-        });
-        
-        runs( function() {
-            chrome.cookies.get({url: testUrl, name : testName}, callback);
-        });
-        
-        waitsFor(function() {
-          return cookieWasSet;
-        }, "Callback for getting cookie was not called", 3000);
-        
-        runs(function(){
-          expect(cookie).not.toBe(null);
-          expect(cookie.value).toBe(testValue);
-          expect(cookie.name).toBe(testName);
-          cookie = null;
-          cookieWasSet = false;
-          chrome.cookies.remove({url: testUrl, name : testName}, removeCallback);
-        });
-        
-        waitsFor(function() {
-          return cookieRemoveCalled;
-        }, "Callback for removing cookie was not called", 3000);
-        
-        runs(function(){
-          expect(removedCookieDetails).not.toBe(null);
-          expect(removedCookieDetails.url).toBe(testUrl);
-          expect(removedCookieDetails.name).toBe(testName);
-          chrome.cookies.get({url: testUrl, name : testName}, callback);
-        });
-        
-        waitsFor(function() {
-          return cookieWasSet;
-        }, "Callback for getting cookie was not called", 3000);
-        
-        runs(function(){
-          expect(cookie).toBe(null);
-          expect(cookie.value).toBe(testValue);
-          expect(cookie.name).toBe(testName);
-          cookie = null;
-          cookieWasSet = false;
-          chrome.cookies.remove({url: testUrl, name : testName}, removeCallback);
-        });
-        
-    });
+            runs( function() {
+                chrome.cookies.set({url: testUrl, value : testValue, name : testName, expirationDate: expirationDate}, callback);
+            });
+            waitsFor(function() {
+              return cookieWasSet && eventInvoked;
+            }, "Callback for setting cookie was not called", 3000);
     
-    it('can getAll() cookies 2', function(){
-        var cookies = null;
-        var callback = function(aCookies){cookies = aCookies;}
-        runs( function() {
-            chrome.cookies.getAll({}, callback);
+            runs(function(){
+              expect(cookie).not.toBe(null);
+              expect(cookie.value).toBe(testValue);
+              expect(eventInvoked).toBe(true);
+              cookie = null;
+              cookieWasSet = false;
+            });
+          });
         });
-
-        waitsFor(function() {
-          return cookies != null;
-        }, "getAll cookies failed", 3000);
-
-        runs( function(){
-            expect(cookies).not.toBe(null);
-            console.log("Cookies " + cookies.length);
-            for (var i = 0; i < cookies.length; ++i) {
-              console.log("cookie " + cookies[i].name + "=" + cookies[i].value); 
-            }
+        describe('getting a cookie', function(){
+          it('can get a cookie', function() {
+            runs( function() {
+                chrome.cookies.get({url: testUrl, name : testName}, callback);
+            });
+            
+            waitsFor(function() {
+              return cookieWasSet;
+            }, "Callback for getting cookie was not called", 3000);
+            
+            runs(function(){
+              expect(cookie).not.toBe(null);
+              expect(cookie.value).toBe(testValue);
+              expect(cookie.name).toBe(testName);
+              cookie = null;
+              cookieWasSet = false;
+              chrome.cookies.remove({url: testUrl, name : testName}, removeCallback);
+            });
+          });
+        });
+        describe('getting a cookie', function(){
+          it('can get a cookie', function() {
+              
+              runs(function(){
+                  chrome.cookies.remove({url: testUrl, name : testName}, removeCallback);
+            });
+            waitsFor(function() {
+              return cookieRemoveCalled;
+            }, "Callback for removing cookie was not called", 3000);
+            
+            runs(function(){
+              expect(removedCookieDetails).not.toBe(null);
+              expect(removedCookieDetails.url).toBe(testUrl);
+              expect(removedCookieDetails.name).toBe(testName);
+              chrome.cookies.get({url: testUrl, name : testName}, callback);
+            });
+          });
         });
     });
-    
   });
 
 });
-
-/*console.log("COOKIE ONCHANGED EVENT " 
-            + aChangeInfo.cookie.name + "=" 
-            + aChangeInfo.cookie.value 
-            + '; Expiration date: ' + (new Date(aChangeInfo.cookie.expirationDate*1000)).toUTCString() );*/
 

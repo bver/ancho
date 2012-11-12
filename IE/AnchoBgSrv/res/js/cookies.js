@@ -143,7 +143,6 @@ var Cookies = function(instanceID) {
     //if (args['details'].storeId) {
     //TODO cookieStores
     //}
-    console.debug('Stored cookie : ' + args['details'].url + ' : ' + data);
     serviceAPI.cookieManager.setCookie(args['details'].url, args['details'].name, data);
 
     if (args['callback']) {

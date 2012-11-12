@@ -14,7 +14,6 @@
 var manifest = require("manifest").manifest;
 
 console.info("Loading extension [" + addonAPI.id + "] [" + addonAPI.guid + "]");
-console.info("serviceAPI :" + typeof(serviceAPI));
 //------------------------------------------------------------------------------
 // BACKGROUND API
 //------------------------------------------------------------------------------
