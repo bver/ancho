@@ -65,6 +65,7 @@ STDMETHODIMP CAnchoProtocolSink::BeginningTransaction(
   ULONG count;
   GetBindString(BINDSTRING_PTR_BIND_CONTEXT, &bind_ctx_string, 1, &count);
   m_IsFrame = (bind_ctx_string != NULL);
+  ::CoTaskMemFree(bind_ctx_string);
 
   if (pszAdditionalHeaders)
   {
@@ -118,7 +119,7 @@ STDMETHODIMP CAnchoProtocolSink::ReportProgress(
     PROTOCOLDATA data;
     data.grfFlags = PD_FORCE_SWITCH;
     data.dwState = ANCHO_SWITCH_REDIRECT;
-    data.pData = MakeSwitchParams((BSTR) m_Url.c_str(), (BSTR) szStatusText);
+    data.pData = InitSwitchParams((BSTR) m_Url.c_str(), (BSTR) szStatusText);
     data.cbData = sizeof(BSTR*);
     AddRef();
     Switch(&data);
@@ -148,7 +149,7 @@ STDMETHODIMP CAnchoProtocolSink::ReportData(
     PROTOCOLDATA data;
     data.grfFlags = PD_FORCE_SWITCH;
     data.dwState = ANCHO_SWITCH_REPORT_DATA;
-    data.pData = MakeSwitchParams((BSTR) m_Url.c_str());
+    data.pData = InitSwitchParams((BSTR) m_Url.c_str());
     data.cbData = sizeof(BSTR*);
     AddRef();
     Switch(&data);
@@ -168,7 +169,7 @@ STDMETHODIMP CAnchoProtocolSink::ReportResult(
     PROTOCOLDATA data;
     data.grfFlags = PD_FORCE_SWITCH;
     data.dwState = ANCHO_SWITCH_REPORT_RESULT;
-    data.pData = MakeSwitchParams((BSTR) m_Url.c_str());
+    data.pData = InitSwitchParams((BSTR) m_Url.c_str());
     data.cbData = sizeof(BSTR*);
     AddRef();
     Switch(&data);
@@ -178,13 +179,22 @@ STDMETHODIMP CAnchoProtocolSink::ReportResult(
 }
 
 //----------------------------------------------------------------------------
-//  MakeSwitchParams
-LPVOID CAnchoProtocolSink::MakeSwitchParams(const BSTR param1, const BSTR param2)
+//  InitSwitchParams
+LPVOID CAnchoProtocolSink::InitSwitchParams(const BSTR param1, const BSTR param2)
 {
   BSTR* params = new BSTR[2];
   params[0] = ::SysAllocString(param1);
   params[1] = ::SysAllocString(param2);
   return (LPVOID) params;
+}
+
+//----------------------------------------------------------------------------
+//  FreeSwitchParams
+void CAnchoProtocolSink::FreeSwitchParams(BSTR* params)
+{
+  ::SysFreeString(params[0]);
+  ::SysFreeString(params[1]);
+  delete [] params;
 }
 
 /*============================================================================
@@ -204,10 +214,11 @@ CAnchoPassthruAPP::DocumentSink::~DocumentSink()
 //  CAnchoPassthruAPP::OnReadyStateChange
 STDMETHODIMP_(void) CAnchoPassthruAPP::DocumentSink::OnReadyStateChange(IHTMLEventObj* ev)
 {
-  BSTR readyState;
+  ATLASSERT(m_Doc != NULL);
+  CComBSTR readyState;
   m_Doc->get_readyState(&readyState);
 
-  if (wcscmp(readyState, L"complete") == 0) {
+  if (L"complete" == readyState) {
     CComBSTR loc;
     // Now that the document is loaded, check again to see if we are the main frame.
     HRESULT hr = m_Doc->get_URL(&loc);
@@ -215,8 +226,10 @@ STDMETHODIMP_(void) CAnchoPassthruAPP::DocumentSink::OnReadyStateChange(IHTMLEve
     DispEventUnadvise(m_Doc);
     m_Doc = NULL;
     m_Events->OnFrameEnd(m_Url, isMainFrame);
+
+    // Release the pointer to the APP so we can be freed.
+    m_APP = NULL;
   }
-  ::SysFreeString(readyState);
 }
 
 /*============================================================================
@@ -227,6 +240,9 @@ STDMETHODIMP_(void) CAnchoPassthruAPP::DocumentSink::OnReadyStateChange(IHTMLEve
 //  Destructor
 CAnchoPassthruAPP::~CAnchoPassthruAPP()
 {
+  if (m_DocSink) {
+    delete m_DocSink;
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -234,36 +250,31 @@ CAnchoPassthruAPP::~CAnchoPassthruAPP()
 STDMETHODIMP CAnchoPassthruAPP::Continue(PROTOCOLDATA* data)
 {
   if (data->dwState >= ANCHO_SWITCH_BASE) {
+    CComPtr<CAnchoProtocolSink> pSink = GetSink();
+
     BSTR* params = (BSTR*) data->pData;
     ATLASSERT(params);
     CComBSTR bstrUrl = params[0];
     CComBSTR bstrAdditional = params[1];
-    ::SysFreeString(params[0]);
-    ::SysFreeString(params[1]);
-    delete [] params;
+    pSink->FreeSwitchParams(params);
 
     CComPtr<IWindowForBindingUI> windowForBindingUI;
-    CComPtr<CAnchoProtocolSink> pSink = GetSink();
     // Release the reference we added when calling Switch().
     pSink->InternalRelease();
 
     pSink->QueryServiceFromClient(IID_IWindowForBindingUI, &windowForBindingUI);
     if (windowForBindingUI) {
       HWND hwnd;
-      HRESULT hr = windowForBindingUI->GetWindow(IID_IAuthenticate, &hwnd);
-      IF_FAILED_RET(hr);
+      IF_FAILED_RET(windowForBindingUI->GetWindow(IID_IAuthenticate, &hwnd));
 
       CComPtr<IHTMLDocument2> doc;
-      hr = getHTMLDocumentForHWND(hwnd, &doc);
-      IF_FAILED_RET(hr);
+      IF_FAILED_RET(getHTMLDocumentForHWND(hwnd, &doc));
 
       CComPtr<IWebBrowser2> browser;
-      hr = getBrowserForHTMLDocument(doc, &browser);
-      IF_FAILED_RET(hr);
+      IF_FAILED_RET(getBrowserForHTMLDocument(doc, &browser));
 
       CComBSTR url;
-      hr = browser->get_LocationURL(&url);
-      IF_FAILED_RET(hr);
+      IF_FAILED_RET(browser->get_LocationURL(&url));
       bool isMainFrame = (url == bstrUrl);
 
       // We only want to handle the top-level request and any frames, not subordinate
@@ -276,8 +287,7 @@ STDMETHODIMP CAnchoPassthruAPP::Continue(PROTOCOLDATA* data)
       }
 
       CComVariant var;
-      hr = browser->GetProperty(L"_anchoBrowserEvents", &var);
-      IF_FAILED_RET(hr);
+      IF_FAILED_RET(browser->GetProperty(L"_anchoBrowserEvents", &var));
 
       CComQIPtr<DAnchoBrowserEvents> events(var.pdispVal);
       if (!events) {
@@ -285,23 +295,20 @@ STDMETHODIMP CAnchoPassthruAPP::Continue(PROTOCOLDATA* data)
       }
 
       if (data->dwState == ANCHO_SWITCH_REPORT_DATA) {
-        hr = events->OnFrameStart(bstrUrl, isMainFrame);
-        IF_FAILED_RET(hr);
+        IF_FAILED_RET(events->OnFrameStart(bstrUrl, isMainFrame));
 
         CComBSTR readyState;
         doc->get_readyState(&readyState);
         if (wcscmp(readyState, L"complete") == 0) {
-          hr = events->OnFrameEnd(bstrUrl, isMainFrame);
-          IF_FAILED_RET(hr);
+          IF_FAILED_RET(events->OnFrameEnd(bstrUrl, isMainFrame));
         }
         else {
-          DocumentSink * docSink = new DocumentSink(doc, events, bstrUrl);
-          docSink->DispEventAdvise(doc);
+          m_DocSink = new DocumentSink(this, doc, events, bstrUrl);
+          m_DocSink->DispEventAdvise(doc);
         }
       }
       else if (data->dwState == ANCHO_SWITCH_REDIRECT) {
-        hr = events->OnFrameRedirect(bstrUrl, bstrAdditional);
-        IF_FAILED_RET(hr);
+        IF_FAILED_RET(events->OnFrameRedirect(bstrUrl, bstrAdditional));
       }
     }
   }

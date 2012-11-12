@@ -79,8 +79,8 @@ void CAnchoRuntime::DestroyAddons()
 }
 
 //----------------------------------------------------------------------------
-//  DestroyAddons
-HRESULT CAnchoRuntime::DeinitBrowserEventSource()
+//  Cleanup
+HRESULT CAnchoRuntime::Cleanup()
 {
   AtlUnadvise(m_pWebBrowser, DIID_DWebBrowserEvents2, m_WebBrowserEventsCookie);
   AtlUnadvise(m_pBrowserEventSource, IID_DAnchoBrowserEvents, m_AnchoBrowserEventsCookie);
@@ -89,8 +89,8 @@ HRESULT CAnchoRuntime::DeinitBrowserEventSource()
 }
 
 //----------------------------------------------------------------------------
-//  InitBrowserEventSink
-HRESULT CAnchoRuntime::InitBrowserEventSource()
+//  Init
+HRESULT CAnchoRuntime::Init()
 {
   ATLASSERT(m_spUnkSite);
 
@@ -103,8 +103,7 @@ HRESULT CAnchoRuntime::InitBrowserEventSource()
 
   // get IWebBrowser2
   pServiceProvider->QueryService(SID_SWebBrowserApp, IID_IWebBrowser2, (LPVOID*)&m_pWebBrowser.p);
-  if (!m_pWebBrowser)
-  {
+  if (!m_pWebBrowser) {
     return E_FAIL;
   }
 
@@ -114,8 +113,7 @@ HRESULT CAnchoRuntime::InitBrowserEventSource()
   IF_FAILED_RET(m_pAnchoService.CoCreateInstance(CLSID_AnchoAddonService));
 
   CComObject<CAnchoBrowserEvents>* pBrowserEventSource;
-  HRESULT hr = CComObject<CAnchoBrowserEvents>::CreateInstance(&pBrowserEventSource);
-  IF_FAILED_RET(hr);
+  IF_FAILED_RET(CComObject<CAnchoBrowserEvents>::CreateInstance(&pBrowserEventSource));
 
   m_pBrowserEventSource = pBrowserEventSource;
 
@@ -124,9 +122,8 @@ HRESULT CAnchoRuntime::InitBrowserEventSource()
 
   // Set the sink as property of the browser so it can be retrieved if someone wants to send
   // us events.
-  hr = m_pWebBrowser->PutProperty(L"_anchoBrowserEvents", CComVariant(m_pBrowserEventSource));
-
-  return hr;
+  IF_FAILED_RET(m_pWebBrowser->PutProperty(L"_anchoBrowserEvents", CComVariant(m_pBrowserEventSource)));
+  return S_OK;
 }
 
 //----------------------------------------------------------------------------
@@ -146,14 +143,14 @@ STDMETHODIMP_(void) CAnchoRuntime::OnBrowserBeforeNavigate2(LPDISPATCH pDisp, VA
 //  OnFrameStart
 STDMETHODIMP CAnchoRuntime::OnFrameStart(BSTR bstrUrl, VARIANT_BOOL bIsMainFrame)
 {
-  return ApplyContentScripts(bstrUrl, bIsMainFrame, L"start");
+  return ApplyContentScripts(bstrUrl, bIsMainFrame, documentLoadStart);
 }
 
 //----------------------------------------------------------------------------
 //  OnFrameEnd
 STDMETHODIMP CAnchoRuntime::OnFrameEnd(BSTR bstrUrl, VARIANT_BOOL bIsMainFrame)
 {
-  return ApplyContentScripts(bstrUrl, bIsMainFrame, L"end");
+  return ApplyContentScripts(bstrUrl, bIsMainFrame, documentLoadEnd);
 }
 
 //----------------------------------------------------------------------------
@@ -162,7 +159,7 @@ STDMETHODIMP CAnchoRuntime::OnFrameRedirect(BSTR bstrOldUrl, BSTR bstrNewUrl)
 {
   CComBSTR url;
   removeUrlFragment(bstrOldUrl, &url);
-  std::map<std::wstring, CComPtr<IWebBrowser2> >::iterator it = m_Frames.find(bstrOldUrl);
+  FrameMap::iterator it = m_Frames.find(bstrOldUrl);
   if (it != m_Frames.end()) {
     removeUrlFragment(bstrNewUrl, &url);
     m_Frames[(BSTR) url] = it->second;
@@ -173,7 +170,7 @@ STDMETHODIMP CAnchoRuntime::OnFrameRedirect(BSTR bstrOldUrl, BSTR bstrNewUrl)
 
 //----------------------------------------------------------------------------
 //  ApplyContentScripts
-HRESULT CAnchoRuntime::ApplyContentScripts(BSTR bstrUrl, VARIANT_BOOL bIsMainFrame, BSTR bstrPhase)
+HRESULT CAnchoRuntime::ApplyContentScripts(BSTR bstrUrl, VARIANT_BOOL bIsMainFrame, documentLoadPhase aPhase)
 {
   CComPtr<IWebBrowser2> webBrowser;
   if (bIsMainFrame) {
@@ -182,9 +179,9 @@ HRESULT CAnchoRuntime::ApplyContentScripts(BSTR bstrUrl, VARIANT_BOOL bIsMainFra
   else {
     CComBSTR url;
     removeUrlFragment(bstrUrl, &url);
-    std::map<std::wstring, CComPtr<IWebBrowser2> >::iterator it = m_Frames.find((BSTR) url);
+    FrameMap::iterator it = m_Frames.find((BSTR) url);
     if (it == m_Frames.end()) {
-      ATLASSERT(CComBSTR("end") == bstrPhase);
+      ATLASSERT(documentLoadEnd == aPhase);
       // Assume we have removed this frame while waiting for the document to complete.
       return S_FALSE;
     }
@@ -192,13 +189,13 @@ HRESULT CAnchoRuntime::ApplyContentScripts(BSTR bstrUrl, VARIANT_BOOL bIsMainFra
   }
   // We have to check whether we are the main web browser since the event source can't
   // always tell us if we are the main frame.
-  if ((bIsMainFrame || webBrowser == m_pWebBrowser) && (CComBSTR(L"start") == bstrPhase)) {
+  if ((bIsMainFrame || webBrowser == m_pWebBrowser) && (documentLoadStart == aPhase)) {
     m_Frames.clear();
   }
   CString sAddonID;
   POSITION pos = m_Addons.GetStartPosition();
   while(pos) {
-    m_Addons.GetNextValue(pos)->ApplyContentScripts(webBrowser, bstrUrl, bstrPhase);
+    m_Addons.GetNextValue(pos)->ApplyContentScripts(webBrowser, bstrUrl, aPhase);
   }
 
   return S_OK;
@@ -221,7 +218,7 @@ STDMETHODIMP CAnchoRuntime::SetSite(IUnknown *pUnkSite)
   IF_FAILED_RET(hr);
   if (pUnkSite)
   {
-    hr = InitBrowserEventSource();
+    hr = Init();
     if (SUCCEEDED(hr)) {
       hr = InitAddons();
     }

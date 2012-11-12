@@ -124,8 +124,8 @@ STDMETHODIMP CAnchoAddon::Shutdown()
 }
 
 //----------------------------------------------------------------------------
-//  BrowserNavigateCompleteEvent
-STDMETHODIMP CAnchoAddon::ApplyContentScripts(IWebBrowser2* pBrowser, BSTR bstrUrl, BSTR bstrPhase)
+//  ApplyContentScripts
+STDMETHODIMP CAnchoAddon::ApplyContentScripts(IWebBrowser2* pBrowser, BSTR bstrUrl, documentLoadPhase aPhase)
 {
   // content script handling happens here
 
@@ -135,7 +135,7 @@ STDMETHODIMP CAnchoAddon::ApplyContentScripts(IWebBrowser2* pBrowser, BSTR bstrU
     return S_OK;
   }
 
-  if (CComBSTR(L"end") != bstrPhase) {
+  if (aPhase != documentLoadEnd) {
     return S_OK;
   }
 
@@ -147,24 +147,17 @@ STDMETHODIMP CAnchoAddon::ApplyContentScripts(IWebBrowser2* pBrowser, BSTR bstrU
   // (re)initialize magpie for this page
   m_Magpie->Shutdown();
   HRESULT hr = m_Magpie->Init();
-  if (FAILED(hr))
-  {
-    return hr;
-  }
+  IF_FAILED_RET(hr);
 
   // add a loader for scripts in the extension filesystem
   hr = m_Magpie->AddFilesystemScriptLoader((LPWSTR)(LPCWSTR)m_sExtensionPath);
-  if (FAILED(hr))
-  {
-    return hr;
-  }
+  IF_FAILED_RET(hr);
 
   // inject items: chrome, console and window with global members
 //  CComQIPtr<IDispatch> pDispConsole;
   CComQIPtr<IWebBrowser2> pWebBrowser(pBrowser);
   CIDispatchHelper script = CIDispatchHelper::GetScriptDispatch(pWebBrowser);
-  if (!script)
-  {
+  if (!script) {
     return S_OK;
   }
 

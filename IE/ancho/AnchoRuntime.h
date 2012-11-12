@@ -28,6 +28,7 @@ class ATL_NO_VTABLE CAnchoRuntime :
   public TAnchoBrowserEvents,
   public IAnchoRuntime
 {
+  typedef std::map<std::wstring, CComPtr<IWebBrowser2> > FrameMap;
 public:
   // -------------------------------------------------------------------------
   // ctor
@@ -67,7 +68,7 @@ public:
   void FinalRelease()
   {
     DestroyAddons();
-    DeinitBrowserEventSource();
+    Cleanup();
   }
 
 public:
@@ -91,9 +92,9 @@ private:
   // Methods
   HRESULT InitAddons();
   void DestroyAddons();
-  HRESULT InitBrowserEventSource();
-  HRESULT DeinitBrowserEventSource();
-  HRESULT ApplyContentScripts(BSTR bstrUrl, VARIANT_BOOL bIsMainFrame, BSTR bstrPhase);
+  HRESULT Init();
+  HRESULT Cleanup();
+  HRESULT ApplyContentScripts(BSTR bstrUrl, VARIANT_BOOL bIsMainFrame, documentLoadPhase aPhase);
 
 private:
   // -------------------------------------------------------------------------
@@ -106,7 +107,7 @@ private:
   CComPtr<IClassFactory>                  m_CFHTTPS;
   CComPtr<IAnchoAddonService>             m_pAnchoService;
   CAtlMap<CStringW, CComPtr<IAnchoAddon> > m_Addons;
-  std::map<std::wstring, CComPtr<IWebBrowser2> > m_Frames;
+  FrameMap                                m_Frames;
 };
 
 OBJECT_ENTRY_AUTO(__uuidof(AnchoRuntime), CAnchoRuntime)
