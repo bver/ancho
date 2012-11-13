@@ -131,13 +131,11 @@ STDMETHODIMP CAnchoAddon::executeScriptFile(BSTR aFile)
 
 //----------------------------------------------------------------------------
 //  ApplyContentScripts
-STDMETHODIMP CAnchoAddon::ApplyContentScripts(IWebBrowser2* pBrowser, BSTR bstrUrl, BSTR bstrPhase)
+STDMETHODIMP CAnchoAddon::ApplyContentScripts(IWebBrowser2* pBrowser, BSTR bstrUrl, documentLoadPhase aPhase)
 {
-  HRESULT hr;
   //If create AddonBackground sooner - background script will be executed before initialization of tab windows
   if(!m_pAddonBackground) {
-    hr = m_pAnchoService->GetAddonBackground(CComBSTR(m_sExtensionName), &m_pAddonBackground);
-    IF_FAILED_RET(hr);
+    IF_FAILED_RET(m_pAnchoService->GetAddonBackground(CComBSTR(m_sExtensionName), &m_pAddonBackground));
 
     // get console
     m_pBackgroundConsole = m_pAddonBackground;
@@ -158,7 +156,7 @@ STDMETHODIMP CAnchoAddon::ApplyContentScripts(IWebBrowser2* pBrowser, BSTR bstrU
     return S_OK;
   }
 
-  if (CComBSTR(L"end") != bstrPhase) {
+  if (aPhase != documentLoadEnd) {
     return S_OK;
   }
 
@@ -169,25 +167,16 @@ STDMETHODIMP CAnchoAddon::ApplyContentScripts(IWebBrowser2* pBrowser, BSTR bstrU
   // TODO: URL matching
   // (re)initialize magpie for this page
   m_Magpie->Shutdown();
-  hr = m_Magpie->Init();
-  if (FAILED(hr))
-  {
-    return hr;
-  }
+  IF_FAILED_RET(m_Magpie->Init());
 
   // add a loader for scripts in the extension filesystem
-  hr = m_Magpie->AddFilesystemScriptLoader((LPWSTR)(LPCWSTR)m_sExtensionPath);
-  if (FAILED(hr))
-  {
-    return hr;
-  }
+  IF_FAILED_RET(m_Magpie->AddFilesystemScriptLoader((LPWSTR)(LPCWSTR)m_sExtensionPath));
 
   // inject items: chrome, console and window with global members
 //  CComQIPtr<IDispatch> pDispConsole;
   CComQIPtr<IWebBrowser2> pWebBrowser(pBrowser);
   CIDispatchHelper script = CIDispatchHelper::GetScriptDispatch(pWebBrowser);
-  if (!script)
-  {
+  if (!script) {
     return S_OK;
   }
 

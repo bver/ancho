@@ -59,7 +59,7 @@ public:
 private:
   // -------------------------------------------------------------------------
   // Methods
-  HRESULT FireEvent(DISPID dispid, VARIANTARG* pvars, unsigned int count);
+  HRESULT FireEvent(DISPID dispid, DISPPARAMS* disp, unsigned int count);
 
 private:
   // -------------------------------------------------------------------------

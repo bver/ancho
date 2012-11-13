@@ -59,7 +59,7 @@ public:
   // IAnchoAddon methods. See .idl for description.
   STDMETHOD(Init)(LPCOLESTR lpsExtensionID, IAnchoAddonService * pService,
     IWebBrowser2 * pWebBrowser);
-  STDMETHOD(ApplyContentScripts)(IWebBrowser2* pBrowser, BSTR bstrUrl, BSTR bstrPhase);
+  STDMETHOD(ApplyContentScripts)(IWebBrowser2* pBrowser, BSTR bstrUrl, documentLoadPhase aPhase);
   STDMETHOD(Shutdown)();
 
   STDMETHOD(executeScriptCode)(BSTR aCode);

@@ -22,8 +22,8 @@ class CAnchoProtocolSink :
   public IHttpNegotiate
 {
   friend class CAnchoStartPolicy;
-
   typedef PassthroughAPP::CInternetProtocolSinkWithSP<CAnchoProtocolSink> BaseClass;
+
 public:
 
   // -------------------------------------------------------------------------
@@ -43,40 +43,43 @@ public:
 
   // -------------------------------------------------------------------------
   // IHttpNegotiate
-  STDMETHODIMP BeginningTransaction(
+  STDMETHOD(BeginningTransaction)(
     /* [in] */ LPCWSTR szURL,
     /* [in] */ LPCWSTR szHeaders,
     /* [in] */ DWORD dwReserved,
     /* [out] */ LPWSTR *pszAdditionalHeaders);
 
-  STDMETHODIMP OnResponse(
+  STDMETHOD(OnResponse)(
     /* [in] */ DWORD dwResponseCode,
     /* [in] */ LPCWSTR szResponseHeaders,
     /* [in] */ LPCWSTR szRequestHeaders,
     /* [out] */ LPWSTR *pszAdditionalRequestHeaders);
 
-  STDMETHODIMP ReportProgress(
+  STDMETHOD(ReportProgress)(
     /* [in] */ ULONG ulStatusCode,
     /* [in] */ LPCWSTR szStatusText);
 
-  STDMETHODIMP ReportData(
+  STDMETHOD(ReportData)(
     /* [in] */ DWORD grfBSCF,
     /* [in] */ ULONG ulProgress,
     /* [in] */ ULONG ulProgressMax);
 
-  STDMETHODIMP ReportResult(
+  STDMETHOD(ReportResult)(
     /* [in] */ HRESULT hrResult,
     /* [in] */ DWORD dwError,
     /* [in] */ LPCWSTR szResult);
 
   // -------------------------------------------------------------------------
-  // Getters/setters
+  // Public interface
   boolean IsFrame() { return m_IsFrame; }
+  // Free the memory associated with the params allocated when calling Switch().
+  void FreeSwitchParams(BSTR* params);
 
 private:
   // -------------------------------------------------------------------------
   // Implementation
-  LPVOID MakeSwitchParams(const BSTR param1, const BSTR param2 = L"");
+  // Allocate the correct parameters for calling Switch().
+  LPVOID InitSwitchParams(const BSTR param1, const BSTR param2 = L"");
 
   // -------------------------------------------------------------------------
   // Private members.
@@ -111,6 +114,7 @@ public:
 class CAnchoPassthruAPP :
   public PassthroughAPP::CInternetProtocol<CAnchoStartPolicy>
 {
+private:
   // -------------------------------------------------------------------------
   // DocumentSink class (for sinking HTMLDocumentEvents2)
   class DocumentSink :
@@ -119,8 +123,8 @@ class CAnchoPassthruAPP :
   public:
     // -------------------------------------------------------------------------
     // Constructor/destructor
-    DocumentSink(IHTMLDocument2 *doc, DAnchoBrowserEvents* events, BSTR bstrUrl) :
-      m_Doc(doc), m_Events(events), m_Url(bstrUrl)
+    DocumentSink(IInternetProtocolRoot* app, IHTMLDocument2 *doc, DAnchoBrowserEvents* events, BSTR bstrUrl) :
+      m_APP(app), m_Doc(doc), m_Events(events), m_Url(bstrUrl)
     {
     }
     ~DocumentSink();
@@ -140,16 +144,19 @@ class CAnchoPassthruAPP :
     // Data members
     CComPtr<IHTMLDocument2> m_Doc;
     CComPtr<DAnchoBrowserEvents> m_Events;
+    // Hold a pointer to the APP so we don't get freed too early.
+    CComPtr<IInternetProtocolRoot> m_APP;
     CComBSTR m_Url;
   };
 
   // -------------------------------------------------------------------------
   // IInternetProtocolRoot
-  virtual STDMETHODIMP Continue(PROTOCOLDATA *pProtocolData);
+  STDMETHOD(Continue)(PROTOCOLDATA *pProtocolData);
 
 public:
   // -------------------------------------------------------------------------
   // Destructor
+  CAnchoPassthruAPP() : m_DocSink(NULL) {}
   virtual ~CAnchoPassthruAPP();
 
 protected:
@@ -158,4 +165,5 @@ protected:
   CComPtr<DAnchoBrowserEvents> mBrowserEvents;
   CComPtr<IWebBrowser2> m_Browser;
   std::set<CComPtr<IWebBrowser2> > m_FoundFrames;
+  DocumentSink* m_DocSink;
 };

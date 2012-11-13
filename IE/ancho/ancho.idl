@@ -18,6 +18,12 @@ library anchoLib
 	importlib("stdole2.tlb");
   importlib("AnchoBgSrv.tlb");
 
+  typedef enum _documentLoadPhase
+  {
+    documentLoadStart = 0,
+    documentLoadEnd = 1,
+    documentLoadIdle = 2
+  } documentLoadPhase;
   [
 	  object,
 	  uuid(2E63BFC0-E51B-4317-A814-601A606E7C4C),
@@ -28,7 +34,7 @@ library anchoLib
   interface IAnchoAddon : IUnknown
   {
     HRESULT Init([in] LPCOLESTR lpsExtensionID, [in] IAnchoAddonService * pService, [in] IWebBrowser2 * pWebBrowser);
-    HRESULT ApplyContentScripts([in] IWebBrowser2 * pWebBrowser, [in] BSTR bstrUrl, [in] BSTR bstrPhase);
+    HRESULT ApplyContentScripts([in] IWebBrowser2 * pWebBrowser, [in] BSTR bstrUrl, documentLoadPhase aPhase);
     HRESULT Shutdown();
 
     HRESULT executeScriptCode(BSTR aCode);
