@@ -29,6 +29,8 @@ interface IAnchoAddonService : IUnknown
   HRESULT unregisterRuntime([in] INT aTabID);
   HRESULT createTabNotification([in] INT aTabID, [in] INT aRequestID);
   HRESULT invokeEventObjectInAllExtensions([in] BSTR aEventName, [in] LPDISPATCH aArgs);
+
+  HRESULT webBrowserReady();
 };
 
 

@@ -11,6 +11,7 @@
 #include "AnchoBackground.h"
 #include "AnchoBgSrvModule.h"
 #include "IECookieManager.h"
+#include "CommandQueue.h"
 
 #if defined(_WIN32_WCE) && !defined(_CE_DCOM) && !defined(_CE_ALLOW_SINGLE_THREADED_OBJECTS_IN_MTA)
 #error "Single-threaded COM objects are not properly supported on Windows CE platform, such as the Windows Mobile platforms that do not include full DCOM support. Define _CE_ALLOW_SINGLE_THREADED_OBJECTS_IN_MTA to force ATL to support creating single-thread COM object's and allow use of it's single-threaded COM object implementations. The threading model in your rgs file was set to 'Free' as that is the only threading model supported in non DCOM Windows CE platforms."
@@ -95,12 +96,17 @@ public:
   STDMETHOD(createTabNotification)(INT aTabID, INT aRequestID);
   STDMETHOD(invokeEventObjectInAllExtensions)(BSTR aEventName, LPDISPATCH aArgs);
   STDMETHOD(invokeEventObjectInAllExtensionsWithIDispatchArgument)(BSTR aEventName, LPDISPATCH aArg);
+
+  STDMETHOD(webBrowserReady)();
 private:
+  HRESULT createTabImpl(CIDispatchHelper &aProperties, CIDispatchHelper &aCreator, CIDispatchHelper &aCallback);
+
   HRESULT removeTab(INT aTabId, LPDISPATCH aCallback);
   HRESULT executeScriptInTab(BSTR aExtensionID, INT aTabID, BSTR aCode, BOOL aFileSpecified);
 
   HRESULT FindActiveBrowser(IWebBrowser2** webBrowser);
-
+private:
+  //Private type declarations
   struct RuntimeRecord {
     RuntimeRecord(IAnchoRuntime *aRuntime = NULL)
       : runtime(aRuntime) {}
@@ -119,6 +125,25 @@ private:
     CIDispatchHelper callback;
   };
   typedef std::map<int, CreateTabCallbackRecord> CreateTabCallbackMap;
+
+  class CreateTabCommand: public ACommand
+  {
+  public:
+    CreateTabCommand(CAnchoAddonService &aService, LPDISPATCH aProperties, LPDISPATCH aCreator, LPDISPATCH aCallback)
+      : mService(aService), mProperties(aProperties), mCreator(aCreator), mCallback(aCallback)
+    {}
+    void execute()
+    {
+      mService.createTabImpl(mProperties, mCreator, mCallback);
+    }
+  protected:
+    CAnchoAddonService &mService;
+    CIDispatchHelper mProperties;
+    CIDispatchHelper mCreator;
+    CIDispatchHelper mCallback;
+  };
+
+private:
   // -------------------------------------------------------------------------
   // Private members.
 
@@ -136,6 +161,8 @@ private:
 
   int     m_NextTabID;
   int     m_NextRequestID;
+
+  CommandQueue m_WebBrowserPostInitTasks;
 };
 
 OBJECT_ENTRY_AUTO(__uuidof(AnchoAddonService), CAnchoAddonService)

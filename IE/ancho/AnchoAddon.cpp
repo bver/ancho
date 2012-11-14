@@ -59,7 +59,7 @@ STDMETHODIMP CAnchoAddon::Init(LPCOLESTR lpsExtensionID, IAnchoAddonService * pS
   }
 
   // get addon instance
-  IF_FAILED_RET(m_pAnchoService->GetAddonBackground(CComBSTR(m_sExtensionName), &m_pAddonBackground));
+  //IF_FAILED_RET(m_pAnchoService->GetAddonBackground(CComBSTR(m_sExtensionName), &m_pAddonBackground));
 
   // The addon can be a resource DLL or simply a folder in the filesystem.
   // TODO: Load the DLL if there is any.
@@ -135,16 +135,21 @@ STDMETHODIMP CAnchoAddon::ApplyContentScripts(IWebBrowser2* pBrowser, BSTR bstrU
 {
   HRESULT hr;
   //If create AddonBackground sooner - background script will be executed before initialization of tab windows
-  if(!m_pAddonBackground) {
+  if(!m_pAddonBackground || !m_pBackgroundConsole) {
     hr = m_pAnchoService->GetAddonBackground(CComBSTR(m_sExtensionName), &m_pAddonBackground);
     IF_FAILED_RET(hr);
 
+   
     // get console
     m_pBackgroundConsole = m_pAddonBackground;
     ATLASSERT(m_pBackgroundConsole);
-
+  }
+  if(!m_pContentAPI) {
     // tell background we are there and get instance id
     m_pAddonBackground->AdviseInstance(&m_InstanceID);
+
+     //TODO - should be executed as soon as possible
+    m_pAnchoService->webBrowserReady();
 
     // get content our API
     m_pAddonBackground->GetContentAPI(m_InstanceID, &m_pContentAPI);
@@ -171,7 +176,7 @@ STDMETHODIMP CAnchoAddon::ApplyContentScripts(IWebBrowser2* pBrowser, BSTR bstrU
   m_Magpie->Shutdown();
   CString s;
   s.Format(_T("Ancho content [%s] [%i]"), m_sExtensionName, m_InstanceID);
-  m_Magpie->Init((LPWSTR)(LPCWSTR)s);
+  hr = m_Magpie->Init((LPWSTR)(LPCWSTR)s);
   if (FAILED(hr))
   {
     return hr;
