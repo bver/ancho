@@ -1,12 +1,12 @@
 [submodule "IE/libbhohelper"]
 	path = IE/libbhohelper
-	url = git@github.com:salsita/libbhohelper.git
+	url = https://github.com/salsita/libbhohelper.git
 [submodule "IE/Magpie"]
 	path = IE/Magpie
-	url = git@github.com:salsita/Magpie.git
+	url = https://github.com/salsita/Magpie.git
 [submodule "IE/libprothandlers"]
 	path = IE/libprothandlers
-	url = git@github.com:salsita/libprothandlers.git
+	url = https://github.com/salsita/libprothandlers.git
 [submodule "IE/passthruapp"]
 	path = IE/passthruapp
 	url = https://github.com/salsita/passthruapp.git

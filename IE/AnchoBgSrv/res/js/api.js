@@ -27,7 +27,11 @@ exports.chrome = {};
 // create and initialize the background API
 (function(chrome, instanceID) {
   chrome.bookmarks = require("bookmarks.js").createAPI(instanceID);
-  chrome.browserAction = require("browserAction.js").createAPI(instanceID);
+  
+  var browserAction = require("browserAction.js");
+  browserAction.initAPI(manifest.browser_action);
+  chrome.browserAction = browserAction.createAPI(instanceID);
+  
   chrome.browsingData = require("browsingData.js");
   chrome.contentSettings = require("contentSettings.js");
   chrome.contextMenus = require("contextMenus.js");
@@ -83,9 +87,17 @@ function contentAPI(instanceID) {
 // Called from the addon when a new browser window or tab opens
 exports.getContentAPI = function(instanceID) {
   console.debug("getContentAPI for: [" + instanceID + "]");
-  return (contentInstances[instanceID])
+  var api = (contentInstances[instanceID]
     ? contentInstances[instanceID]
-    : contentInstances[instanceID] = new contentAPI(instanceID);
+    : contentInstances[instanceID] = new contentAPI(instanceID));
+  var scripts = (
+    manifest.content_scripts instanceof Array
+    && manifest.content_scripts.length > 0
+    && manifest.content_scripts[0].js instanceof Array
+    ? manifest.content_scripts[0].js
+    : []
+  );    
+  return { api: api, scripts: scripts };
 };
 
 // Releases an instance of the content API for a certain tab.

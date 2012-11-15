@@ -59,7 +59,7 @@ STDMETHODIMP CAnchoAddon::Init(LPCOLESTR lpsExtensionID, IAnchoAddonService * pS
   }
 
   // get addon instance
-  IF_FAILED_RET(m_pAnchoService->GetAddonBackground(CComBSTR(m_sExtensionName), &m_pAddonBackground));
+  //IF_FAILED_RET(m_pAnchoService->GetAddonBackground(CComBSTR(m_sExtensionName), &m_pAddonBackground));
 
   // The addon can be a resource DLL or simply a folder in the filesystem.
   // TODO: Load the DLL if there is any.
@@ -95,7 +95,7 @@ STDMETHODIMP CAnchoAddon::Init(LPCOLESTR lpsExtensionID, IAnchoAddonService * pS
 STDMETHODIMP CAnchoAddon::Shutdown()
 {
   // this method must be safe to be called multiple times
-  m_pContentAPI.Release();
+  m_pContentInfo.Release();
   m_pBackgroundConsole.Release();
   m_Magpie.Release();
 
@@ -147,7 +147,7 @@ STDMETHODIMP CAnchoAddon::ApplyContentScripts(IWebBrowser2* pBrowser, BSTR bstrU
     m_pAddonBackground->AdviseInstance(&m_InstanceID);
 
     // get content our API
-    m_pAddonBackground->GetContentAPI(m_InstanceID, &m_pContentAPI);
+    m_pAddonBackground->GetContentAPI(m_InstanceID, &m_pContentInfo);
   }
 
   // content script handling happens here
@@ -162,7 +162,7 @@ STDMETHODIMP CAnchoAddon::ApplyContentScripts(IWebBrowser2* pBrowser, BSTR bstrU
     return S_OK;
   }
 
-  if (!m_pContentAPI) {
+  if (!m_pContentInfo) {
     return S_OK;
   }
 
@@ -171,7 +171,7 @@ STDMETHODIMP CAnchoAddon::ApplyContentScripts(IWebBrowser2* pBrowser, BSTR bstrU
   m_Magpie->Shutdown();
   CString s;
   s.Format(_T("Ancho content [%s] [%i]"), m_sExtensionName, m_InstanceID);
-  m_Magpie->Init((LPWSTR)(LPCWSTR)s);
+  hr = m_Magpie->Init((LPWSTR)(LPCWSTR)s);
   if (FAILED(hr))
   {
     return hr;
@@ -193,14 +193,34 @@ STDMETHODIMP CAnchoAddon::ApplyContentScripts(IWebBrowser2* pBrowser, BSTR bstrU
     return S_OK;
   }
 
-  m_Magpie->AddNamedItem(L"chrome", m_pContentAPI, SCRIPTITEM_ISVISIBLE|SCRIPTITEM_CODEONLY);
+  CIDispatchHelper contentInfo(m_pContentInfo);
+  CComVariant jsObj;
+  hr = contentInfo.Get<CComVariant, VT_DISPATCH, IDispatch*>(L"api", jsObj);
+  if (FAILED(hr))
+  {
+    return hr;
+  }
+
+  m_Magpie->AddNamedItem(L"chrome", jsObj.pdispVal, SCRIPTITEM_ISVISIBLE|SCRIPTITEM_CODEONLY);
   //m_Magpie->AddNamedItem(L"console", pDispConsole, SCRIPTITEM_ISVISIBLE|SCRIPTITEM_CODEONLY);
   m_Magpie->AddNamedItem(L"window", script.p, SCRIPTITEM_ISVISIBLE|SCRIPTITEM_GLOBALMEMBERS);
 
-  // TODO: get the name(s) of content scripts from manifest and run them in order
-  //       for now we run a hardcoded script "content.js"
-  // and run content script
-  m_Magpie->Run(L"content.js");
+  // get the name(s) of content scripts from manifest and run them in order
+  hr = contentInfo.Get<CComVariant, VT_DISPATCH, IDispatch*>(L"scripts", jsObj);
+  if (FAILED(hr))
+  {
+    return hr;
+  }
+
+  VariantVector scripts;
+  IF_FAILED_RET(addJSArrayToVariantVector(jsObj.pdispVal, scripts));
+  
+  // scripts array is in reverse order here!
+  for(VariantVector::reverse_iterator it = scripts.rbegin(); it != scripts.rend(); it++) {
+    if( it->vt == VT_BSTR ) {
+      m_Magpie->ExecuteGlobal(it->bstrVal);
+    }
+  }
 
   return S_OK;
 }

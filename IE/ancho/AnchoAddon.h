@@ -80,7 +80,7 @@ private:
   CComPtr<IAnchoAddonService>           m_pAnchoService;
   CComPtr<IAnchoAddonBackground>        m_pAddonBackground;
   CComQIPtr<IAnchoBackgroundConsole>    m_pBackgroundConsole;
-  CComQIPtr<IDispatch>                  m_pContentAPI;
+  CComQIPtr<IDispatch>                  m_pContentInfo;
 
   CComPtr<IMagpieApplication>           m_Magpie;
 

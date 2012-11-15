@@ -94,3 +94,21 @@ exports.createAPI = function(instanceID) {
 exports.releaseAPI = function(instanceID) {
   EventFactory.releaseEvents(instanceID, API_NAME, EVENT_LIST); ;
 }
+
+exports.initAPI = function(browserActionData) {
+  var debugString = "browserAction.initAPI(..) called.";
+
+  if (browserActionData) {
+    if (browserActionData.default_icon) {
+      debugString = debugString + " icon: " + browserActionData.default_icon + ";";
+    }
+    if (browserActionData.default_title) {
+      debugString = debugString + " title: " + browserActionData.default_title + ";";
+    }
+    if (browserActionData.default_popup) {
+      debugString = debugString + " popup: " + browserActionData.default_popup + ";";
+    }
+  }
+  
+  console.debug(debugString);
+}
