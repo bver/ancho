@@ -14,7 +14,6 @@
 var manifest = require("manifest").manifest;
 
 console.info("Loading extension [" + addonAPI.id + "] [" + addonAPI.guid + "]");
-console.info("serviceAPI :" + typeof(serviceAPI));
 //------------------------------------------------------------------------------
 // BACKGROUND API
 //------------------------------------------------------------------------------
@@ -111,6 +110,11 @@ exports.releaseContentAPI = function(instanceID) {
     console.debug("Content API FOUND and released: [" + instanceID + "]");
   }
 };
+
+function invokeEvent(aEventName, aIDispatchData) {
+  require("cookies.js").invokeEventWithIDispatch(aEventName, aIDispatchData);
+}
+addonAPI.setIDispatchEventInvocationHandler(invokeEvent);
 
 //------------------------------------------------------------------------------
 // MAIN
