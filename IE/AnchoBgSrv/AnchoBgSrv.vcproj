@@ -79,6 +79,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				RegisterOutput="true"
 				IgnoreImportLibrary="true"
 				AdditionalDependencies="libbhohelper.lib libprothandlers.lib Wininet.lib anchocommons.lib"
 				LinkIncremental="2"
@@ -244,6 +245,18 @@
 				>
 			</File>
 			<File
+				RelativePath=".\HtmlPanel.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\HtmlPanelUIHandler.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\HtmlToolbarWindow.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\IECookie.cpp"
 				>
 			</File>
@@ -287,6 +300,10 @@
 					/>
 				</FileConfiguration>
 			</File>
+			<File
+				RelativePath=".\Toolbar.cpp"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -315,6 +332,18 @@
 			</File>
 			<File
 				RelativePath=".\CommandQueue.h"
+				>
+			</File>
+			<File
+				RelativePath=".\HtmlPanel.h"
+				>
+			</File>
+			<File
+				RelativePath=".\HtmlPanelUIHandler.h"
+				>
+			</File>
+			<File
+				RelativePath=".\HtmlToolbarWindow.h"
 				>
 			</File>
 			<File
@@ -353,6 +382,10 @@
 				RelativePath=".\targetver.h"
 				>
 			</File>
+			<File
+				RelativePath=".\Toolbar.h"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Resource Files"
@@ -369,6 +402,10 @@
 			</File>
 			<File
 				RelativePath=".\AnchoBgSrv.rgs"
+				>
+			</File>
+			<File
+				RelativePath=".\AnchoToolbar.rgs"
 				>
 			</File>
 		</Filter>

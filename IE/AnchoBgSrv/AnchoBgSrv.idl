@@ -268,4 +268,13 @@ library AnchoBgSrvLib
   {
     [default] interface IIECookieManager;
   };
+
+  [
+    uuid(F17D18AF-307A-4311-852F-FD759863A349),
+    helpstring("Toolbar Class")
+  ]
+  coclass IEToolbar
+  {
+    [default] interface IUnknown;
+  };
 };

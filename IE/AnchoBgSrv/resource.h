@@ -11,7 +11,8 @@
 #define IDR_HTML1                       203
 #define IDR_HTML2                       205
 #define IDR_HTML3                       206
-#define IDR_HTML4                       207
+#define IDR_ANCHOTOOLBAR                207
+
 
 // Next default values for new objects
 // 
