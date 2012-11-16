@@ -632,6 +632,25 @@ STDMETHODIMP CAnchoAddonService::webBrowserReady()
   m_WebBrowserPostInitTasks.setAutoExec(true);
   return S_OK;
 }
+
+//----------------------------------------------------------------------------
+//
+STDMETHODIMP CAnchoAddonService::registerBrowserActionToolbar(BSTR * aUrl)
+{
+  ENSURE_RETVAL(aUrl);
+  CString url(L"H:\\programming\\git\\ancho\\IE\\test-toolbar.html");
+  *aUrl = url.AllocSysString();
+  return S_OK;
+}
+//----------------------------------------------------------------------------
+//
+STDMETHODIMP CAnchoAddonService::getDispatchObject(IDispatch **aRet)
+{
+  ENSURE_RETVAL(aRet);
+  *aRet = static_cast<IDispatch*>(this);
+  AddRef();
+  return S_OK;
+}
 //----------------------------------------------------------------------------
 //
 

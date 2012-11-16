@@ -10,6 +10,7 @@ import "ocidl.idl";
 // forwards
 interface IAnchoAddonBackground;
 interface IAnchoRuntime;
+interface IAnchoServiceApi;
 
 /*==========================================================================*/
 [
@@ -31,6 +32,9 @@ interface IAnchoAddonService : IUnknown
   HRESULT invokeEventObjectInAllExtensions([in] BSTR aEventName, [in] LPDISPATCH aArgs);
 
   HRESULT webBrowserReady();
+
+  HRESULT registerBrowserActionToolbar([out, retval] BSTR * aUrl);
+  HRESULT getDispatchObject([out, retval] IDispatch **aRet);
 };
 
 
@@ -269,12 +273,4 @@ library AnchoBgSrvLib
     [default] interface IIECookieManager;
   };
 
-  [
-    uuid(F17D18AF-307A-4311-852F-FD759863A349),
-    helpstring("Toolbar Class")
-  ]
-  coclass IEToolbar
-  {
-    [default] interface IUnknown;
-  };
 };

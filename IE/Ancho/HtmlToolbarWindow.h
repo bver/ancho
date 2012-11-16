@@ -18,6 +18,13 @@ public:
 
   ToolbarCallback *m_toolbarCallback;
 
+  virtual LRESULT OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
+
+  void setInjectedObjects(DispatchMap &aInjectedObjects)
+  {
+    mInjectedObjects = aInjectedObjects;
+  }
+
 protected:
   static LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
@@ -27,4 +34,7 @@ protected:
   virtual void OnBrowserNavigateComplete(IDispatch *pDisp, VARIANT *URL);
   virtual void OnBrowserSetFocus();
   virtual void OnBrowserKillFocus();
+
+  DispatchMap mInjectedObjects;
+
 };

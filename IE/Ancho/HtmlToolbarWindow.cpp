@@ -22,6 +22,19 @@ CHtmlToolbarWindow::CHtmlToolbarWindow() : m_toolbarCallback(NULL)
 {
 }
 
+LRESULT CHtmlToolbarWindow::OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+{
+  LRESULT ret = CHtmlPanel::OnCreate(uMsg, wParam, lParam, bHandled);
+  if (ret){
+    return ret;
+  }
+  CIDispatchHelper script = CIDispatchHelper::GetScriptDispatch(m_pWebBrowser);
+  for (DispatchMap::iterator it = mInjectedObjects.begin(); it != mInjectedObjects.end(); ++it) {
+    IF_FAILED_RET(script.SetProperty((LPOLESTR)(it->first.c_str()), CComVariant(it->second)));
+  }
+  return 0;
+}
+
 void CHtmlToolbarWindow::OnBrowserBeforeNavigate2(LPDISPATCH pDisp, VARIANT *pURL, VARIANT *Flags, VARIANT *TargetFrameName, VARIANT *PostData, VARIANT *Headers, BOOL *Cancel)
 {
   // We can't get the browser window directly from the IWebBrowser2 since it is a frame.

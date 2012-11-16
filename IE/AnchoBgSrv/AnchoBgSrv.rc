@@ -91,7 +91,6 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 //
 
 IDR_ANCHOBGSRV          REGISTRY                "AnchoBgSrv.rgs"
-IDR_ANCHOTOOLBAR        REGISTRY                "AnchoToolbar.rgs"
 
 #ifdef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
