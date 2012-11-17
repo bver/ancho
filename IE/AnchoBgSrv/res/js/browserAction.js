@@ -12,6 +12,14 @@ var EventFactory = require("utils.js").EventFactory;
 
 var EVENT_LIST = ['onClicked'];
 var API_NAME = 'browserAction';
+try {
+  if (!serviceAPI.browserActionInfos) {
+    serviceAPI.browserActionInfos = [];
+  } 
+} catch (e) {
+  console.log('Error : ' + e.description);
+}
+
 //******************************************************************************
 //* main closure
 var BrowserAction = function(instanceID) {

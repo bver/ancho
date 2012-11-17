@@ -5,7 +5,7 @@ void CToolbar::GetBandInfoValues(const wchar_t *& title, POINTL &minSize)
 {
   title = L"TEST_TOOLBAR";
   minSize.x = 200;
-  minSize.y = 55;
+  minSize.y = 105;
 }
 
 HRESULT CToolbar::InternalSetSite()
@@ -18,17 +18,15 @@ HRESULT CToolbar::InternalSetSite()
   mAnchoService->registerBrowserActionToolbar(&url);
   mUrl = std::wstring(url);
 
-  DispatchMap injectedObjects;
   CComPtr<IDispatch> dispatchObject;
   mAnchoService->getDispatchObject(&dispatchObject);
-  injectedObjects[s_AnchoServiceAPIName] = dispatchObject;
-  mContentWindow->setInjectedObjects(injectedObjects);
+  mContentWindow->setExternalObject(dispatchObject);
   return RunToolbarPage();
 }
 
 HRESULT CToolbar::InternalReleaseSite()
 {
-  mContentWindow->m_External.Release();
+  //mContentWindow->m_External.Release();
   return BaseClass::InternalReleaseSite();    
 }
 

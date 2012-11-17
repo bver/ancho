@@ -254,6 +254,29 @@ HRESULT CAnchoAddonService::executeScript(BSTR aExtensionID, INT aTabID, BSTR aC
 }
 //----------------------------------------------------------------------------
 //
+HRESULT CAnchoAddonService::get_browserActionInfos(VARIANT* aBrowserActionInfos)
+{
+  ENSURE_RETVAL(aBrowserActionInfos);
+  if (!mBrowserActionInfos) {
+    aBrowserActionInfos->vt = VT_EMPTY;
+    return S_OK;
+  }
+  aBrowserActionInfos->vt = VT_DISPATCH;
+  return mBrowserActionInfos.QueryInterface<IDispatch>(&(aBrowserActionInfos->pdispVal));
+}
+//----------------------------------------------------------------------------
+//
+HRESULT CAnchoAddonService::putref_browserActionInfos(LPDISPATCH aBrowserActionInfos)
+{
+  if (!aBrowserActionInfos) {
+    return E_POINTER;
+  }
+  mBrowserActionInfos = aBrowserActionInfos;
+  return S_OK;
+}
+
+//----------------------------------------------------------------------------
+//
 HRESULT CAnchoAddonService::executeScriptInTab(BSTR aExtensionID, INT aTabID, BSTR aCode, BOOL aFileSpecified)
 {
   RuntimeMap::iterator it = m_Runtimes.find(aTabID);

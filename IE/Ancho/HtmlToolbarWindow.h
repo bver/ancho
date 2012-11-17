@@ -20,9 +20,13 @@ public:
 
   virtual LRESULT OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
 
-  void setInjectedObjects(DispatchMap &aInjectedObjects)
+  HRESULT setExternalObject(IDispatch *aExternal)
   {
-    mInjectedObjects = aInjectedObjects;
+    if (!aExternal) {
+      return E_POINTER;
+    }
+    m_External = aExternal;
+    return S_OK;
   }
 
 protected:
@@ -34,7 +38,4 @@ protected:
   virtual void OnBrowserNavigateComplete(IDispatch *pDisp, VARIANT *URL);
   virtual void OnBrowserSetFocus();
   virtual void OnBrowserKillFocus();
-
-  DispatchMap mInjectedObjects;
-
 };

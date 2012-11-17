@@ -28,10 +28,6 @@ LRESULT CHtmlToolbarWindow::OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BO
   if (ret){
     return ret;
   }
-  CIDispatchHelper script = CIDispatchHelper::GetScriptDispatch(m_pWebBrowser);
-  for (DispatchMap::iterator it = mInjectedObjects.begin(); it != mInjectedObjects.end(); ++it) {
-    IF_FAILED_RET(script.SetProperty((LPOLESTR)(it->first.c_str()), CComVariant(it->second)));
-  }
   return 0;
 }
 

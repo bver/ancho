@@ -99,6 +99,13 @@ public:
 
   STDMETHOD(executeScript)(BSTR aExtensionID, INT aTabID, BSTR aCode, BOOL aFileSpecified, BOOL aInAllFrames);
 
+  STDMETHOD(get_browserActionInfos)(VARIANT* aBrowserActionInfos);
+  STDMETHOD(putref_browserActionInfos)(LPDISPATCH aBrowserActionInfos);
+  STDMETHOD(testFunction())
+  {
+    ATLTRACE(L"TEST FUNCTION -----------------\n");
+    return S_OK;
+  }
   // -------------------------------------------------------------------------
   // IAnchoAddonService methods. See .idl for description.
   STDMETHOD(GetAddonBackground)(BSTR bsID, IAnchoAddonBackground ** ppRet);
@@ -187,6 +194,8 @@ private:
   int     m_NextRequestID;
 
   CommandQueue m_WebBrowserPostInitTasks;
+
+  CComPtr<IDispatch> mBrowserActionInfos;
 };
 
 OBJECT_ENTRY_AUTO(__uuidof(AnchoAddonService), CAnchoAddonService)
