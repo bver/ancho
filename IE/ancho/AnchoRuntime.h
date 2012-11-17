@@ -104,6 +104,7 @@ private:
   HRESULT ApplyContentScripts(BSTR bstrUrl, VARIANT_BOOL bIsMainFrame, BSTR bstrPhase);
 
   HWND getTabWindow();
+  HWND getMainWindow();
   bool isTabActive();
 private:
   // -------------------------------------------------------------------------

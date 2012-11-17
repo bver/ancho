@@ -83,10 +83,18 @@ public:
   STDMETHOD(createTab)(LPDISPATCH aProperties, LPDISPATCH aCreator, LPDISPATCH aCallback);
   STDMETHOD(reloadTab)(INT aTabId);
   STDMETHOD(updateTab)(INT aTabId, LPDISPATCH aProperties);
-  STDMETHOD(removeTabs)(LPDISPATCH aTabs, LPDISPATCH aCallback);
   STDMETHOD(getTabInfo)(INT aTabId, LPDISPATCH aCreator, VARIANT* aRet);
+  STDMETHOD(removeTabs)(LPDISPATCH aTabs, LPDISPATCH aCallback);
   STDMETHOD(queryTabs)(LPDISPATCH aQueryInfo, LPDISPATCH aCreator, VARIANT* aRet);
+  
+  STDMETHOD(getAllWindows)(LPDISPATCH aCreator, VARIANT* aRet);
+  STDMETHOD(createWindow)(LPDISPATCH aProperties, LPDISPATCH aCreator, LPDISPATCH aCallback);
+  STDMETHOD(getCurrentWindowId)(INT *aWinId);
+
+
   STDMETHOD(executeScript)(BSTR aExtensionID, INT aTabID, BSTR aCode, BOOL aFileSpecified, BOOL aInAllFrames);
+
+  //STDMETHOD(queryWindows)(LPDISPATCH aQueryInfo, LPDISPATCH aCreator, VARIANT* aRet);
   // -------------------------------------------------------------------------
   // IAnchoAddonService methods. See .idl for description.
   STDMETHOD(GetAddonBackground)(BSTR bsID, IAnchoAddonBackground ** ppRet);
@@ -96,7 +104,7 @@ public:
   STDMETHOD(createTabNotification)(INT aTabID, INT aRequestID);
   STDMETHOD(invokeEventObjectInAllExtensions)(BSTR aEventName, LPDISPATCH aArgs);
   STDMETHOD(invokeEventObjectInAllExtensionsWithIDispatchArgument)(BSTR aEventName, LPDISPATCH aArg);
-
+  
   STDMETHOD(webBrowserReady)();
 private:
   HRESULT createTabImpl(CIDispatchHelper &aProperties, CIDispatchHelper &aCreator, CIDispatchHelper &aCallback);

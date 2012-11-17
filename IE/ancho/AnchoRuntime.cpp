@@ -345,6 +345,8 @@ STDMETHODIMP CAnchoRuntime::fillTabInfo(VARIANT* aInfo)
   obj.SetProperty(L"id", CComVariant(m_TabID));
 
   obj.SetProperty(L"active", CComVariant(isTabActive()));
+
+  obj.SetProperty(L"windowId", reinterpret_cast<INT>(getMainWindow()));
   return S_OK;
 }
 
@@ -366,6 +368,24 @@ HWND CAnchoRuntime::getTabWindow()
     pServiceProvider->Release();
   }
   return hwndBrowser;
+}
+
+//----------------------------------------------------------------------------
+//
+HWND CAnchoRuntime::getMainWindow()
+{
+  HWND window = getTabWindow();
+  wchar_t className[256];
+  while (window) {
+    if (!GetClassName(window, className, 256)) {
+      return NULL;
+    }
+    if (std::wstring(L"IEFrame") == className) {
+      return window;
+    }
+    window = GetParent(window);
+  }
+  return NULL;
 }
 //----------------------------------------------------------------------------
 //

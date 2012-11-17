@@ -100,6 +100,9 @@ library AnchoBgSrvLib
     HRESULT removeTabs([in] LPDISPATCH aTabs, [in] LPDISPATCH aCallback);
     HRESULT queryTabs([in] LPDISPATCH aQueryInfo, [in] LPDISPATCH aCreator, [out, retval] VARIANT* aRet);
 
+    HRESULT getAllWindows([in] LPDISPATCH aCreator, [out, retval] VARIANT* aRet);
+    HRESULT getCurrentWindowId([out, retval] INT *aWinId);
+
     HRESULT executeScript([in] BSTR aExtensionId, [in] INT aTabID, [in] BSTR aCode, [in] BOOL aFileSpecified, [in] BOOL aInAllFrames);
     HRESULT invokeExternalEventObject([in] BSTR aExtensionId, [in] BSTR aEventName, [in] LPDISPATCH aArgs, [out, retval] VARIANT* aRet);
   };

@@ -144,7 +144,7 @@ STDMETHODIMP CAnchoAddon::ApplyContentScripts(IWebBrowser2* pBrowser, BSTR bstrU
     m_pBackgroundConsole = m_pAddonBackground;
     ATLASSERT(m_pBackgroundConsole);
   }
-  if(!m_pContentAPI) {
+  if(!m_pContentInfo) {
     // tell background we are there and get instance id
     m_pAddonBackground->AdviseInstance(&m_InstanceID);
 

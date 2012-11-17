@@ -10,6 +10,10 @@
 var Event = require("Event.js").Event;
 var EventFactory = require("utils.js").EventFactory;
 
+require("windows_spec.js");
+var preprocessArguments = require("typeChecking.js").preprocessArguments;
+var notImplemented = require("typeChecking.js").notImplemented;
+
 var EVENT_LIST = ['onCreated',
                   'onFocusChanged',
                   'onRemoved'];
@@ -24,8 +28,8 @@ var Windows = function(instanceID) {
   //============================================================================
   // public properties
 
-  this.WINDOW_ID_NONE = null;
-  this.WINDOW_ID_CURRENT = null;
+  this.WINDOW_ID_NONE = -1;
+  this.WINDOW_ID_CURRENT = -2;
 
   //============================================================================
   // public methods
@@ -33,43 +37,47 @@ var Windows = function(instanceID) {
   //----------------------------------------------------------------------------
   // chrome.windows.create
   this.create = function(createData, callback) {
-    console.debug("windows.create(..) called");
+    var args = notImplemented('chrome.windows.create', arguments);
   };
 
   //----------------------------------------------------------------------------
   // chrome.windows.get
   this.get = function(windowId, getInfo, callback) {
-    console.debug("windows.get(..) called");
+    var args = notImplemented('chrome.windows.get', arguments);
   };
 
   //----------------------------------------------------------------------------
   // chrome.windows.getAll
   this.getAll = function(getInfo, callback) {
-    console.debug("windows.getAll(..) called");
+    var args = preprocessArguments('chrome.windows.getAll', arguments);
+    var windowsSafeArray = serviceAPI.getAllWindows(Object);
+    var windows = new VBArray(windowsSafeArray).toArray();
+    args['callback'](windows);
   };
 
   //----------------------------------------------------------------------------
   // chrome.windows.getCurrent
   this.getCurrent = function(getInfo, callback) {
-    console.debug("windows.getCurrent(..) called");
+    var args = preprocessArguments('chrome.windows.getCurrent', arguments);
+    this.get(this.WINDOW_ID_CURRENT, getInfo, callback);
   };
 
   //----------------------------------------------------------------------------
   // chrome.windows.getLastFocused
   this.getLastFocused = function(getInfo, callback) {
-    console.debug("windows.getLastFocused(..) called");
+    var args = notImplemented('chrome.windows.getLastFocused', arguments);
   };
 
   //----------------------------------------------------------------------------
   // chrome.windows.remove
   this.remove = function(windowId, callback) {
-    console.debug("windows.remove(..) called");
+    var args = notImplemented('chrome.windows.remove', arguments);
   };
 
   //----------------------------------------------------------------------------
   // chrome.windows.update
   this.update = function(windowId, updateInfo, callback) {
-    console.debug("windows.update(..) called");
+    var args = notImplemented('chrome.windows.update', arguments);
   };
 
   //============================================================================
