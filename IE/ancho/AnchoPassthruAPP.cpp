@@ -142,18 +142,13 @@ STDMETHODIMP CAnchoProtocolSink::ReportData(
 	/* [in] */ ULONG ulProgress,
 	/* [in] */ ULONG ulProgressMax)
 {
-  if (!m_FirstDataReceived) {
-    // Sometimes BSCF_FIRSTDATANOTIFICATION is received more than once.
-    m_FirstDataReceived = true;
-
-    PROTOCOLDATA data;
-    data.grfFlags = PD_FORCE_SWITCH;
-    data.dwState = ANCHO_SWITCH_REPORT_DATA;
-    data.pData = InitSwitchParams((BSTR) m_Url.c_str());
-    data.cbData = sizeof(BSTR*);
-    AddRef();
-    Switch(&data);
-  }
+  PROTOCOLDATA data;
+  data.grfFlags = PD_FORCE_SWITCH;
+  data.dwState = ANCHO_SWITCH_REPORT_DATA;
+  data.pData = InitSwitchParams((BSTR) m_Url.c_str());
+  data.cbData = sizeof(BSTR*);
+  AddRef();
+  Switch(&data);
 
   return m_spInternetProtocolSink->ReportData(grfBSCF, ulProgress, ulProgressMax);
 }
@@ -225,7 +220,7 @@ STDMETHODIMP_(void) CAnchoPassthruAPP::DocumentSink::OnReadyStateChange(IHTMLEve
     BOOL isMainFrame = SUCCEEDED(hr) && (loc == m_Url);
     DispEventUnadvise(m_Doc);
     m_Doc = NULL;
-    m_Events->OnFrameEnd(m_Url, isMainFrame);
+    m_Events->OnFrameEnd(m_Url, isMainFrame ? VARIANT_TRUE : VARIANT_FALSE);
 
     // Release the pointer to the APP so we can be freed.
     m_APP = NULL;
@@ -251,6 +246,8 @@ STDMETHODIMP CAnchoPassthruAPP::Continue(PROTOCOLDATA* data)
 {
   if (data->dwState >= ANCHO_SWITCH_BASE) {
     CComPtr<CAnchoProtocolSink> pSink = GetSink();
+    // Release the reference we added when calling Switch().
+    pSink->InternalRelease();
 
     BSTR* params = (BSTR*) data->pData;
     ATLASSERT(params);
@@ -258,59 +255,81 @@ STDMETHODIMP CAnchoPassthruAPP::Continue(PROTOCOLDATA* data)
     CComBSTR bstrAdditional = params[1];
     pSink->FreeSwitchParams(params);
 
-    CComPtr<IWindowForBindingUI> windowForBindingUI;
-    // Release the reference we added when calling Switch().
-    pSink->InternalRelease();
+    if (!m_BrowserEvents) {
+      if (!m_Doc) {
+        CComPtr<IWindowForBindingUI> windowForBindingUI;
 
-    pSink->QueryServiceFromClient(IID_IWindowForBindingUI, &windowForBindingUI);
-    if (windowForBindingUI) {
-      HWND hwnd;
-      IF_FAILED_RET(windowForBindingUI->GetWindow(IID_IAuthenticate, &hwnd));
+        pSink->QueryServiceFromClient(IID_IWindowForBindingUI, &windowForBindingUI);
+        if (!windowForBindingUI) {
+          return E_FAIL;
+        }
+        HWND hwnd;
+        IF_FAILED_RET(windowForBindingUI->GetWindow(IID_IAuthenticate, &hwnd));
 
-      CComPtr<IHTMLDocument2> doc;
-      IF_FAILED_RET(getHTMLDocumentForHWND(hwnd, &doc));
+        HRESULT hr = getHTMLDocumentForHWND(hwnd, &m_Doc);
+        if (FAILED(hr)) {
+          // Not ready to get the window yet so we'll try again with the next notification.
+          if (data->dwState == ANCHO_SWITCH_REDIRECT) {
+            // Remember the redirect so we can trigger the corresponding event later.
+            m_Redirects.push_back(std::make_pair(bstrUrl, bstrAdditional));
+          }
+          return S_FALSE;
+        }
+      }
 
       CComPtr<IWebBrowser2> browser;
-      IF_FAILED_RET(getBrowserForHTMLDocument(doc, &browser));
+      IF_FAILED_RET(getBrowserForHTMLDocument(m_Doc, &browser));
 
       CComBSTR url;
       IF_FAILED_RET(browser->get_LocationURL(&url));
-      bool isMainFrame = (url == bstrUrl);
+      m_IsMainFrame = (url == bstrUrl);
 
       // We only want to handle the top-level request and any frames, not subordinate
       // requests like images. Usually the desired requests will have a bind context,
       // but in the case of a page refresh, the top-level request annoyingly doesn't,
       // so we check if the URL of the request matches the URL of the browser to handle
       // that case.
-      if (!(pSink->IsFrame()) && !isMainFrame) {
+      if (!(pSink->IsFrame()) && !m_IsMainFrame) {
         return S_OK;
       }
 
       CComVariant var;
       IF_FAILED_RET(browser->GetProperty(L"_anchoBrowserEvents", &var));
 
-      CComQIPtr<DAnchoBrowserEvents> events(var.pdispVal);
-      if (!events) {
+      m_BrowserEvents = var.pdispVal;
+      if (!m_BrowserEvents) {
         return E_FAIL;
       }
+    }
 
-      if (data->dwState == ANCHO_SWITCH_REPORT_DATA) {
-        IF_FAILED_RET(events->OnFrameStart(bstrUrl, isMainFrame));
+    ATLASSERT(m_Doc != NULL);
 
-        CComBSTR readyState;
-        doc->get_readyState(&readyState);
-        if (wcscmp(readyState, L"complete") == 0) {
-          IF_FAILED_RET(events->OnFrameEnd(bstrUrl, isMainFrame));
-        }
-        else {
-          m_DocSink = new DocumentSink(this, doc, events, bstrUrl);
-          m_DocSink->DispEventAdvise(doc);
-        }
+    // Send the event for any redirects that occurred before we had access to the event sink.
+    RedirectList::iterator it = m_Redirects.begin();
+    while(it != m_Redirects.end()) {
+      IF_FAILED_RET(m_BrowserEvents->OnFrameRedirect(CComBSTR(it->first.c_str()),
+        CComBSTR(it->second.c_str())));
+      ++it;
+    }
+    m_Redirects.clear();
+
+    if (data->dwState == ANCHO_SWITCH_REPORT_DATA) {
+      IF_FAILED_RET(m_BrowserEvents->OnFrameStart(bstrUrl, m_IsMainFrame ? VARIANT_TRUE : VARIANT_FALSE));
+
+      CComBSTR readyState;
+      m_Doc->get_readyState(&readyState);
+      if (wcscmp(readyState, L"complete") == 0) {
+        IF_FAILED_RET(m_BrowserEvents->OnFrameEnd(bstrUrl, m_IsMainFrame ? VARIANT_TRUE : VARIANT_FALSE));
       }
-      else if (data->dwState == ANCHO_SWITCH_REDIRECT) {
-        IF_FAILED_RET(events->OnFrameRedirect(bstrUrl, bstrAdditional));
+      else {
+        m_DocSink = new DocumentSink(this, m_Doc, m_BrowserEvents, bstrUrl);
+        m_DocSink->DispEventAdvise(m_Doc);
       }
     }
+    else if (data->dwState == ANCHO_SWITCH_REDIRECT) {
+      IF_FAILED_RET(m_BrowserEvents->OnFrameRedirect(bstrUrl, bstrAdditional));
+    }
   }
+
   return __super::Continue(data);
 }

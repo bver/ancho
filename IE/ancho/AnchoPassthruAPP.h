@@ -28,7 +28,7 @@ public:
 
   // -------------------------------------------------------------------------
   // Constructor
-  CAnchoProtocolSink() : m_FirstDataReceived(false), m_IsFrame(false) {}
+  CAnchoProtocolSink() : m_IsFrame(false) {}
 
   // -------------------------------------------------------------------------
   // COM interface map
@@ -84,7 +84,6 @@ private:
   // -------------------------------------------------------------------------
   // Private members.
   std::wstring m_Url;
-  boolean m_FirstDataReceived;
   boolean m_IsFrame;
 };
 
@@ -115,6 +114,8 @@ class CAnchoPassthruAPP :
   public PassthroughAPP::CInternetProtocol<CAnchoStartPolicy>
 {
 private:
+  typedef std::vector<std::pair<std::wstring, std::wstring> > RedirectList;
+
   // -------------------------------------------------------------------------
   // DocumentSink class (for sinking HTMLDocumentEvents2)
   class DocumentSink :
@@ -156,14 +157,17 @@ private:
 public:
   // -------------------------------------------------------------------------
   // Destructor
-  CAnchoPassthruAPP() : m_DocSink(NULL) {}
+  CAnchoPassthruAPP() : m_DocSink(NULL), m_IsMainFrame(false) {}
   virtual ~CAnchoPassthruAPP();
 
 protected:
   // -------------------------------------------------------------------------
   // Data members
-  CComPtr<DAnchoBrowserEvents> mBrowserEvents;
+  CComQIPtr<DAnchoBrowserEvents> m_BrowserEvents;
+  CComPtr<IHTMLDocument2> m_Doc;
+  bool m_IsMainFrame;
   CComPtr<IWebBrowser2> m_Browser;
   std::set<CComPtr<IWebBrowser2> > m_FoundFrames;
   DocumentSink* m_DocSink;
+  RedirectList m_Redirects;
 };
