@@ -27,17 +27,17 @@
       }
 
       function onTabOpen(event) {
-        extensionState.eventDispatcher.notifyListeners('tabCreated', null,
+        extensionState.eventDispatcher.notifyListeners('tab.created', null,
           [ { id: Utils.getWindowId(tabbrowser.getBrowserForTab(event.target).contentWindow) } ]);
       }
 
       function onTabClose(event) {
-        extensionState.eventDispatcher.notifyListeners('tabRemoved', null,
+        extensionState.eventDispatcher.notifyListeners('tab.removed', null,
           [ Utils.getWindowId(tabbrowser.getBrowserForTab(event.target).contentWindow), {} ]);
       }
 
       function onTabSelect(event) {
-        extensionState.eventDispatcher.notifyListeners('tabActivated', null,
+        extensionState.eventDispatcher.notifyListeners('tab.activated', null,
           [ { tabId: Utils.getWindowId(tabbrowser.selectedBrowser.contentWindow) } ]);
       }
 

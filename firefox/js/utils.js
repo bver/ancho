@@ -61,4 +61,39 @@
     return { id: extensionId, tab: { id: tabId } };
   };
 
+  exports.getLoadContext = function(aRequest) {
+    var loadContext = null;
+    try {
+      // first try the notification callbacks
+      loadContext = aRequest
+        .QueryInterface(Ci.nsIChannel)
+        .notificationCallbacks
+        .getInterface(Ci.nsILoadContext);
+      return loadContext;
+    } catch (ex) {
+      // fail over to trying the load group
+      try {
+        if (!aRequest.loadGroup) {
+          return null;
+        }
+        loadContext = aRequest
+          .loadGroup
+          .notificationCallbacks
+          .getInterface(Ci.nsILoadContext);
+        return loadContext;
+      } catch(ex) {
+        return null;
+      }
+    }
+  };
+
+  exports.removeFragment = function(str) {
+    var pos = str.indexOf('#');
+    if (pos != -1) {
+      return str.substr(0, pos);
+    } else {
+      return str;
+    }
+  };
+
 }).call(this);

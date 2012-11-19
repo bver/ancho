@@ -54,8 +54,7 @@
 
       iframe.addEventListener('DOMContentLoaded', function(event) {
         iframe.removeEventListener('DOMContentLoaded', arguments.callee, false);
-
-        loadHtml(win.document, iframe, Toolbar.EXTENSION_ROOT_DIR, options.html, []);
+        loadHtml(win.document, iframe, Toolbar.EXTENSION_ROOT_DIR + options.html);
       }, false);
 
       // Return the unloader

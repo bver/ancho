@@ -50,7 +50,6 @@
               sandbox.jQuery.ajaxSettings.xhr = Require.createWrappedXMLHttpRequest;
             }
             var scriptUri = Services.io.newURI('chrome://ancho/content/chrome-ext/' + scriptInfo.js[k], '', null);
-            sandbox.require = Require.createRequireForWindow(sandbox, scriptUri);
             var script = readStringFromUrl(scriptUri);
             Cu.evalInSandbox(script, sandbox);
           }
@@ -58,13 +57,13 @@
         }
       } // for
     } // for
-  }
+  };
 
   // When we load a privileged HTML page we want all scripts to load as content
   // scripts so that they have access to the require function and chrome / ancho APIs.
   // So we strip the <script> tags out of the document and load them separately
   // as content scripts.
-  exports.loadHtml = function(document, iframe, urlPrefix, htmlSpec, scriptSpecs, callback) {
+  exports.loadHtml = function(document, iframe, htmlSpec, callback) {
     var targetWindow = iframe.contentWindow;
     document.addEventListener('DOMWindowCreated', function(event) {
       var window = event.target.defaultView.wrappedJSObject;
@@ -75,25 +74,15 @@
       prepareWindow(window);
     }, false);
 
-    iframe.addEventListener('DOMContentLoaded', function(event) {
-      iframe.removeEventListener('DOMContentLoaded', arguments.callee, false);
-      var window = event.target.defaultView.wrappedJSObject;
-      // Load background scripts:
-      for (var i = 0; i < scriptSpecs.length; i++) {
-        var script = window.document.createElement('script');
-        script.src = urlPrefix + scriptSpecs[i];
-        window.document.body.appendChild(script);
-      }
-      if (callback) {
-        callback();
-      }
-    }, false);
+    if (callback) {
+      iframe.addEventListener('DOMContentLoaded', function(event) {
+        iframe.removeEventListener('DOMContentLoaded', arguments.callee, false);
+        callback(event.target.defaultView.wrappedJSObject);
+      }, false);
+    }
 
-    var targetSpec = urlPrefix
-      ? (htmlSpec ? urlPrefix + htmlSpec : 'chrome://ancho/content/html/blank.html')
-      : htmlSpec;
+    iframe.webNavigation.loadURI(htmlSpec,
+        Ci.nsIWebNavigation.LOAD_FLAGS_NONE, null, null, null);
+  };
 
-    iframe.webNavigation.loadURI(targetSpec,
-      Ci.nsIWebNavigation.LOAD_FLAGS_NONE, null, null, null);
-  }
 }).call(this);

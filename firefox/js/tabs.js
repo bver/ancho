@@ -11,13 +11,14 @@
 
 
   function TabsAPI(state, window) {
+    this._window = window;
     this._state = state;
     this._tab = Utils.getWindowId(window);
 
     // Event handlers
-    this.onCreated = new Event(window, this._tab, this._state, 'tabCreated');
-    this.onActivated = new Event(window, this._tab, this._state, 'tabActivated');
-    this.onRemoved = new Event(window, this._tab, this._state, 'tabRemoved');
+    this.onCreated = new Event(window, this._tab, this._state, 'tab.created');
+    this.onActivated = new Event(window, this._tab, this._state, 'tab.activated');
+    this.onRemoved = new Event(window, this._tab, this._state, 'tab.removed');
   }
 
   TabsAPI.prototype = {
@@ -28,7 +29,7 @@
 
     sendRequest: function(tabId, request, callback) {
       var sender = Utils.getSender(this._state['id'], this._tab);
-      this._state.eventDispatcher.notifyListeners('request', tabId,
+      this._state.eventDispatcher.notifyListeners('extension.request', tabId,
         [ request, sender, callback ]);
     },
 
@@ -41,21 +42,33 @@
       if (createProperties.active) {
         tabbrowser.selectedTab = tab;
       }
+      if (callback) {
+        callback({ id: Utils.getWindowId(tab.contentWindow) });
+      }
     },
 
     update: function(tabId, updateProperties, callback) {
       if (typeof(tabId) != 'number') {
-        // No tabId specified so shift the arguments.
+        // No tabId specified, shift the arguments
         callback = updateProperties;
         updateProperties = tabId;
         tabId = null;
       }
       var tabbrowser = this._getBrowserForWindowId(null);
       var browser = this._getBrowserForTabId(tabbrowser, tabId);
-      browser.loadURI(updateProperties.url);
-      if (updateProperties.active) {
-        tabbrowser.selectedBrowser = browser;
-      }
+
+      var self = this;
+      this._waitForDocShell(browser, 5, 200, function() {
+        // TODO: before changing the URI, we shall unload the window
+        // and make sure it is initialized again when the DOM is ready
+        browser.loadURI(updateProperties.url);
+        if (updateProperties.active) {
+          tabbrowser.selectedBrowser = browser;
+        }
+        if (callback) {
+          callback({ id: tabId ? tabId : Utils.getWindowId(browser.contentWindow) });
+        }
+      });
     },
 
     executeScript: function(tabId, executeScriptProperties, callback) {
@@ -69,6 +82,29 @@
         scriptElement.appendChild(tt);
         doc.body.appendChild(scriptElement);
       }
+      if (callback) {
+        callback();
+      }
+    },
+
+    _waitForDocShell: function(object, pollTime, maxAttempts, callback) {
+      var self = this;
+      var timer = null;
+      var iteration = 0;
+
+      function _nextTick() {
+        if (object.docShell) {
+          self._window.clearInterval(timer);
+          callback();
+          return;
+        }
+        if (++iteration === maxAttempts) {
+          self._window.clearInterval(timer);
+        }
+      };
+
+      timer = self._window.setInterval(_nextTick, pollTime);
+      _nextTick();
     },
 
     _getBrowserForTabId: function(tabbrowser, tabId) {

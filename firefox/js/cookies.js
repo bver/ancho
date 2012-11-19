@@ -18,7 +18,7 @@
     this._tab = Utils.getWindowId(window);
     this.cookieService = Cc["@mozilla.org/cookieService;1"]
         .getService(Ci.nsICookieService);
-    this.onChanged = new Event(window, this._tab, this._state, 'cookieChanged');
+    this.onChanged = new Event(window, this._tab, this._state, 'cookie.changed');
     Services.obs.addObserver(this, COOKIE_CHANGED, false);
   };
 
@@ -31,14 +31,10 @@
         // https://developer.mozilla.org/en-US/docs/XPCOM_Interface_Reference/nsICookieService
         if (changed) {
           var cookie = this.toCookie(subject);
-          this._state.eventDispatcher.notifyListeners(
-            'cookieChanged',
-            this._tabId,
-            {
-              cookie : cookie,
-              removed : false
-            }
-          );
+          this.onChanged.fire([ {
+            cookie : cookie,
+            removed : false
+          } ]);
         }
 
       }

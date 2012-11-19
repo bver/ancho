@@ -17,8 +17,8 @@
     this._contentWindow = contentWindow;
     this._state = state;
 
-    this.onRemoved = new Event(contentWindow, null, state, 'windowRemoved');
-    this.onUpdated = new Event(contentWindow, null, state, 'windowUpdated');
+    this.onRemoved = new Event(contentWindow, null, state, 'windows.removed');
+    this.onUpdated = new Event(contentWindow, null, state, 'windows.updated');
   }
 
   WindowsAPI.prototype = {
@@ -74,7 +74,7 @@
 
         if ('url' in createData) {
           var uri = Services.io.newURI(createData.url, '', baseSpec);
-          loadHtml(document, iframe, null, uri.spec, []);
+          loadHtml(document, iframe, uri.spec);
         }
         windowId = Utils.getWindowId(iframe.contentWindow);
         panel.id = 'panel_' + windowId;
@@ -88,7 +88,7 @@
       panel.addEventListener('popuphiding', function() {
         if (windowId) {
           // Notify listeners that we are closing.
-          self._state.eventDispatcher.notifyListeners('windowRemoved', null, [ windowId ]);
+          self.onRemoved.fire([ windowId ]);
         }
 
         panel.removeEventListener('popuphiding', arguments.callee, false);
@@ -131,7 +131,7 @@
           // TODO: We should really be able to use left and top independently of each other per the spec.
           panel.moveTo(updateInfo.left, updateInfo.top);
         }
-        this._state.eventDispatcher.notifyListeners('windowUpdated', null, [ windowId, updateInfo ]);
+        this.onUpdated.fire([ windowId, updateInfo ]);
       }
     }
   };
