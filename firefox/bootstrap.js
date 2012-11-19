@@ -76,8 +76,6 @@ function loadConfig(addon) {
   var Config = require('./js/config');
   var readStringFromUrl = require('./js/utils').readStringFromUrl;
 
-  var excludeScriptsRx = /\/require\.js$/;
-
   if (addon.hasResource('chrome-ext/manifest.json')) {
     var manifestUrl = addon.getResourceURI('chrome-ext/manifest.json');
     var manifest = readStringFromUrl(manifestUrl);
@@ -94,15 +92,15 @@ function loadConfig(addon) {
         var matches = [];
         for (var j=0; j<scriptInfo.matches.length; j++) {
           // Convert from Google's simple wildcard syntax to a proper regular expression
-          matches.push(scriptInfo.matches[j].replace('*', '.*', 'g'));
+          matches.push(
+            scriptInfo.matches[j]
+              .replace('<all_urls>', '*')
+              .replace('*', '.*', 'g')
+          );
         }
         var js = [];
         for (var j=0; j<scriptInfo.js.length; j++) {
-          // Prefix ID with ./ so we know to resolve from the base script URL.
-          // (Otherwise the module path would be used.)
-          if (!scriptInfo.js[j].match(excludeScriptsRx)) {
-            js.push('./' + scriptInfo.js[j]);
-          }
+          js.push(scriptInfo.js[j]);
         }
         Config.contentScripts.push({
           matches: matches,
@@ -117,13 +115,11 @@ function loadConfig(addon) {
       }
       if (bg.scripts) {
         for (var i=0; i<bg.scripts.length; i++) {
-          if (!bg.scripts[i].match(excludeScriptsRx)) {
-            Config.backgroundScripts.push(bg.scripts[i]);
-          }
+          Config.backgroundScripts.push(bg.scripts[i]);
         }
       }
     } // background
-  }
+  } // has manifest.json?
 }
 
 function unloadBackgroundScripts() {

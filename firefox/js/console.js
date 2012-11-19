@@ -4,22 +4,37 @@
   }
 
   ConsoleAPI.prototype = {
-    error: function(args) {
+    error: function() {
       dump('ERROR: ');
-      dump(args);
+      dump(this._toString.apply(this, arguments));
       dump('\n');
     },
 
-    warn: function(args) {
+    warn: function() {
       dump('Warning: ');
-      dump(args);
+      dump(this._toString.apply(this, arguments));
       dump('\n');
     },
 
-    log: function(args) {
+    log: function() {
       dump('Log: ');
-      dump(args);
+      dump(this._toString.apply(this, arguments));
       dump('\n');
+    },
+
+    _toString: function() {
+      var s = '';
+      for (i = 0; i < arguments.length; i++) {
+        if ('object' === typeof(arguments[i])) {
+          s += JSON.stringify(arguments[i], null, 2);
+        } else {
+          s += arguments[i].toString();
+        }
+        if (i < arguments.length - 1) {
+          s += ' ';
+        }
+      }
+      return s;
     }
   };
 

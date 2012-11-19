@@ -44,8 +44,8 @@ function windowLoaded(window) {
 }
 
 function watchOnWindowLoad(window) {
-  window.addEventListener('load', function(event) {
-    window.removeEventListener('load', arguments.callee, false);
+  window.addEventListener('DOMContentLoaded', function(event) {
+    window.removeEventListener('DOMContentLoaded', arguments.callee, false);
     windowLoaded(window);
   }, false);
 }
@@ -82,16 +82,23 @@ function releaseWindowWatcher() {
 
 window.addEventListener('load', function(event) {
   window.removeEventListener('load', arguments.callee, false);
-  ExtensionState.backgroundWindow = window;
+  ExtensionState.startSingletonAPIs(window);
   createWindowWatcher();
+  var spec = Config.backgroundPage
+        ? 'chrome://ancho/content/chrome-ext/' + Config.backgroundPage
+        // Cannot use 'about:blank' here, because DOM for 'about:blank'
+        // is inappropriate for script inserting: neither 'document.head'
+        // nor 'document.body' are defined.
+        : 'chrome://ancho/content/html/blank.html';
   var browser = document.getElementById('content');
-  loadHtml(
-    document,
-    browser,
-    'chrome://ancho/content/chrome-ext/',
-    Config.backgroundPage,
-    Config.backgroundScripts
-  );
+  loadHtml(document, browser, spec, function(targetWindow) {
+    // load background scripts, if any
+    for (var i = 0; i < Config.backgroundScripts.length; i++) {
+      var script = targetWindow.document.createElement('script');
+      script.src = 'chrome://ancho/content/chrome-ext/' + Config.backgroundScripts[i];
+      targetWindow.document.head.appendChild(script);
+    }
+  });
 }, false);
 
 window.addEventListener('unload', function(event) {

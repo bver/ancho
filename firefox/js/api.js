@@ -11,6 +11,7 @@
   // var BrowserActionAPI = require('./browserAction');
   var CookiesAPI = require('./cookies');
   var HistoryAPI = require('./history');
+  var DebuggerAPI = require('./debugger');
 
   // Ancho APIs
   var ToolbarAPI = require('./toolbar');
@@ -29,7 +30,8 @@
       webRequest: new WebRequestAPI(extensionState, contentWindow),
       // browserAction: new BrowserActionAPI(extensionState, contentWindow),
       cookies: new CookiesAPI(extensionState, contentWindow),
-      history: new HistoryAPI(extensionState, contentWindow)
+      history: new HistoryAPI(extensionState, contentWindow),
+      debugger: new DebuggerAPI(extensionState, contentWindow)
     };
 
     this.ancho = {

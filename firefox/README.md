@@ -11,9 +11,11 @@ directory structure, i.e. where the `manifest.json` file is located.
 To use the extension, create a file named `ancho@salsitasoft.com` in
 `extensions` directory of your Firefox browser profile with path to this
 `firefox` directory as its content. Or, simply create a standard Firefox
-extension (the `.xpi` extension file) by zipping this `firefox` directory.  When
-doing so, make sure the content of referenced `chrome-ext` directory is included
-in the package, i.e. that the symbolic links are followed.
+extension (the `.xpi` extension file) by zipping content of this `firefox`
+directory.  When doing so, make sure the content of referenced `chrome-ext`
+directory is included in the package, i.e. that the symbolic links are followed
+(this is default behavior of `zip` utility in Linux and OS X, so you can create
+the xpi archive using `zip -r ../<name>-<version>.xip *` command).
 
 ## Current state
 
