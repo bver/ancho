@@ -28,7 +28,8 @@
 			<Tool
 				Name="VCPreBuildEventTool"
 				Description="Copying files..."
-				CommandLine="xcopy /D &quot;$(SolutionDir)Magpie\$(ConfigurationName)\Magpie.dll&quot; &quot;$(OutDir)&quot;"
+				CommandLine="xcopy /q /y /D &quot;$(SolutionDir)Magpie\$(ConfigurationName)\Magpie.dll&quot; &quot;$(OutDir)&quot;"
+				ExcludedFromBuild="true"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -42,7 +43,7 @@
 			<Tool
 				Name="VCMIDLTool"
 				PreprocessorDefinitions="_DEBUG"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)AnchoBgSrv\$(ConfigurationName)&quot;"
+				AdditionalIncludeDirectories="&quot;$(OutDir)&quot;"
 				MkTypLibCompatible="false"
 				TargetEnvironment="1"
 				GenerateStublessProxies="true"
@@ -56,7 +57,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)Magpie\include&quot;;&quot;$(SolutionDir)libbhohelper\libbhohelper&quot;;&quot;$(SolutionDir)anchocommons&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)Magpie\include&quot;;&quot;$(SolutionDir)libbhohelper\libbhohelper&quot;;&quot;$(SolutionDir)libprothandlers\include&quot;;&quot;$(SolutionDir)anchocommons&quot;;&quot;$(SolutionDir)passthruapp&quot;;&quot;$(OutDir)&quot;"
 				PreprocessorDefinitions="WIN32;_WINDOWS;_DEBUG;_USRDLL"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -83,7 +84,7 @@
 				IgnoreImportLibrary="true"
 				AdditionalDependencies="libbhohelper.lib anchocommons.lib"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="&quot;$(SolutionDir)libbhohelper\$(ConfigurationName)&quot;;&quot;$(SolutionDir)anchocommons\$(ConfigurationName)&quot;"
+				AdditionalLibraryDirectories="&quot;$(OutDir)&quot;;&quot;$(SolutionDir)anchocommons\$(ConfigurationName)&quot;"
 				ModuleDefinitionFile=".\ancho.def"
 				GenerateDebugInformation="true"
 				SubSystem="2"
@@ -123,7 +124,8 @@
 			<Tool
 				Name="VCPreBuildEventTool"
 				Description="Copying files..."
-				CommandLine="xcopy /D &quot;$(SolutionDir)Magpie\$(ConfigurationName)\Magpie.dll&quot; &quot;$(OutDir)&quot;"
+				CommandLine="xcopy /q /y /D &quot;$(SolutionDir)Magpie\$(ConfigurationName)\Magpie.dll&quot; &quot;$(OutDir)&quot;"
+				ExcludedFromBuild="true"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -137,7 +139,7 @@
 			<Tool
 				Name="VCMIDLTool"
 				PreprocessorDefinitions="NDEBUG"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)AnchoBgSrv\$(ConfigurationName)&quot;"
+				AdditionalIncludeDirectories="&quot;$(OutDir)&quot;"
 				MkTypLibCompatible="false"
 				TargetEnvironment="1"
 				GenerateStublessProxies="true"
@@ -151,7 +153,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="2"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)Magpie\include&quot;;&quot;$(SolutionDir)libbhohelper\libbhohelper&quot;;&quot;$(SolutionDir)anchocommons&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)Magpie\include&quot;;&quot;$(SolutionDir)libbhohelper\libbhohelper&quot;;&quot;$(SolutionDir)libprothandlers\include&quot;;&quot;$(SolutionDir)anchocommons&quot;;&quot;$(SolutionDir)passthruapp&quot;;&quot;$(OutDir)&quot;"
 				PreprocessorDefinitions="WIN32;_WINDOWS;NDEBUG;_USRDLL"
 				RuntimeLibrary="2"
 				UsePrecompiledHeader="2"
@@ -176,7 +178,7 @@
 				IgnoreImportLibrary="true"
 				AdditionalDependencies="libbhohelper.lib anchocommons.lib"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="&quot;$(SolutionDir)libbhohelper\$(ConfigurationName)&quot;;&quot;$(SolutionDir)anchocommons\$(ConfigurationName)&quot;"
+				AdditionalLibraryDirectories="&quot;$(OutDir)&quot;;&quot;$(SolutionDir)anchocommons\$(ConfigurationName)&quot;"
 				ModuleDefinitionFile=".\ancho.def"
 				GenerateDebugInformation="true"
 				SubSystem="2"
@@ -229,6 +231,14 @@
 			</File>
 			<File
 				RelativePath=".\AnchoAddon.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\AnchoBrowserEvents.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\AnchoPassthruAPP.cpp"
 				>
 			</File>
 			<File
@@ -285,6 +295,14 @@
 			>
 			<File
 				RelativePath=".\AnchoAddon.h"
+				>
+			</File>
+			<File
+				RelativePath=".\AnchoBrowserEvents.h"
+				>
+			</File>
+			<File
+				RelativePath=".\AnchoPassthruAPP.h"
 				>
 			</File>
 			<File

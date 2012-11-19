@@ -7,6 +7,14 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ancho", "ancho\ancho.vcxpro
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "anchocommons", "anchocommons\anchocommons.vcxproj", "{0FE0872C-8BDD-4D12-8025-0FE85C8A9631}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libbhohelper", "libbhohelper\libbhohelper\libbhohelper.vcxproj", "{BD432C91-5D1F-4B38-A4D5-0E5709EB58F3}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libmagpie", "Magpie\libmagpie\libmagpie.vcxproj", "{B3C4AA4F-C452-45D4-B4EC-DF670F777F55}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Magpie", "Magpie\Magpie\Magpie.vcxproj", "{E2EDE153-1F28-4B43-85F6-BFE85D626A28}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libprothandlers", "libprothandlers\libprothandlers\libprothandlers.vcxproj", "{9D2487D1-7046-4665-9E66-8D81A9221438}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -25,6 +33,22 @@ Global
 		{0FE0872C-8BDD-4D12-8025-0FE85C8A9631}.Debug|Win32.Build.0 = Debug|Win32
 		{0FE0872C-8BDD-4D12-8025-0FE85C8A9631}.Release|Win32.ActiveCfg = Release|Win32
 		{0FE0872C-8BDD-4D12-8025-0FE85C8A9631}.Release|Win32.Build.0 = Release|Win32
+		{BD432C91-5D1F-4B38-A4D5-0E5709EB58F3}.Debug|Win32.ActiveCfg = Debug|Win32
+		{BD432C91-5D1F-4B38-A4D5-0E5709EB58F3}.Debug|Win32.Build.0 = Debug|Win32
+		{BD432C91-5D1F-4B38-A4D5-0E5709EB58F3}.Release|Win32.ActiveCfg = Release|Win32
+		{BD432C91-5D1F-4B38-A4D5-0E5709EB58F3}.Release|Win32.Build.0 = Release|Win32
+		{B3C4AA4F-C452-45D4-B4EC-DF670F777F55}.Debug|Win32.ActiveCfg = Debug|Win32
+		{B3C4AA4F-C452-45D4-B4EC-DF670F777F55}.Debug|Win32.Build.0 = Debug|Win32
+		{B3C4AA4F-C452-45D4-B4EC-DF670F777F55}.Release|Win32.ActiveCfg = Release|Win32
+		{B3C4AA4F-C452-45D4-B4EC-DF670F777F55}.Release|Win32.Build.0 = Release|Win32
+		{E2EDE153-1F28-4B43-85F6-BFE85D626A28}.Debug|Win32.ActiveCfg = Debug|Win32
+		{E2EDE153-1F28-4B43-85F6-BFE85D626A28}.Debug|Win32.Build.0 = Debug|Win32
+		{E2EDE153-1F28-4B43-85F6-BFE85D626A28}.Release|Win32.ActiveCfg = Release|Win32
+		{E2EDE153-1F28-4B43-85F6-BFE85D626A28}.Release|Win32.Build.0 = Release|Win32
+		{9D2487D1-7046-4665-9E66-8D81A9221438}.Debug|Win32.ActiveCfg = Debug|Win32
+		{9D2487D1-7046-4665-9E66-8D81A9221438}.Debug|Win32.Build.0 = Debug|Win32
+		{9D2487D1-7046-4665-9E66-8D81A9221438}.Release|Win32.ActiveCfg = Release|Win32
+		{9D2487D1-7046-4665-9E66-8D81A9221438}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

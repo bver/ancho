@@ -31,20 +31,12 @@
 using namespace ATL;
 
 // Magpie
-#ifdef _DEBUG
-# import "..\Magpie\Debug\Magpie.dll" named_guids raw_interfaces_only raw_native_types no_smart_pointers
-#else
-# import "..\Magpie\Release\Magpie.dll" named_guids raw_interfaces_only raw_native_types no_smart_pointers
-#endif
+#import "Magpie.tlb" named_guids raw_interfaces_only raw_native_types no_smart_pointers exclude("tagSAFEARRAYBOUND")
 using namespace MagpieLib;
 #include "CreateMagpieInstance.h"
 
 // addon framework
-#ifdef _DEBUG
-# import "..\Debug\AnchoBgSrv.exe" named_guids no_smart_pointers raw_interfaces_only raw_native_types no_auto_exclude
-#else
-# import "..\Release\AnchoBgSrv.exe" named_guids no_smart_pointers raw_interfaces_only raw_native_types no_auto_exclude
-#endif
+#import "AnchoBgSrv.tlb" named_guids no_smart_pointers raw_interfaces_only raw_native_types exclude("tagSAFEARRAYBOUND")
 using namespace AnchoBgSrvLib;
 
 // helper

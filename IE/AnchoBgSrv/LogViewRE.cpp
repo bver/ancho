@@ -28,8 +28,9 @@ LRESULT CLogView::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, 
   return 0;
 }
 
-void CLogView::Log(LogFacility logType, BSTR bsSource, BSTR bsModuleID, VARIANT vtValue)
+void CLogView::LogIntro(LogFacility logType, BSTR bsSource, BSTR bsModuleID)
 {
+  // set color, set bold, print date, logtype, source and module
   CHARFORMAT cf = {0};
   cf.cbSize = sizeof(CHARFORMAT);
   cf.dwMask = CFM_COLOR;
@@ -61,12 +62,6 @@ void CLogView::Log(LogFacility logType, BSTR bsSource, BSTR bsModuleID, VARIANT 
   CTime ts = CTime::GetCurrentTime();
   CString sDate(ts.Format(_T("%H:%M:%S")));
 
-  CComVariant vt;
-  vt.ChangeType(VT_BSTR, &vtValue);
-  if (vt.vt != VT_BSTR)
-  {
-    vt = _T("???");
-  }
   CString s;
   s.Format(_T("%s %s [%s: %s]: "), sDate, sType, bsSource, bsModuleID);
 
@@ -76,12 +71,51 @@ void CLogView::Log(LogFacility logType, BSTR bsSource, BSTR bsModuleID, VARIANT 
   cf.dwMask |= CFM_BOLD;
   cf.dwEffects = CFE_BOLD;
   SetSelectionCharFormat(cf);
-  AppendText(vt.bstrVal);
+  // the view has now bold font with the correct color selected
+}
 
+void CLogView::LogExtro()
+{
+  // reset color
+  CHARFORMAT cf = {0};
+  cf.cbSize = sizeof(CHARFORMAT);
   cf.dwMask = CFM_COLOR;
   cf.crTextColor = LOG_DEFAULTCOLOR;
   SetSelectionCharFormat(cf);
   AppendText(_T("\r\n"));
+}
+
+void CLogView::LogVariant(VARIANT & value)
+{
+  CComVariant vt;
+  vt.ChangeType(VT_BSTR, &value);
+  if (vt.vt != VT_BSTR)
+  {
+    vt = _T("???");
+  }
+  AppendText(vt.bstrVal);
+}
+
+void CLogView::Log(LogFacility logType, BSTR bsSource, BSTR bsModuleID, SAFEARRAY* pVals)
+{
+  LogIntro(logType, bsSource, bsModuleID);
+
+  ATLASSERT(0 == pVals->rgsabound[0].lLbound);
+  VARIANT* pVariants = (VARIANT*)pVals->pvData;
+  for(ULONG n = 0; n < pVals->rgsabound[0].cElements; n++)
+  {
+    LogVariant(pVariants[pVals->rgsabound[0].cElements - n - 1]);
+    AppendText(_T(" "));
+  }
+
+  LogExtro();
+}
+
+void CLogView::Log(LogFacility logType, BSTR bsSource, BSTR bsModuleID, VARIANT vtValue)
+{
+  LogIntro(logType, bsSource, bsModuleID);
+  LogVariant(vtValue);
+  LogExtro();
 }
 
 void CLogView::ClearLog()

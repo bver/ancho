@@ -18,7 +18,7 @@
 
 #ifndef MAGPIE_REGISTERED
 // need the function info for logging in case magpie is not registered
-_ATL_FUNC_INFO CAnchoBackgroundAPI::info_Console_LogFunction = {CC_STDCALL,VT_EMPTY,2,{VT_VARIANT,VT_BSTR}};
+_ATL_FUNC_INFO CAnchoBackgroundAPI::info_Console_LogFunction = {CC_STDCALL,VT_EMPTY,2,{VT_BSTR,VT_ARRAY|VT_VARIANT}};
 #endif
 
 // string identifyer used in console logging for background
@@ -61,6 +61,10 @@ HRESULT CAnchoBackgroundAPI::Init(LPCTSTR lpszThisPath, LPCTSTR lpszRootURL, BST
   }
   IF_FAILED_RET(CreateMagpieInstance(&m_Magpie));
 #endif
+  CString appName;
+  appName.Format(_T("Ancho background [%s]"), m_bsID);
+  m_Magpie->Init((LPWSTR)(LPCWSTR)appName);
+
   // add a loader for scripts in the extension filesystem
   IF_FAILED_RET(m_Magpie->AddFilesystemScriptLoader((LPWSTR)(LPCWSTR)sPath));
 
@@ -360,6 +364,26 @@ STDMETHODIMP CAnchoBackgroundAPI::invokeEventObject(BSTR aEventName, INT aSelect
   }
   return constructSafeArrayFromVector(results, *aRet);
 }
+
+//----------------------------------------------------------------------------
+//
+STDMETHODIMP CAnchoBackgroundAPI::invokeEventWithIDispatchArgument(BSTR aEventName, LPDISPATCH aArg)
+{
+  if (!m_InvokeEventWithIDispatch) {
+    return E_FAIL;
+  }
+  CComVariant eventName(aEventName);
+  CComVariant dispatchObject(aArg);
+  return m_InvokeEventWithIDispatch.Invoke2((DISPID)0, &eventName, &dispatchObject);
+}
+
+//----------------------------------------------------------------------------
+//
+STDMETHODIMP CAnchoBackgroundAPI::setIDispatchEventInvocationHandler(LPDISPATCH aFunction)
+{
+  m_InvokeEventWithIDispatch = aFunction;
+  return S_OK;
+}
 //----------------------------------------------------------------------------
 //
 
@@ -422,50 +446,50 @@ STDMETHODIMP CAnchoBackgroundAPI::invokeEvent(BSTR aEventName, INT aSelectedInst
 
 //----------------------------------------------------------------------------
 //
-STDMETHODIMP_(void) CAnchoBackgroundAPI::OnLog(VARIANT val, BSTR bsModuleID)
+STDMETHODIMP_(void) CAnchoBackgroundAPI::OnLog(BSTR bsModuleID, SAFEARRAY* pVals)
 {
   if (m_LogWindow)
   {
-    m_LogWindow->log(CComBSTR(s_BackgroundLogIdentifyer), bsModuleID, val);
+    m_LogWindow->log(CComBSTR(s_BackgroundLogIdentifyer), bsModuleID, pVals);
   }
 }
 
 //----------------------------------------------------------------------------
 //
-STDMETHODIMP_(void) CAnchoBackgroundAPI::OnDebug(VARIANT val, BSTR bsModuleID)
+STDMETHODIMP_(void) CAnchoBackgroundAPI::OnDebug(BSTR bsModuleID, SAFEARRAY* pVals)
 {
   if (m_LogWindow)
   {
-    m_LogWindow->debug(CComBSTR(s_BackgroundLogIdentifyer), bsModuleID, val);
+    m_LogWindow->debug(CComBSTR(s_BackgroundLogIdentifyer), bsModuleID, pVals);
   }
 }
 
 //----------------------------------------------------------------------------
 //
-STDMETHODIMP_(void) CAnchoBackgroundAPI::OnInfo(VARIANT val, BSTR bsModuleID)
+STDMETHODIMP_(void) CAnchoBackgroundAPI::OnInfo(BSTR bsModuleID, SAFEARRAY* pVals)
 {
   if (m_LogWindow)
   {
-    m_LogWindow->info(CComBSTR(s_BackgroundLogIdentifyer), bsModuleID, val);
+    m_LogWindow->info(CComBSTR(s_BackgroundLogIdentifyer), bsModuleID, pVals);
   }
 }
 
 //----------------------------------------------------------------------------
 //
-STDMETHODIMP_(void) CAnchoBackgroundAPI::OnWarn(VARIANT val, BSTR bsModuleID)
+STDMETHODIMP_(void) CAnchoBackgroundAPI::OnWarn(BSTR bsModuleID, SAFEARRAY* pVals)
 {
   if (m_LogWindow)
   {
-    m_LogWindow->warn(CComBSTR(s_BackgroundLogIdentifyer), bsModuleID, val);
+    m_LogWindow->warn(CComBSTR(s_BackgroundLogIdentifyer), bsModuleID, pVals);
   }
 }
 
 //----------------------------------------------------------------------------
 //
-STDMETHODIMP_(void) CAnchoBackgroundAPI::OnError(VARIANT val, BSTR bsModuleID)
+STDMETHODIMP_(void) CAnchoBackgroundAPI::OnError(BSTR bsModuleID, SAFEARRAY* pVals)
 {
   if (m_LogWindow)
   {
-    m_LogWindow->error(CComBSTR(s_BackgroundLogIdentifyer), bsModuleID, val);
+    m_LogWindow->error(CComBSTR(s_BackgroundLogIdentifyer), bsModuleID, pVals);
   }
 }

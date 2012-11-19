@@ -107,14 +107,18 @@ public:
   STDMETHOD(addEventObject)(BSTR aEventName, INT aInstanceId, LPDISPATCH aListener);
   STDMETHOD(removeEventObject)(BSTR aEventName, INT aInstanceId);
   STDMETHOD(invokeEventObject)(BSTR aEventName, INT aSelectedInstance, BOOL aSkipInstance, LPDISPATCH aArgs, VARIANT* aRet);
+  STDMETHOD(invokeEventWithIDispatchArgument)(BSTR aEventName, LPDISPATCH aArg);
+  STDMETHOD(setIDispatchEventInvocationHandler)(LPDISPATCH aFunction);
   STDMETHOD(callFunction)(LPDISPATCH aFunction, LPDISPATCH aArgs, VARIANT* pvRet);
+  
+
   // -------------------------------------------------------------------------
   // _IMagpieLoggerEvents methods
-  STDMETHOD_(void, OnLog)(VARIANT val, BSTR bsModuleID);
-  STDMETHOD_(void, OnDebug)(VARIANT val, BSTR bsModuleID);
-  STDMETHOD_(void, OnInfo)(VARIANT val, BSTR bsModuleID);
-  STDMETHOD_(void, OnWarn)(VARIANT val, BSTR bsModuleID);
-  STDMETHOD_(void, OnError)(VARIANT val, BSTR bsModuleID);
+  STDMETHOD_(void, OnLog)(BSTR bsModuleID, SAFEARRAY* pVals);
+  STDMETHOD_(void, OnDebug)(BSTR bsModuleID, SAFEARRAY* pVals);
+  STDMETHOD_(void, OnInfo)(BSTR bsModuleID, SAFEARRAY* pVals);
+  STDMETHOD_(void, OnWarn)(BSTR bsModuleID, SAFEARRAY* pVals);
+  STDMETHOD_(void, OnError)(BSTR bsModuleID, SAFEARRAY* pVals);
 
   struct EventObjectRecord
   {
@@ -166,5 +170,7 @@ private:
   EventObjectMap                m_EventObjects;
 
   CComPtr<IAnchoServiceApi>     m_ServiceApi;
+
+  CIDispatchHelper              m_InvokeEventWithIDispatch;
 };
 

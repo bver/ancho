@@ -1,4 +1,4 @@
-chrome.extension.sendMessage(undefined, "from CONTENT: " + document.location, function(){
+/*chrome.extension.sendMessage(undefined, "from CONTENT: " + document.location, function(){
     chrome.console.log('Successfull response! But you should see this only once for every tab.')
 });
 try {
@@ -12,4 +12,4 @@ try {
   port.postMessage('First message posted through port');
 } catch (e) {
   chrome.console.error('Error: ' + e.message);
-}
+}*/

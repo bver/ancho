@@ -24,6 +24,7 @@ exports.EventFactory = {
   }
 };
 
+
 //Type checking utilities - instanceof and typeof are not working well when used 
 //on objects from different script dispach instances
 exports.isArray = function(aArg) {
@@ -68,4 +69,12 @@ exports.typeName = function(aArg) {
     }
   }
   return typeof (aArg);
+}
+
+
+exports.cleanWhiteSpace = function(aString) {
+  if (typeof (aString) != 'string') {
+    throw new Error('Expected string instead of :' + exports.typeName(aString));
+  }
+  return aString.replace(/^\s+|\s+$/g, '');
 }

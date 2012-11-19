@@ -117,6 +117,12 @@ STDMETHODIMP CAnchoAddonBackground::invokeExternalEventObject(BSTR aEventName, L
   return m_BackgroundAPI.invokeEventObject(aEventName, -1, true, aArgs, aRet);
 }
 //----------------------------------------------------------------------------
+//
+STDMETHODIMP CAnchoAddonBackground::invokeEventWithIDispatchArgument(BSTR aEventName, LPDISPATCH aArg)
+{
+  return m_BackgroundAPI.invokeEventWithIDispatchArgument(aEventName, aArg);
+}
+//----------------------------------------------------------------------------
 //  IAnchoAddonBackground methods
 //----------------------------------------------------------------------------
 
@@ -157,45 +163,45 @@ STDMETHODIMP CAnchoAddonBackground::GetManifest(LPDISPATCH* ppDisp)
 
 //----------------------------------------------------------------------------
 //
-STDMETHODIMP CAnchoAddonBackground::log(BSTR bsSource, BSTR bsModuleID, VARIANT val)
+STDMETHODIMP CAnchoAddonBackground::log(BSTR bsSource, BSTR bsModuleID, SAFEARRAY* pVals)
 {
   CComPtr<CLogWindowComObject> logWindow;
   IF_FAILED_RET(m_BackgroundAPI.GetLogWindow(logWindow.p));
-  return logWindow->log(bsSource, bsModuleID, val);
+  return logWindow->log(bsSource, bsModuleID, pVals);
 }
 
 //----------------------------------------------------------------------------
 //
-STDMETHODIMP CAnchoAddonBackground::debug(BSTR bsSource, BSTR bsModuleID, VARIANT val)
+STDMETHODIMP CAnchoAddonBackground::debug(BSTR bsSource, BSTR bsModuleID, SAFEARRAY* pVals)
 {
   CComPtr<CLogWindowComObject> logWindow;
   IF_FAILED_RET(m_BackgroundAPI.GetLogWindow(logWindow.p));
-  return logWindow->debug(bsSource, bsModuleID, val);
+  return logWindow->debug(bsSource, bsModuleID, pVals);
 }
 
 //----------------------------------------------------------------------------
 //
-STDMETHODIMP CAnchoAddonBackground::info(BSTR bsSource, BSTR bsModuleID, VARIANT val)
+STDMETHODIMP CAnchoAddonBackground::info(BSTR bsSource, BSTR bsModuleID, SAFEARRAY* pVals)
 {
   CComPtr<CLogWindowComObject> logWindow;
   IF_FAILED_RET(m_BackgroundAPI.GetLogWindow(logWindow.p));
-  return logWindow->info(bsSource, bsModuleID, val);
+  return logWindow->info(bsSource, bsModuleID, pVals);
 }
 
 //----------------------------------------------------------------------------
 //
-STDMETHODIMP CAnchoAddonBackground::warn(BSTR bsSource, BSTR bsModuleID, VARIANT val)
+STDMETHODIMP CAnchoAddonBackground::warn(BSTR bsSource, BSTR bsModuleID, SAFEARRAY* pVals)
 {
   CComPtr<CLogWindowComObject> logWindow;
   IF_FAILED_RET(m_BackgroundAPI.GetLogWindow(logWindow.p));
-  return logWindow->warn(bsSource, bsModuleID, val);
+  return logWindow->warn(bsSource, bsModuleID, pVals);
 }
 
 //----------------------------------------------------------------------------
 //
-STDMETHODIMP CAnchoAddonBackground::error(BSTR bsSource, BSTR bsModuleID, VARIANT val)
+STDMETHODIMP CAnchoAddonBackground::error(BSTR bsSource, BSTR bsModuleID, SAFEARRAY* pVals)
 {
   CComPtr<CLogWindowComObject> logWindow;
   IF_FAILED_RET(m_BackgroundAPI.GetLogWindow(logWindow.p));
-  return logWindow->error(bsSource, bsModuleID, val);
+  return logWindow->error(bsSource, bsModuleID, pVals);
 }

@@ -29,7 +29,11 @@ interface IAnchoAddonService : IUnknown
   HRESULT unregisterRuntime([in] INT aTabID);
   HRESULT createTabNotification([in] INT aTabID, [in] INT aRequestID);
   HRESULT invokeEventObjectInAllExtensions([in] BSTR aEventName, [in] LPDISPATCH aArgs);
+
+  HRESULT webBrowserReady();
 };
+
+
 
 
 /*==========================================================================*/
@@ -87,6 +91,9 @@ library AnchoBgSrvLib
   ]
   interface IAnchoServiceApi : IDispatch
   {
+    [propget, id(1)]
+    HRESULT cookieManager([out, retval] LPDISPATCH* ppRet);
+
     HRESULT createTab([in] LPDISPATCH aProperties, [in] LPDISPATCH aCreator, [in] LPDISPATCH aCallback);
     HRESULT updateTab([in] INT aTabId, [in] LPDISPATCH aProperties);
     HRESULT getTabInfo([in] INT aTabId, [in] LPDISPATCH aCreator, [out, retval] VARIANT* aRet);
@@ -95,6 +102,52 @@ library AnchoBgSrvLib
 
     HRESULT executeScript([in] BSTR aExtensionId, [in] INT aTabID, [in] BSTR aCode, [in] BOOL aFileSpecified, [in] BOOL aInAllFrames);
     HRESULT invokeExternalEventObject([in] BSTR aExtensionId, [in] BSTR aEventName, [in] LPDISPATCH aArgs, [out, retval] VARIANT* aRet);
+  };
+
+  /*==========================================================================*/
+  [
+    object,
+    uuid(0F317CA8-BB88-4141-906F-257DA0603639),
+    dual,
+    nonextensible,
+    pointer_default(unique)
+  ]
+  interface IIECookie : IDispatch{
+    [id(1), propget, helpstring("property name")] 
+    HRESULT name([out, retval] BSTR * pbsRet);
+
+    [id(2), propget, helpstring("property value")] 
+    HRESULT value([out, retval] BSTR * pbsRet);
+
+    [id(3), propget, helpstring("property domain")] 
+    HRESULT domain([out, retval] BSTR * pbsRet);
+
+    [id(4), propget, helpstring("property path")] 
+    HRESULT path([out, retval] BSTR * pbsRet);
+
+    [id(5), propget, helpstring("property expirationDate")] 
+    HRESULT expirationDate([out, retval] VARIANT * aRet);
+  };
+
+  [
+    object,
+    uuid(5DB362D1-77BF-49CA-AA1C-9AAA5AA6320F),
+    dual,
+    nonextensible,
+    pointer_default(unique)
+  ]
+  interface IIECookieManager : IDispatch{
+    [id(1), helpstring("enumCookies")] 
+    HRESULT enumCookies([in] LPDISPATCH pCallback);
+    
+    [id(2), helpstring("removeCookie")] 
+    HRESULT removeCookie([in] BSTR aUrl, [in] BSTR aName);
+
+    [id(3), helpstring("setCookie")] 
+    HRESULT setCookie([in] BSTR aUrl, [in] BSTR aName, [in] BSTR aData);
+
+    [id(4), helpstring("getCookie")] 
+    HRESULT getCookie([in] BSTR aUrl, [in] BSTR aName, [out, retval] VARIANT * aRet);
   };
 
 
@@ -129,6 +182,8 @@ library AnchoBgSrvLib
     HRESULT removeEventObject([in]BSTR aEventName, [in] INT aInstanceId);
 
     HRESULT invokeEventObject([in] BSTR aEventName, [in] INT aSelectedInstance, [in] BOOL aSkipInstance, [in] LPDISPATCH aArgs, [out, retval] VARIANT* aRet);
+    HRESULT invokeEventWithIDispatchArgument([in] BSTR aEventName, [in] LPDISPATCH aArg);
+    HRESULT setIDispatchEventInvocationHandler([in] LPDISPATCH aFunction);
     HRESULT callFunction([in] LPDISPATCH aFunction, [in] LPDISPATCH aArgs, [out, retval] VARIANT* aRet);
   };
 
@@ -148,27 +203,27 @@ library AnchoBgSrvLib
     [id(1), helpstring(
       "Method log"
     )]
-    HRESULT log([in] BSTR bsSource, [in] BSTR bsModuleID, [in] VARIANT val);
+    HRESULT log([in] BSTR bsSource, [in] BSTR bsModuleID, [in] SAFEARRAY(VARIANT) pVals);
 
     [id(2), helpstring(
       "Method debug"
     )]
-    HRESULT debug([in] BSTR bsSource, [in] BSTR bsModuleID, [in] VARIANT val);
+    HRESULT debug([in] BSTR bsSource, [in] BSTR bsModuleID, [in] SAFEARRAY(VARIANT) pVals);
 
     [id(3), helpstring(
       "Method info"
     )]
-    HRESULT info([in] BSTR bsSource, [in] BSTR bsModuleID, [in] VARIANT val);
+    HRESULT info([in] BSTR bsSource, [in] BSTR bsModuleID, [in] SAFEARRAY(VARIANT) pVals);
 
     [id(4), helpstring(
       "Method warn"
     )]
-    HRESULT warn([in] BSTR bsSource, [in] BSTR bsModuleID, [in] VARIANT val);
+    HRESULT warn([in] BSTR bsSource, [in] BSTR bsModuleID, [in] SAFEARRAY(VARIANT) pVals);
 
     [id(5), helpstring(
       "Method error"
     )]
-    HRESULT error([in] BSTR bsSource, [in] BSTR bsModuleID, [in] VARIANT val);
+    HRESULT error([in] BSTR bsSource, [in] BSTR bsModuleID, [in] SAFEARRAY(VARIANT) pVals);
   };
 
 /*==========================================================================*/
@@ -191,4 +246,18 @@ library AnchoBgSrvLib
 		[default] interface IAnchoAddonBackground;
 	};
 
+  [
+    uuid(91B40A1B-C72A-4887-8C63-036D0649CDDA)
+  ]
+  coclass IECookie
+  {
+    [default] interface IIECookie;
+  };
+  [
+    uuid(DE9A7F77-BBCC-4B18-BF38-F9C90262BB6F)
+  ]
+  coclass IECookieManager
+  {
+    [default] interface IIECookieManager;
+  };
 };
