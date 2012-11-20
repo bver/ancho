@@ -10,6 +10,88 @@
 #include <sstream>
 #include <algorithm>
 
+
+HRESULT CPopupWindow::FinalConstruct()
+{
+  return S_OK;
+}
+
+void CPopupWindow::FinalRelease()
+{
+  int asd = 0;
+}
+
+void CPopupWindow::OnFinalMessage(HWND)
+{
+  // This Release call is paired with the AddRef call in OnCreate.
+  Release();
+}
+
+LRESULT CPopupWindow::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
+{
+  DefWindowProc();
+
+  CComPtr<IAxWinHostWindow> spHost;
+  IF_FAILED_RET2(QueryHost(__uuidof(IAxWinHostWindow), (void**)&spHost), -1);
+
+  CComPtr<IUnknown>  p;
+  IF_FAILED_RET2(spHost->CreateControlEx(m_sURL, *this, NULL, &p, /*DIID_DWebBrowserEvents2, GetEventUnk()*/ IID_NULL, NULL), -1);
+
+  m_pWebBrowser = p;
+  if (!m_pWebBrowser)
+  {
+    return -1;
+  }
+  CIDispatchHelper script = CIDispatchHelper::GetScriptDispatch(m_pWebBrowser);
+  for (DispatchMap::iterator it = m_InjectedObjects.begin(); it != m_InjectedObjects.end(); ++it) {
+    script.SetProperty((LPOLESTR)(it->first.c_str()), CComVariant(it->second));
+  }
+
+  // This AddRef call is paired with the Release call in OnFinalMessage
+  // to keep the object alive as long as the window exists.
+  AddRef();
+  return 0;
+}
+
+LRESULT CPopupWindow::OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
+{
+  bHandled = FALSE;
+  m_pWebBrowser.Release();
+//  m_pDispApiJS.Release();
+  return 1;
+}
+
+LRESULT CPopupWindow::OnKillFocus(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
+{
+  ATLTRACE(L"AAAAAAAAAAAAAA\n");
+  return 0;
+}
+
+HRESULT CPopupWindow::CreatePopupWindow(const DispatchMap &aInjectedObjects, LPCWSTR lpszURL, CPopupWindowComObject ** ppRet)
+{
+  ENSURE_RETVAL(ppRet);
+  (*ppRet) = NULL;
+  CPopupWindowComObject * pNewWindow = NULL;
+  IF_FAILED_RET(CPopupWindowComObject::CreateInstance(&pNewWindow));
+  pNewWindow->AddRef();
+  pNewWindow->m_sURL = lpszURL;
+  pNewWindow->m_InjectedObjects = aInjectedObjects;
+  RECT r = {50,50,550,550};
+  if (!pNewWindow->Create(NULL, r, NULL, WS_POPUP))
+  {
+    pNewWindow->Release();
+    return E_FAIL;
+  }
+  pNewWindow->ShowWindow(SW_SHOW);
+  (*ppRet) = pNewWindow;
+  return S_OK;
+}
+
+//***************************************************************************************
+
+
+
+
 struct CookieNotificationCallback: public ACookieCallbackFunctor
 {
   CookieNotificationCallback(CAnchoAddonService &aService): service(aService)
@@ -61,7 +143,7 @@ HRESULT CAnchoAddonService::invokeExternalEventObject(BSTR aExtensionId, BSTR aE
 
 //----------------------------------------------------------------------------
 //
-HRESULT CAnchoAddonService::navigateBrowser(LPUNKNOWN aWebBrowserWin, const std::wstring &url)
+HRESULT CAnchoAddonService::navigateBrowser(LPUNKNOWN aWebBrowserWin, const std::wstring &url, INT32 aNavigateOptions)
 {
   CComQIPtr<IWebBrowser2> webBrowser = aWebBrowserWin;
   if (!webBrowser) {
@@ -69,7 +151,7 @@ HRESULT CAnchoAddonService::navigateBrowser(LPUNKNOWN aWebBrowserWin, const std:
   }
 
   CComVariant vtUrl(url.c_str());
-  CComVariant vtFlags(navOpenInNewTab);
+  CComVariant vtFlags(aNavigateOptions);
   CComVariant vtEmpty;
   return webBrowser->Navigate2(&vtUrl, &vtFlags, &vtEmpty, &vtEmpty, &vtEmpty);
 }
@@ -90,7 +172,7 @@ HRESULT CAnchoAddonService::getActiveWebBrowser(LPUNKNOWN* pUnkWebBrowser)
 HRESULT CAnchoAddonService::createTab(LPDISPATCH aProperties, LPDISPATCH aCreator, LPDISPATCH aCallback)
 {
   try {
-    m_WebBrowserPostInitTasks.addCommnad(ACommand::Ptr(new CreateTabCommand(*this, aProperties, aCreator, aCallback)));
+    m_WebBrowserPostInitTasks.addCommnad(ACommand::Ptr(new CreateTabCommand(*this, aProperties, aCreator, aCallback, false)));
   } catch (std::runtime_error &e) {
     ATLTRACE("Error: %s\n", e.what());
     return E_FAIL;
@@ -99,13 +181,13 @@ HRESULT CAnchoAddonService::createTab(LPDISPATCH aProperties, LPDISPATCH aCreato
 }
 //----------------------------------------------------------------------------
 //
-HRESULT CAnchoAddonService::createTabImpl(CIDispatchHelper &aProperties, CIDispatchHelper &aCreator, CIDispatchHelper &aCallback)
+HRESULT CAnchoAddonService::createTabImpl(CIDispatchHelper &aProperties, CIDispatchHelper &aCreator, CIDispatchHelper &aCallback, bool aInNewWindow)
 {
   //CIDispatchHelper properties(aProperties);
   CComBSTR originalUrl;
   HRESULT hr = aProperties.Get<CComBSTR, VT_BSTR, BSTR>(L"url", originalUrl);
   if (hr != S_OK) {
-    return hr;
+    originalUrl = L"about:blank";
   }
   std::wstring url = std::wstring(originalUrl,SysStringLen(originalUrl));
   if (aCallback) {
@@ -120,7 +202,11 @@ HRESULT CAnchoAddonService::createTabImpl(CIDispatchHelper &aProperties, CIDispa
 
   LPUNKNOWN browser;
   IF_FAILED_RET(getActiveWebBrowser(&browser));
-  IF_FAILED_RET(navigateBrowser(browser, url));
+  if (aInNewWindow) {
+    IF_FAILED_RET(navigateBrowser(browser, url, navOpenInNewWindow));
+  } else {
+    IF_FAILED_RET(navigateBrowser(browser, url, navOpenInNewTab));
+  }
   return S_OK;
 }
 //----------------------------------------------------------------------------
@@ -257,7 +343,7 @@ HRESULT CAnchoAddonService::executeScriptInTab(BSTR aExtensionID, INT aTabID, BS
 //----------------------------------------------------------------------------
 //
 
-static void fillWindowInfo(HWND aWndHandle, CIDispatchHelper &aInfo)
+void CAnchoAddonService::fillWindowInfo(HWND aWndHandle, CIDispatchHelper &aInfo)
 {
   //BOOL isVisible = IsWindowVisible(aWndHandle);
   WINDOWINFO winInfo;
@@ -269,7 +355,7 @@ static void fillWindowInfo(HWND aWndHandle, CIDispatchHelper &aInfo)
   aInfo.SetProperty(L"height", CComVariant(winInfo.rcWindow.bottom - winInfo.rcWindow.top));
   aInfo.SetProperty(L"focused", CComVariant(static_cast<bool>(winInfo.dwWindowStatus & WS_ACTIVECAPTION)));
   aInfo.SetProperty(L"alwaysOnTop", CComVariant(false));
-  aInfo.SetProperty(L"id", CComVariant(reinterpret_cast<INT>(aWndHandle)));
+  aInfo.SetProperty(L"id", CComVariant(winHWNDToId(aWndHandle)));
   if (IsIconic(aWndHandle)) {
     aInfo.SetProperty(L"state", CComVariant(L"minimized"));
   } else if (IsZoomed(aWndHandle)) {
@@ -278,8 +364,36 @@ static void fillWindowInfo(HWND aWndHandle, CIDispatchHelper &aInfo)
     aInfo.SetProperty(L"state", CComVariant(L"normal"));
   }
 }
+//----------------------------------------------------------------------------
+//
+STDMETHODIMP CAnchoAddonService::getWindow(INT aWindowId, LPDISPATCH aCreator, BOOL aPopulate, VARIANT* aRet)
+{
+  if (!aCreator) {
+    return E_POINTER;
+  }
+  ENSURE_RETVAL(aRet);
 
-STDMETHODIMP CAnchoAddonService::getAllWindows(LPDISPATCH aCreator, VARIANT* aRet)
+  HWND hwnd = winIdToHWND(aWindowId);
+  wchar_t className[256];
+  if (!GetClassName(hwnd, className, 256)) {
+    return E_FAIL;
+  }
+  if (std::wstring(L"IEFrame") != className) {
+    return E_INVALIDARG;
+  }
+
+  CComVariant info;
+  if (S_OK != createIDispatchFromCreator(aCreator, &info)) {
+    return E_FAIL;
+  }
+  CIDispatchHelper infoHelper(info.pdispVal);
+  fillWindowInfo(hwnd, infoHelper);
+
+  return S_OK;
+}
+//----------------------------------------------------------------------------
+//
+STDMETHODIMP CAnchoAddonService::getAllWindows(LPDISPATCH aCreator, BOOL aPopulate, VARIANT* aRet)
 {
   if (!aCreator) {
     return E_POINTER;
@@ -313,8 +427,17 @@ STDMETHODIMP CAnchoAddonService::createWindow(LPDISPATCH aProperties, LPDISPATCH
   HRESULT hr = properties.Get<std::wstring, VT_BSTR, BSTR>(L"type", type);
   if (S_OK != hr || type == L"normal") {
     ATLTRACE(L"Creating normal browser window\n");
+    try {
+      m_WebBrowserPostInitTasks.addCommnad(ACommand::Ptr(new CreateTabCommand(*this, aProperties, aCreator, aCallback, true)));
+    } catch (std::runtime_error &e) {
+      ATLTRACE("Error: %s\n", e.what());
+      return E_FAIL;
+    }
+    return S_OK;
   } else if (type == L"popup") {
     ATLTRACE(L"Creating popup window\n");
+    CComPtr<CPopupWindowComObject> popup;
+    IF_FAILED_RET(CPopupWindow::CreatePopupWindow(DispatchMap(), L"http://www.google.cz", &popup.p));
   }
 
   std::wstring url = L"about:blank";

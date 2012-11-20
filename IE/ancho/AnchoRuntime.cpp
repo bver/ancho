@@ -183,6 +183,11 @@ STDMETHODIMP_(void) CAnchoRuntime::OnBrowserBeforeNavigate2(LPDISPATCH pDisp, VA
   m_pAnchoService->createTabNotification(m_TabID, requestID);
 }
 
+STDMETHODIMP_(void) CAnchoRuntime::OnNewWindow3(IDispatch *pDisp, VARIANT_BOOL Cancel, DWORD dwFlags,	BSTR bstrUrlContext, BSTR bstrUrl)
+{
+  ATLTRACE(L"OnNewWindow3-------------------\n");
+}
+
 //----------------------------------------------------------------------------
 //  OnFrameStart
 STDMETHODIMP CAnchoRuntime::OnFrameStart(BSTR bstrUrl, VARIANT_BOOL bIsMainFrame)

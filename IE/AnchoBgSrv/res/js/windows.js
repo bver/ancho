@@ -37,20 +37,27 @@ var Windows = function(instanceID) {
   //----------------------------------------------------------------------------
   // chrome.windows.create
   this.create = function(createData, callback) {
-    var args = notImplemented('chrome.windows.create', arguments);
+    var args = preprocessArguments('chrome.windows.create', arguments);
+    serviceAPI.createWindow(args['createData'], Object, args['callback']);
   };
 
   //----------------------------------------------------------------------------
   // chrome.windows.get
   this.get = function(windowId, getInfo, callback) {
-    var args = notImplemented('chrome.windows.get', arguments);
+    var args = preprocessArguments('chrome.windows.get', arguments);
+    var winId = args['windowId'];
+    if (winId === this.WINDOW_ID_CURRENT) {
+      winId = serviceAPI.getCurrentWindowId();
+    }
+    var win = serviceAPI.getWindow(winId, Object, (args['getInfo'] && args['getInfo'].populate));
+    args['callback'](win);
   };
 
   //----------------------------------------------------------------------------
   // chrome.windows.getAll
   this.getAll = function(getInfo, callback) {
     var args = preprocessArguments('chrome.windows.getAll', arguments);
-    var windowsSafeArray = serviceAPI.getAllWindows(Object);
+    var windowsSafeArray = serviceAPI.getAllWindows(Object, (args['getInfo'] && args['getInfo'].populate));
     var windows = new VBArray(windowsSafeArray).toArray();
     args['callback'](windows);
   };

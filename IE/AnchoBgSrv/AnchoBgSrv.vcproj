@@ -524,10 +524,6 @@
 			>
 		</File>
 		<File
-			RelativePath=".\res\js\utils.js"
-			>
-		</File>
-		<File
 			RelativePath=".\res\js\webNavigation.js"
 			>
 		</File>
