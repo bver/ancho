@@ -43,13 +43,13 @@
   };
   
   function buttonOnMouseOver(aElement) {
-    aElement.style.outline='#CCCCCC solid 1px';
+    aElement.style.border = '#CCCCCC solid 1px';
   }
   function buttonOnMouseOut(aElement) {
-    aElement.style.outline='none';
+    aElement.style.border = 'none';
 	}
 	function buttonOnMouseDown(aElement) {
-    aElement.style.outline='#000000 solid 1px';
+    aElement.style.border = '#000000 solid 1px';
 	}
 
 	var mouseEventsString = 'onclick="browserActions[this.id].onClick()" onmousedown="buttonOnMouseDown(this)" onmouseup="buttonOnMouseOver(this)" onmouseover="buttonOnMouseOver(this)" onmouseout="buttonOnMouseOut(this)" ';
@@ -60,6 +60,9 @@
 			str += 'title=' + '\"' + browserActions[aId].title + '\"';
 		}
 		str += mouseEventsString;
+		if (browserActions[aId].icon) {
+		  str += 'style="background-image: url(' + browserActions[aId].icon + ')" ';
+		}
 		str += '>';
     if (browserActions[aId].badge) {
       str += '<div class="baBadge">' + browserActions[aId].badge + '</div>';      
@@ -69,12 +72,7 @@
     return str;
   }
   
-  browserActions = {};
-  
-	/*browserActions['nazdaar'] = {id: 'nazdaar', onClick: function(){
-			initBrowserActions();
-	}, badge: 'BEE' };
-  browserActions['ahoooj'] = {id: 'ahoooj', onClick: function(){alert('ahoooj');}};*/
+  var browserActions = {};
 
 	function updateBrowserActions() {
 		var buttonsCode = '';

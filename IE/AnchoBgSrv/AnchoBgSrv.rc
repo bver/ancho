@@ -30,6 +30,25 @@ LANGUAGE LANG_GERMAN, SUBLANG_GERMAN
 //
 
 IDR_SCRIPTSERVICE       REGISTRY                "AnchoAddonService.rgs"
+#endif    // German (Germany) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// English (U.S.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// REGISTRY
+//
+
+IDR_ANCHOBGSRV          REGISTRY                "AnchoBgSrv.rgs"
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -71,33 +90,8 @@ UTILS.JS                HTML                    "res\\js\\utils\\utils.js"
 TYPECHECKING.JS         HTML                    "res\\js\\utils\\typeChecking.js"
 TABS_SPEC.JS            HTML                    "res\\js\\specifications\\tabs_spec.js"
 COOKIES_SPEC.JS         HTML                    "res\\js\\specifications\\cookies_spec.js"
-WINDOWS_SPEC.JS         HTML                    "res\\js\\specifications\\windows_spec.js"
-#endif    // German (Germany) resources
-/////////////////////////////////////////////////////////////////////////////
-
-
-/////////////////////////////////////////////////////////////////////////////
-// English (U.S.) resources
-
-#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
-#ifdef _WIN32
-LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
-#pragma code_page(1252)
-#endif //_WIN32
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// REGISTRY
-//
-
-IDR_ANCHOBGSRV          REGISTRY                "AnchoBgSrv.rgs"
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// HTML
-//
-
 BROWSER_ACTION_TOOLBAR.HTML HTML                    "res\\toolbars\\browserActionToolbar.html"
+BROWSERACTION_SPEC.JS   HTML                    "res\\js\\specifications\\browserAction_spec.js"
 
 #ifdef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////

@@ -417,6 +417,10 @@
 			>
 		</File>
 		<File
+			RelativePath=".\res\js\specifications\browserAction_spec.js"
+			>
+		</File>
+		<File
 			RelativePath=".\res\toolbars\browserActionToolbar.html"
 			>
 		</File>

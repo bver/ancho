@@ -1,9 +1,9 @@
 /******************************************************************************
- * browserAction.js
- * Part of Ancho browser extension framework
- * Implements chrome.browserAction
- * Copyright 2012 Salsita software (http://www.salsitasoft.com).
- ******************************************************************************/
+* browserAction.js
+* Part of Ancho browser extension framework
+* Implements chrome.browserAction
+* Copyright 2012 Salsita software (http://www.salsitasoft.com).
+******************************************************************************/
 
 //******************************************************************************
 //* requires
@@ -13,16 +13,13 @@ var EventFactory = require("utils.js").EventFactory;
 var EVENT_LIST = ['onClicked'];
 var API_NAME = 'browserAction';
 
-var browserActionInfo = {
-  id: addonAPI.id,
-  onClick: function() { console.log('CLICKED'); },
-  title: 'test action',
-  backgroundColor: '#FFFFFF',
-  badgeBackgroundColor: '#FFFFFF'
-};
+require("browserAction_spec.js");
+var preprocessArguments = require("typeChecking.js").preprocessArguments;
+var notImplemented = require("typeChecking.js").notImplemented;
 
-serviceAPI.addBrowserActionInfo(browserActionInfo);
-serviceAPI.browserActionNotification();
+
+
+var browserActionInfo;
 
 //******************************************************************************
 //* main closure
@@ -37,55 +34,82 @@ var BrowserAction = function(instanceID) {
   //----------------------------------------------------------------------------
   // chrome.browserAction.getBadgeBackgroundColor
   this.getBadgeBackgroundColor = function(details, callback) {
-    console.debug("browserAction.getBadgeBackgroundColor(..) called");
+    var args = notImplemented('chrome.browserAction.getBadgeBackgroundColor', arguments);
+    if (!browserActionInfo) {
+      throw new Error('This extension has no action specified.');
+    }
   };
 
   //----------------------------------------------------------------------------
   // chrome.browserAction.getBadgeText
   this.getBadgeText = function(details, callback) {
-    console.debug("browserAction.getBadgeText(..) called");
+    var args = notImplemented('chrome.browserAction.getBadgeText', arguments);
+    if (!browserActionInfo) {
+      throw new Error('This extension has no action specified.');
+    }
   };
 
   //----------------------------------------------------------------------------
   // chrome.browserAction.getPopup
   this.getPopup = function(details, callback) {
-    console.debug("browserAction.getPopup(..) called");
+    var args = notImplemented('chrome.browserAction.getPopup', arguments);
+    if (!browserActionInfo) {
+      throw new Error('This extension has no action specified.');
+    }
   };
 
   //----------------------------------------------------------------------------
   // chrome.browserAction.getTitle
   this.getTitle = function(details, callback) {
-    console.debug("browserAction.getTitle(..) called");
+    var args = notImplemented('chrome.browserAction.getTitle', arguments);
+    if (!browserActionInfo) {
+      throw new Error('This extension has no action specified.');
+    }
   };
 
   //----------------------------------------------------------------------------
   // chrome.browserAction.setBadgeBackgroundColor
   this.setBadgeBackgroundColor = function(details) {
-    console.debug("browserAction.setBadgeBackgroundColor(..) called");
+    var args = notImplemented('chrome.browserAction.setBadgeBackgroundColor', arguments);
+    if (!browserActionInfo) {
+      throw new Error('This extension has no action specified.');
+    }
   };
 
   //----------------------------------------------------------------------------
   // chrome.browserAction.setBadgeText
   this.setBadgeText = function(details) {
-    console.debug("browserAction.setBadgeText(..) called");
+    var args = notImplemented('chrome.browserAction.setBadgeText', arguments);
+    if (!browserActionInfo) {
+      throw new Error('This extension has no action specified.');
+    }
   };
 
   //----------------------------------------------------------------------------
   // chrome.browserAction.setIcon
   this.setIcon = function(details) {
-    console.debug("browserAction.setIcon(..) called");
+    var args = notImplemented('chrome.browserAction.setIcon', arguments);
+    if (!browserActionInfo) {
+      throw new Error('This extension has no action specified.');
+    }
   };
 
   //----------------------------------------------------------------------------
   // chrome.browserAction.setPopup
   this.setPopup = function(details) {
-    console.debug("browserAction.setPopup(..) called");
+    var args = notImplemented('chrome.browserAction.setPopup', arguments);
+    if (!browserActionInfo) {
+      throw new Error('This extension has no action specified.');
+    }
   };
 
   //----------------------------------------------------------------------------
   // chrome.browserAction.setTitle
   this.setTitle = function(details) {
-    console.debug("browserAction.setTitle(..) called");
+    var args = notImplemented('chrome.browserAction.setTitle', arguments);
+    if (!browserActionInfo) {
+      throw new Error('This extension has no action specified.');
+    }
   };
 
   //============================================================================
@@ -111,16 +135,27 @@ exports.initAPI = function(browserActionData) {
   var debugString = "browserAction.initAPI(..) called.";
 
   if (browserActionData) {
+    browserActionInfo = {
+      id: addonAPI.id,
+      onClick: function() { console.log('CLICKED'); },
+      backgroundColor: '#FFFFFF',
+      badgeBackgroundColor: '#FFFFFF'
+    };
+
     if (browserActionData.default_icon) {
+      browserActionInfo.icon = 'chrome-extension://' + addonAPI.id + '/' + browserActionData.default_icon;
       debugString = debugString + " icon: " + browserActionData.default_icon + ";";
     }
     if (browserActionData.default_title) {
+      browserActionInfo.title = browserActionData.default_title;
       debugString = debugString + " title: " + browserActionData.default_title + ";";
     }
     if (browserActionData.default_popup) {
       debugString = debugString + " popup: " + browserActionData.default_popup + ";";
     }
+    serviceAPI.addBrowserActionInfo(browserActionInfo);
+    serviceAPI.browserActionNotification();
   }
-  
+
   console.debug(debugString);
 }
