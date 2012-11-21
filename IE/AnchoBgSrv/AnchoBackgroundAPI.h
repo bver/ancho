@@ -110,7 +110,7 @@ public:
   STDMETHOD(invokeEventWithIDispatchArgument)(BSTR aEventName, LPDISPATCH aArg);
   STDMETHOD(setIDispatchEventInvocationHandler)(LPDISPATCH aFunction);
   STDMETHOD(callFunction)(LPDISPATCH aFunction, LPDISPATCH aArgs, VARIANT* pvRet);
-  
+
 
   // -------------------------------------------------------------------------
   // _IMagpieLoggerEvents methods

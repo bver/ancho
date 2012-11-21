@@ -12,7 +12,7 @@ var validationError = {
     'NOT_NULL' : 7
   };
 
-//Used when value can be of more than one type - 
+//Used when value can be of more than one type -
 //does checking for all types and succeeds when at least one succeeds.
 var MultiTypeValidator = function(aSpec) {
   var spec = aSpec;

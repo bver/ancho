@@ -8,14 +8,14 @@
       background-color: rgb(215,228,242);
       height: 100%;
     }
-   
+
     .baButton {
       height: 21px;
       width: 21px;
       /*background-image:url('./testIcon.png');*/
       background-color:#0000FF20;
       background-repeat: no-repeat;
-      background-position:center; 
+      background-position:center;
       margin: 3px;
       text-align: right;
       float: left;
@@ -41,7 +41,7 @@
     badgeText: ' ',
     onclick: ' '
   };
-  
+
   function buttonOnMouseOver(aElement) {
     aElement.style.border = '#CCCCCC solid 1px';
   }
@@ -53,7 +53,7 @@
 	}
 
 	var mouseEventsString = 'onclick="browserActions[this.id].onClick()" onmousedown="buttonOnMouseDown(this)" onmouseup="buttonOnMouseOver(this)" onmouseover="buttonOnMouseOver(this)" onmouseout="buttonOnMouseOut(this)" ';
-  
+
   function getButtonCode(aId) {
 		var str = '<div class="baButton" id=\"' + aId  + '\" ' ;
 		if (browserActions[aId].title) {
@@ -65,13 +65,13 @@
 		}
 		str += '>';
     if (browserActions[aId].badge) {
-      str += '<div class="baBadge">' + browserActions[aId].badge + '</div>';      
+      str += '<div class="baBadge">' + browserActions[aId].badge + '</div>';
     }
     str += '</div>';
-    
+
     return str;
   }
-  
+
   var browserActions = {};
 
 	function updateBrowserActions() {
@@ -81,7 +81,7 @@
 		}
 		var buttonBar = document.getElementById('buttonBar');
     if (!buttonBar) {
-      throw new Error('Couldn\'t locate buttonBar.'); 
+      throw new Error('Couldn\'t locate buttonBar.');
 		}
 		buttonBar.innerHTML = buttonsCode;
 	}

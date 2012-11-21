@@ -42,13 +42,13 @@ public:
 
   STDMETHOD(SetSite)(IUnknown *pUnkSite);
   STDMETHOD(GetBandInfo)(DWORD dwBandID, DWORD dwViewMode, DESKBANDINFO* pdbi);
-  
+
   virtual void GetBandInfoValues(const wchar_t *& title, POINTL &minSize);
 public:
   // IOleWindow
   STDMETHOD(GetWindow)(HWND* phwnd);
   STDMETHOD(ContextSensitiveHelp)(BOOL fEnterMode);
-  
+
 public:
   // IDockingWindow
   STDMETHOD(CloseDW)(unsigned long dwReserved);
@@ -56,7 +56,7 @@ public:
   STDMETHOD(ResizeBorderDW)(const RECT* prcBorder, IUnknown* punkToolbarSite, BOOL fReserved);
 
   STDMETHOD(ShowDW)(BOOL fShow);
-  
+
 public:
   // IInputObject
   //STDMETHOD(HasFocusIO)(void);

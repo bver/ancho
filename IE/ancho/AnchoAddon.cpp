@@ -142,6 +142,7 @@ STDMETHODIMP CAnchoAddon::ApplyContentScripts(IWebBrowser2* pBrowser, BSTR bstrU
   if(!m_pAddonBackground || !m_pBackgroundConsole) {
     hr = m_pAnchoService->GetAddonBackground(CComBSTR(m_sExtensionName), &m_pAddonBackground);
     IF_FAILED_RET(hr);
+
     // get console
     m_pBackgroundConsole = m_pAddonBackground;
     ATLASSERT(m_pBackgroundConsole);

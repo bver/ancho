@@ -6,13 +6,13 @@ var apiName = 'chrome.browserAction';
 //------------------------------------------------------------
 var types = [
   {
-    "id": "ImageDataType", 
+    "id": "ImageDataType",
     "type": "imagedata"
-  }, 
+  },
   {
-    "id": "ColorArray", 
+    "id": "ColorArray",
     "type": {
-      "items": "integer", 
+      "items": "integer",
       "type": "array"
     }
   }
