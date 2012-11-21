@@ -99,8 +99,11 @@ public:
 
   STDMETHOD(executeScript)(BSTR aExtensionID, INT aTabID, BSTR aCode, BOOL aFileSpecified, BOOL aInAllFrames);
 
-  STDMETHOD(get_browserActionInfos)(VARIANT* aBrowserActionInfos);
-  STDMETHOD(putref_browserActionInfos)(LPDISPATCH aBrowserActionInfos);
+  //STDMETHOD(get_browserActionInfos)(VARIANT* aBrowserActionInfos);
+  STDMETHOD(getBrowserActions)(VARIANT* aBrowserActionsArray);
+  STDMETHOD(addBrowserActionInfo)(LPDISPATCH aBrowserActionInfo);
+  STDMETHOD(setBrowserActionUpdateCallback)(LPDISPATCH aBrowserActionUpdateCallback);
+  STDMETHOD(browserActionNotification)();
   STDMETHOD(testFunction())
   {
     ATLTRACE(L"TEST FUNCTION -----------------\n");
@@ -195,7 +198,10 @@ private:
 
   CommandQueue m_WebBrowserPostInitTasks;
 
-  CComPtr<IDispatch> mBrowserActionInfos;
+  typedef std::vector<CIDispatchHelper> CallbackVector;
+  //CComPtr<IDispatch> mBrowserActionInfos;
+  VariantVector m_BrowserActionInfos;
+  CallbackVector m_BrowserActionCallbacks;
 };
 
 OBJECT_ENTRY_AUTO(__uuidof(AnchoAddonService), CAnchoAddonService)

@@ -115,10 +115,10 @@ library AnchoBgSrvLib
     HRESULT executeScript([in] BSTR aExtensionId, [in] INT aTabID, [in] BSTR aCode, [in] BOOL aFileSpecified, [in] BOOL aInAllFrames);
     HRESULT invokeExternalEventObject([in] BSTR aExtensionId, [in] BSTR aEventName, [in] LPDISPATCH aArgs, [out, retval] VARIANT* aRet);
     
-    [propget]
-    HRESULT browserActionInfos([out, retval] VARIANT* aBrowserActionInfos);
-    [propputref]
-    HRESULT browserActionInfos([in] LPDISPATCH aBrowserActionInfos);
+    HRESULT getBrowserActions([out, retval] VARIANT* aBrowserActionsArray);
+    HRESULT addBrowserActionInfo([in] LPDISPATCH aBrowserActionInfo);
+    HRESULT setBrowserActionUpdateCallback([in] LPDISPATCH aBrowserActionUpdateCallback);
+    HRESULT browserActionNotification();
 
     HRESULT testFunction();
   };

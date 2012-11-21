@@ -12,13 +12,15 @@ var EventFactory = require("utils.js").EventFactory;
 
 var EVENT_LIST = ['onClicked'];
 var API_NAME = 'browserAction';
-try {
-  if (!serviceAPI.browserActionInfos) {
-    serviceAPI.browserActionInfos = [];
-  } 
-} catch (e) {
-  console.log('Error : ' + e.description);
-}
+
+var browserActionInfo = {
+  id: addonAPI.id,
+  onClick: function() { console.log('CLICKED'); },
+  title: 'test action'
+};
+
+serviceAPI.addBrowserActionInfo(browserActionInfo);
+serviceAPI.browserActionNotification();
 
 //******************************************************************************
 //* main closure

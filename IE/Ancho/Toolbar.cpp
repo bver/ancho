@@ -5,7 +5,7 @@ void CToolbar::GetBandInfoValues(const wchar_t *& title, POINTL &minSize)
 {
   title = L"TEST_TOOLBAR";
   minSize.x = 200;
-  minSize.y = 105;
+  minSize.y = 28;
 }
 
 HRESULT CToolbar::InternalSetSite()

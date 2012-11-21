@@ -254,7 +254,27 @@ HRESULT CAnchoAddonService::executeScript(BSTR aExtensionID, INT aTabID, BSTR aC
 }
 //----------------------------------------------------------------------------
 //
-HRESULT CAnchoAddonService::get_browserActionInfos(VARIANT* aBrowserActionInfos)
+STDMETHODIMP CAnchoAddonService::getBrowserActions(VARIANT* aBrowserActionsArray)
+{
+  ENSURE_RETVAL(aBrowserActionsArray);
+
+  return constructSafeArrayFromVector(m_BrowserActionInfos, *aBrowserActionsArray);
+}
+
+STDMETHODIMP CAnchoAddonService::setBrowserActionUpdateCallback(LPDISPATCH aBrowserActionUpdateCallback)
+{
+  m_BrowserActionCallbacks.push_back(CIDispatchHelper(aBrowserActionUpdateCallback));
+  return S_OK;
+}
+
+STDMETHODIMP CAnchoAddonService::browserActionNotification()
+{
+  for (size_t i = 0; i < m_BrowserActionCallbacks.size(); ++i) {
+    m_BrowserActionCallbacks[i].Invoke0(DISPID(0));
+  }
+  return S_OK;
+}
+/*HRESULT CAnchoAddonService::get_browserActionInfos(VARIANT* aBrowserActionInfos)
 {
   ENSURE_RETVAL(aBrowserActionInfos);
   if (!mBrowserActionInfos) {
@@ -263,15 +283,15 @@ HRESULT CAnchoAddonService::get_browserActionInfos(VARIANT* aBrowserActionInfos)
   }
   aBrowserActionInfos->vt = VT_DISPATCH;
   return mBrowserActionInfos.QueryInterface<IDispatch>(&(aBrowserActionInfos->pdispVal));
-}
+}*/
 //----------------------------------------------------------------------------
 //
-HRESULT CAnchoAddonService::putref_browserActionInfos(LPDISPATCH aBrowserActionInfos)
+HRESULT CAnchoAddonService::addBrowserActionInfo(LPDISPATCH aBrowserActionInfo)
 {
-  if (!aBrowserActionInfos) {
+  if (!aBrowserActionInfo) {
     return E_POINTER;
   }
-  mBrowserActionInfos = aBrowserActionInfos;
+  m_BrowserActionInfos.push_back(CComVariant(aBrowserActionInfo));
   return S_OK;
 }
 
