@@ -108,12 +108,20 @@ var ValidatorManager = function() {
     if (!aName || !utils.isString(aName)) {
       throw new Error('Wrong validator name!');
     }
-    var validatorBase = validators[aSpecification.type];
+    var validatorBase;
+    var specification;
+    if (utils.isString(aSpecification.type)) {
+      validatorBase = validators[aSpecification.type];
+      specification = aSpecification;
+    } else {
+      validatorBase = validators[aSpecification.type.type];
+      specification = aSpecification.type;
+    }
     if (!validatorBase) {
       throw new Error('Validator wrapper \'' + aName + '\' needs existing validator : \'' + aSpecification.type + '\'')
     }
     var validatorConstructor = function() {
-      validatorBase.call(this, aSpecification);
+      validatorBase.call(this, specification);
     }
     this.addValidator(aName, validatorConstructor);
   }
@@ -397,6 +405,15 @@ var ArrayValidator = function(aSpec) {
   }
 }
 validatorManager.addValidator('array', ArrayValidator);
+
+
+var ImageDataValidator = function() {
+  this.validate = function(aArg) {
+    //TODO - implement properly
+    return createValidationReportSuccess();
+  }
+};
+validatorManager.addValidator('imagedata', ImageDataValidator);
 
 //Validation procedure - throws an exception when validation error uccured.
 var preprocessArguments = function(aMethodName, aArguments) {

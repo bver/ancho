@@ -27,7 +27,7 @@ HRESULT CToolbar::InternalSetSite()
 HRESULT CToolbar::InternalReleaseSite()
 {
   //mContentWindow->m_External.Release();
-  return BaseClass::InternalReleaseSite();    
+  return BaseClass::InternalReleaseSite();
 }
 
 STDMETHODIMP CToolbar::TranslateAcceleratorIO(LPMSG lpMsg)
@@ -66,7 +66,7 @@ HRESULT CToolbar::RunToolbarPage()
   }
   mHWNDParent = mContentWindow->operator HWND();
 
-  return mContentWindow->m_pWebBrowser->Navigate(CComBSTR(mUrl.c_str()), NULL, NULL, NULL, NULL);   
+  return mContentWindow->m_pWebBrowser->Navigate(CComBSTR(mUrl.c_str()), NULL, NULL, NULL, NULL);
 }
 
 void CToolbar::ToolbarWindowBeforeNavigate()
