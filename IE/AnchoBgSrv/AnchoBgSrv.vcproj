@@ -417,6 +417,10 @@
 			>
 		</File>
 		<File
+			RelativePath=".\res\toolbars\browserActionToolbar.html"
+			>
+		</File>
+		<File
 			RelativePath=".\res\js\browsingData.js"
 			>
 		</File>

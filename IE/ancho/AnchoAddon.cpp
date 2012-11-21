@@ -7,6 +7,7 @@
 #include "stdafx.h"
 #include "AnchoAddon.h"
 #include "dllmain.h"
+#include "ProtocolHandlerRegistrar.h"
 
 extern class CanchoModule _AtlModule;
 
@@ -57,6 +58,9 @@ STDMETHODIMP CAnchoAddon::Init(LPCOLESTR lpsExtensionID, IAnchoAddonService * pS
   {
     return HRESULT_FROM_WIN32(ERROR_INVALID_DATA);
   }
+
+  IF_FAILED_RET(CProtocolHandlerRegistrar::
+    RegisterTemporaryFolderHandler(s_AnchoProtocolHandlerScheme, m_sExtensionName, m_sExtensionPath));
 
   // get addon instance
   //IF_FAILED_RET(m_pAnchoService->GetAddonBackground(CComBSTR(m_sExtensionName), &m_pAddonBackground));

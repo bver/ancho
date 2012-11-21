@@ -82,7 +82,7 @@
 				Name="VCLinkerTool"
 				RegisterOutput="true"
 				IgnoreImportLibrary="true"
-				AdditionalDependencies="libbhohelper.lib anchocommons.lib"
+				AdditionalDependencies="libbhohelper.lib libprothandlers.lib anchocommons.lib"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="&quot;$(OutDir)&quot;;&quot;$(SolutionDir)anchocommons\$(ConfigurationName)&quot;"
 				ModuleDefinitionFile=".\ancho.def"

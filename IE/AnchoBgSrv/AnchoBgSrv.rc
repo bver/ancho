@@ -92,6 +92,13 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 
 IDR_ANCHOBGSRV          REGISTRY                "AnchoBgSrv.rgs"
 
+/////////////////////////////////////////////////////////////////////////////
+//
+// HTML
+//
+
+BROWSER_ACTION_TOOLBAR.HTML HTML                    "res\\toolbars\\browserActionToolbar.html"
+
 #ifdef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
 //

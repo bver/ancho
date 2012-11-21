@@ -1,0 +1,44 @@
+HKCR
+{
+	ancho.Toolbar.1 = s 'Ancho Toolbar'
+	{
+		CLSID = s '{F17D18AF-307A-4311-852F-FD759863A349}'
+	}
+	ancho.Toolbar = s 'Ancho Toolbar'
+	{
+		CLSID = s '{F17D18AF-307A-4311-852F-FD759863A349}'
+		CurVer = s 'AnchoBgSrv.Toolbar.1'
+	}
+	NoRemove CLSID
+	{
+		ForceRemove {F17D18AF-307A-4311-852F-FD759863A349} = s 'Ancho Toolbar'
+		{
+			ProgID = s 'ancho.Toolbar.1'
+			VersionIndependentProgID = s 'ancho.Toolbar'
+			InprocServer32 = s '%MODULE%'
+			{
+				val ThreadingModel = s 'Apartment'
+			}
+			val AppID = s '%APPID%'
+			'TypeLib' = s '{DBBBF00D-3AB6-45BA-BE51-B5D8EFECD127}'
+		
+		}
+	}
+}
+
+HKLM
+{
+	Software
+	{
+		Microsoft
+		{
+			'Internet Explorer'
+			{
+				Toolbar
+				{
+					val '{F17D18AF-307A-4311-852F-FD759863A349}' = s 'Ancho Toolbar'
+				}
+			}
+		}
+	}
+}

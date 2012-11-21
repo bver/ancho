@@ -16,7 +16,9 @@ var API_NAME = 'browserAction';
 var browserActionInfo = {
   id: addonAPI.id,
   onClick: function() { console.log('CLICKED'); },
-  title: 'test action'
+  title: 'test action',
+  backgroundColor: '#FFFFFF',
+  badgeBackgroundColor: '#FFFFFF'
 };
 
 serviceAPI.addBrowserActionInfo(browserActionInfo);

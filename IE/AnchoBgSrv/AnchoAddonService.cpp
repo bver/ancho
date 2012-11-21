@@ -10,9 +10,8 @@
 #include <sstream>
 #include <algorithm>
 
-#include "PopupWindow.h"
 
-
+EXTERN_C IMAGE_DOS_HEADER __ImageBase;
 
 struct CookieNotificationCallback: public ACookieCallbackFunctor
 {
@@ -681,7 +680,12 @@ STDMETHODIMP CAnchoAddonService::webBrowserReady()
 STDMETHODIMP CAnchoAddonService::registerBrowserActionToolbar(BSTR * aUrl)
 {
   ENSURE_RETVAL(aUrl);
-  CString url(L"H:\\programming\\git\\ancho\\IE\\test-toolbar.html");
+
+  WCHAR   dllPath[MAX_PATH] = {0};
+  GetModuleFileNameW((HINSTANCE)&__ImageBase, dllPath, _countof(dllPath));
+
+  CString url;
+  url.Format(L"res://%s/BROWSER_ACTION_TOOLBAR.HTML", dllPath);// (L"H:\\programming\\git\\ancho\\IE\\test-toolbar.html");
   *aUrl = url.AllocSysString();
   return S_OK;
 }
