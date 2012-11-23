@@ -54,6 +54,7 @@ public:
   // COM sink map
   BEGIN_SINK_MAP(CAnchoRuntime)
     SINK_ENTRY_EX(1, DIID_DWebBrowserEvents2, DISPID_BEFORENAVIGATE2, OnBrowserBeforeNavigate2)
+    SINK_ENTRY_EX(1, DIID_DWebBrowserEvents2, DISPID_NEWWINDOW3, OnNewWindow3)
     SINK_ENTRY_EX(2, IID_DAnchoBrowserEvents, 1, OnFrameStart)
     SINK_ENTRY_EX(2, IID_DAnchoBrowserEvents, 2, OnFrameEnd)
     SINK_ENTRY_EX(2, IID_DAnchoBrowserEvents, 3, OnFrameRedirect)
@@ -89,6 +90,8 @@ public:
   STDMETHOD_(void, OnBrowserBeforeNavigate2)(LPDISPATCH pDisp, VARIANT *pURL, VARIANT *Flags,
     VARIANT *TargetFrameName, VARIANT *PostData, VARIANT *Headers, BOOL *Cancel);
 
+  STDMETHOD_(void, OnNewWindow3)(IDispatch *pDisp, VARIANT_BOOL Cancel, DWORD dwFlags,	BSTR bstrUrlContext, BSTR bstrUrl);
+
   // -------------------------------------------------------------------------
   // DAnchoBrowserEvents methods.
   STDMETHOD(OnFrameStart)(BSTR bstrUrl, VARIANT_BOOL bIsMainFrame);
@@ -105,6 +108,7 @@ private:
   HRESULT ApplyContentScripts(BSTR bstrUrl, VARIANT_BOOL bIsMainFrame, documentLoadPhase aPhase);
 
   HWND getTabWindow();
+  HWND getMainWindow();
   bool isTabActive();
 private:
   // -------------------------------------------------------------------------

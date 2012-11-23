@@ -31,8 +31,13 @@ exports.isArray = function(aArg) {
   return Object.prototype.toString.call(aArg) === '[object Array]';
 }
 
+exports.isFunction = function(aArg) {
+  return Object.prototype.toString.call(aArg) === '[object Function]'
+    || aArg.constructor.toString().match('function Function');
+}
+
 exports.isObject = function(aArg) {
-  return typeof (aArg);
+  return typeof (aArg) == 'object' && !exports.isFunction(aArg);
 }
 
 exports.isString = function(aArg) {
@@ -45,11 +50,6 @@ exports.isInteger = function(aArg) {
 
 exports.isNumber = function(aArg) {
   return (typeof (aArg) === 'number');
-}
-
-exports.isFunction = function(aArg) {
-  return Object.prototype.toString.call(aArg) === '[object Function]'
-    || aArg.constructor.toString().match('function Function');
 }
 
 exports.typeName = function(aArg) {

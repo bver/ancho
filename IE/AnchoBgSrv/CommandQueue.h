@@ -14,9 +14,7 @@ public:
   typedef CComPtr<ACommand> Ptr;
 
   virtual ~ACommand(){};
-  virtual void execute() = 0;
 
-  
   HRESULT STDMETHODCALLTYPE QueryInterface(REFIID   riid, LPVOID * ppvObj)
   {
     // Always set out parameter to NULL, validating it first.
@@ -35,33 +33,48 @@ public:
 
   ULONG STDMETHODCALLTYPE AddRef()
   {
-      InterlockedIncrement(&mRef);
-      return mRef;
+    InterlockedIncrement(&mRef);
+    return mRef;
   }
 
   ULONG STDMETHODCALLTYPE Release()
   {
-      ULONG refCount = InterlockedDecrement(&mRef);
-      if (0 == mRef) {
-        delete this;
-      }
-      return refCount;
+    ULONG refCount = InterlockedDecrement(&mRef);
+    if (0 == mRef) {
+      delete this;
+    }
+    return refCount;
   }
 protected:
-   volatile ULONG mRef;
+  ACommand(){};
+
+  volatile ULONG mRef;
 };
 
+class AQueuedCommand: public ACommand
+{
+public:
+  typedef CComPtr<AQueuedCommand> Ptr;
+
+  void operator()()
+  {
+    execute();
+  }
+
+  virtual void execute() = 0;
+
+};
 
 /*============================================================================
  * Command queue - method calls not synchronized yet
  */
-class CommandQueue 
+class CommandQueue
 {
 public:
   CommandQueue(bool aAutoExec = false): mAutoExec(aAutoExec)
   {}
 
-  void addCommnad(ACommand::Ptr aCommand)
+  void addCommnad(AQueuedCommand::Ptr aCommand)
   {
     if (!aCommand) {
       throw std::runtime_error("Invalid pointer to command");
@@ -118,7 +131,7 @@ public:
     }
   }
 protected:
-  typedef std::deque<ACommand::Ptr> Container;
+  typedef std::deque<AQueuedCommand::Ptr> Container;
   Container mCommands;
   bool mAutoExec;
 };

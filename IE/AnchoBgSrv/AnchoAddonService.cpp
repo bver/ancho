@@ -10,6 +10,10 @@
 #include <sstream>
 #include <algorithm>
 
+#include "PopupWindow.h"
+
+
+
 struct CookieNotificationCallback: public ACookieCallbackFunctor
 {
   CookieNotificationCallback(CAnchoAddonService &aService): service(aService)
@@ -19,7 +23,7 @@ struct CookieNotificationCallback: public ACookieCallbackFunctor
   {
     ATLASSERT(aCookie.vt == VT_DISPATCH);
     CComBSTR eventName(L"cookies.onChanged");
-    
+
     service.invokeEventObjectInAllExtensionsWithIDispatchArgument(eventName, aCookie.pdispVal);
     ATLTRACE("NOTIFICATION ");
   }
@@ -61,7 +65,7 @@ HRESULT CAnchoAddonService::invokeExternalEventObject(BSTR aExtensionId, BSTR aE
 
 //----------------------------------------------------------------------------
 //
-HRESULT CAnchoAddonService::navigateBrowser(LPUNKNOWN aWebBrowserWin, const std::wstring &url)
+HRESULT CAnchoAddonService::navigateBrowser(LPUNKNOWN aWebBrowserWin, const std::wstring &url, INT32 aNavigateOptions)
 {
   CComQIPtr<IWebBrowser2> webBrowser = aWebBrowserWin;
   if (!webBrowser) {
@@ -69,7 +73,7 @@ HRESULT CAnchoAddonService::navigateBrowser(LPUNKNOWN aWebBrowserWin, const std:
   }
 
   CComVariant vtUrl(url.c_str());
-  CComVariant vtFlags(navOpenInNewTab);
+  CComVariant vtFlags(aNavigateOptions);
   CComVariant vtEmpty;
   return webBrowser->Navigate2(&vtUrl, &vtFlags, &vtEmpty, &vtEmpty, &vtEmpty);
 }
@@ -90,8 +94,8 @@ HRESULT CAnchoAddonService::getActiveWebBrowser(LPUNKNOWN* pUnkWebBrowser)
 HRESULT CAnchoAddonService::createTab(LPDISPATCH aProperties, LPDISPATCH aCreator, LPDISPATCH aCallback)
 {
   try {
-    m_WebBrowserPostInitTasks.addCommnad(ACommand::Ptr(new CreateTabCommand(*this, aProperties, aCreator, aCallback)));
-  } catch (std::runtime_error &e) {
+    m_WebBrowserPostInitTasks.addCommnad(AQueuedCommand::Ptr(new CreateTabCommand(*this, aProperties, aCreator, aCallback)));
+  } catch (std::exception &e) {
     ATLTRACE("Error: %s\n", e.what());
     return E_FAIL;
   }
@@ -99,13 +103,13 @@ HRESULT CAnchoAddonService::createTab(LPDISPATCH aProperties, LPDISPATCH aCreato
 }
 //----------------------------------------------------------------------------
 //
-HRESULT CAnchoAddonService::createTabImpl(CIDispatchHelper &aProperties, CIDispatchHelper &aCreator, CIDispatchHelper &aCallback)
+HRESULT CAnchoAddonService::createTabImpl(CIDispatchHelper &aProperties, ATabCreatedCallback::Ptr aCallback, bool aInNewWindow)
 {
   //CIDispatchHelper properties(aProperties);
   CComBSTR originalUrl;
   HRESULT hr = aProperties.Get<CComBSTR, VT_BSTR, BSTR>(L"url", originalUrl);
   if (hr != S_OK) {
-    return hr;
+    originalUrl = L"about:blank";
   }
   std::wstring url = std::wstring(originalUrl,SysStringLen(originalUrl));
   if (aCallback) {
@@ -115,12 +119,16 @@ HRESULT CAnchoAddonService::createTabImpl(CIDispatchHelper &aProperties, CIDispa
     str << L'#' << requestID << '#';
     url = str.str() + url;
 
-    m_CreateTabCallbacks[requestID] = CreateTabCallbackRecord(aCreator, aCallback);
+    m_CreateTabCallbacks[requestID] = aCallback;
   }
 
   LPUNKNOWN browser;
   IF_FAILED_RET(getActiveWebBrowser(&browser));
-  IF_FAILED_RET(navigateBrowser(browser, url));
+  if (aInNewWindow) {
+    IF_FAILED_RET(navigateBrowser(browser, url, navOpenInNewWindow));
+  } else {
+    IF_FAILED_RET(navigateBrowser(browser, url, navOpenInNewTab));
+  }
   return S_OK;
 }
 //----------------------------------------------------------------------------
@@ -213,9 +221,9 @@ HRESULT CAnchoAddonService::queryTabs(LPDISPATCH aQueryInfo, LPDISPATCH aCreator
     void operator()(RuntimeMap::value_type &aRec)
     {
       CComVariant info;
-      if (S_OK != createIDispatchFromCreator(creator, &info)) {
+      /*if (S_OK != createIDispatchFromCreator(creator, &info)) {
         return;
-      }
+      }*/
       if (S_OK == service.getTabInfo(aRec.first, creator, &info)) {
         infos.push_back(info);
       }
@@ -256,6 +264,218 @@ HRESULT CAnchoAddonService::executeScriptInTab(BSTR aExtensionID, INT aTabID, BS
 }
 //----------------------------------------------------------------------------
 //
+
+void CAnchoAddonService::fillWindowInfo(HWND aWndHandle, CIDispatchHelper &aInfo)
+{
+  //BOOL isVisible = IsWindowVisible(aWndHandle);
+  WINDOWINFO winInfo;
+  winInfo.cbSize = sizeof(WINDOWINFO);
+  BOOL res = GetWindowInfo(aWndHandle, &winInfo);
+  aInfo.SetProperty(L"top", CComVariant(winInfo.rcWindow.top));
+  aInfo.SetProperty(L"left", CComVariant(winInfo.rcWindow.left));
+  aInfo.SetProperty(L"width", CComVariant(winInfo.rcWindow.right - winInfo.rcWindow.left));
+  aInfo.SetProperty(L"height", CComVariant(winInfo.rcWindow.bottom - winInfo.rcWindow.top));
+  aInfo.SetProperty(L"focused", CComVariant(static_cast<bool>(winInfo.dwWindowStatus & WS_ACTIVECAPTION)));
+  aInfo.SetProperty(L"alwaysOnTop", CComVariant(false));
+  aInfo.SetProperty(L"id", CComVariant(winHWNDToId(aWndHandle)));
+  if (IsIconic(aWndHandle)) {
+    aInfo.SetProperty(L"state", CComVariant(L"minimized"));
+  } else if (IsZoomed(aWndHandle)) {
+    aInfo.SetProperty(L"state", CComVariant(L"maximized"));
+  } else {
+    aInfo.SetProperty(L"state", CComVariant(L"normal"));
+  }
+}
+//----------------------------------------------------------------------------
+//
+STDMETHODIMP CAnchoAddonService::getWindow(INT aWindowId, LPDISPATCH aCreator, BOOL aPopulate, VARIANT* aRet)
+{
+  if (!aCreator) {
+    return E_POINTER;
+  }
+  ENSURE_RETVAL(aRet);
+
+  HWND hwnd = winIdToHWND(aWindowId);
+
+  if (!isIEWindow(hwnd)) {
+    return E_INVALIDARG;
+  }
+
+  CComVariant info;
+  if (S_OK != createIDispatchFromCreator(aCreator, &info)) {
+    return E_FAIL;
+  }
+  CIDispatchHelper infoHelper(info.pdispVal);
+  fillWindowInfo(hwnd, infoHelper);
+  *aRet = info;
+  return S_OK;
+}
+//----------------------------------------------------------------------------
+//
+STDMETHODIMP CAnchoAddonService::getAllWindows(LPDISPATCH aCreator, BOOL aPopulate, VARIANT* aRet)
+{
+  if (!aCreator) {
+    return E_POINTER;
+  }
+  ENSURE_RETVAL(aRet);
+
+  VariantVector windowInfos;
+  HWND hIEFrame = NULL;
+  do {
+    hIEFrame = ::FindWindowEx(NULL, hIEFrame, L"IEFrame", NULL);
+    if (hIEFrame) {
+      CComVariant info;
+      if (S_OK != createIDispatchFromCreator(aCreator, &info)) {
+        return E_FAIL;
+      }
+      CIDispatchHelper infoHelper(info.pdispVal);
+      fillWindowInfo(hIEFrame, infoHelper);
+
+      windowInfos.push_back(info);
+    }
+  }while(hIEFrame);
+  return constructSafeArrayFromVector(windowInfos, *aRet);
+}
+
+//----------------------------------------------------------------------------
+//
+STDMETHODIMP CAnchoAddonService::updateWindow(INT aWindowId, LPDISPATCH aProperties)
+{
+  if (!aProperties) {
+    return E_INVALIDARG;
+  }
+  HWND hwnd = winIdToHWND(aWindowId);
+  if (!isIEWindow(hwnd)) {
+    return E_INVALIDARG;
+  }
+  CIDispatchHelper properties = aProperties;
+
+  WINDOWINFO winInfo;
+  winInfo.cbSize = sizeof(WINDOWINFO);
+  BOOL res = GetWindowInfo(hwnd, &winInfo);
+  int top = winInfo.rcWindow.top;
+  int left = winInfo.rcWindow.left;
+  int width = winInfo.rcWindow.right - winInfo.rcWindow.left;
+  int height = winInfo.rcWindow.bottom - winInfo.rcWindow.top;
+  if ( SUCCEEDED((properties.Get<int, VT_I4>(L"top", top)))
+    || SUCCEEDED((properties.Get<int, VT_I4>(L"left", left)))
+    || SUCCEEDED((properties.Get<int, VT_I4>(L"width", width)))
+    || SUCCEEDED((properties.Get<int, VT_I4>(L"height", height)))
+  ) {
+    ::MoveWindow(hwnd, left, top, width, height, TRUE);
+  }
+  bool focused = false;
+  if (SUCCEEDED((properties.Get<bool, VT_BOOL, VARIANT_BOOL>(L"focused", focused)))) {
+    if(focused) {
+      ::SetForegroundWindow(hwnd);
+    } else {
+      //Bring to foreground next IE window
+      HWND nextWin = hwnd;
+      while (nextWin = GetNextWindow(nextWin, GW_HWNDNEXT)) {
+        if (isIEWindow(hwnd)) {
+          ::SetForegroundWindow(nextWin);
+          break;
+        }
+      }
+    }
+  }
+  std::wstring state;
+  if ( SUCCEEDED((properties.Get<std::wstring, VT_BSTR, BSTR>(L"state", state)))) {
+    if (state == L"maximized") {
+      ::ShowWindow(hwnd, SW_MAXIMIZE);
+    } else if (state == L"minimized") {
+      ::ShowWindow(hwnd, SW_MINIMIZE);
+    } else if (state == L"normal") {
+      ::ShowWindow(hwnd, SW_NORMAL);
+    } else if (state == L"fullscreen") {
+      //TODO - fullscreen
+    }
+  }
+  //TODO - drawAttention
+  return S_OK;
+}
+//----------------------------------------------------------------------------
+//
+STDMETHODIMP CAnchoAddonService::createWindow(LPDISPATCH aProperties, LPDISPATCH aCreator, LPDISPATCH aCallback)
+{
+  CIDispatchHelper properties(aProperties);
+
+  try {
+    m_WebBrowserPostInitTasks.addCommnad(AQueuedCommand::Ptr(new CreateWindowCommand(*this, aProperties, aCreator, aCallback)));
+  } catch (std::exception &e) {
+    ATLTRACE("Error: %s\n", e.what());
+    return E_FAIL;
+  }
+  return S_OK;
+}
+
+//----------------------------------------------------------------------------
+//
+HRESULT CAnchoAddonService::createWindowImpl(CIDispatchHelper &aProperties, ATabCreatedCallback::Ptr aCallback)
+{
+  //TODO - handle different types of windows
+  return createTabImpl(aProperties, aCallback, true);
+}
+//----------------------------------------------------------------------------
+//
+STDMETHODIMP CAnchoAddonService::closeWindow(INT aWindowId)
+{
+  HWND win = winIdToHWND(aWindowId);
+  if( ::DestroyWindow(win) ) {
+    return S_OK;
+  } else {
+    return E_FAIL;
+  }
+}
+//----------------------------------------------------------------------------
+//
+STDMETHODIMP CAnchoAddonService::createPopupWindow(BSTR aUrl)
+{
+  HWND hwnd = getCurrentWindowHWND();
+  IF_FAILED_RET(CPopupWindow::CreatePopupWindow(hwnd, DispatchMap(), aUrl));
+  return S_OK;
+}
+
+//----------------------------------------------------------------------------
+//
+STDMETHODIMP CAnchoAddonService::getCurrentWindowId(INT *aWinId)
+{
+  ENSURE_RETVAL(aWinId);
+  HWND hwnd = getCurrentWindowHWND();
+  if (hwnd) {
+    *aWinId = winHWNDToId(hwnd);
+    return S_OK;
+  }
+  return E_FAIL;
+}
+
+//----------------------------------------------------------------------------
+//
+HWND CAnchoAddonService::getCurrentWindowHWND()
+{
+  HWND hIEFrame = NULL;
+  while(hIEFrame = ::FindWindowEx(NULL, hIEFrame, L"IEFrame", NULL)) {
+    WINDOWINFO winInfo;
+    winInfo.cbSize = sizeof(WINDOWINFO);
+    BOOL res = GetWindowInfo(hIEFrame, &winInfo);
+    if (!res) {
+      continue;
+    }
+    if (winInfo.dwWindowStatus & WS_ACTIVECAPTION) {
+      return hIEFrame;
+    }
+  }
+  return NULL;
+}
+//----------------------------------------------------------------------------
+//
+bool CAnchoAddonService::isIEWindow(HWND aHwnd)
+{
+  wchar_t className[256];
+  return GetClassName(aHwnd, className, 256) && (std::wstring(L"IEFrame") == className);
+}
+//----------------------------------------------------------------------------
+//
 HRESULT CAnchoAddonService::FinalConstruct()
 {
   // Get and store the path, this will be used in some places (e.g. to load
@@ -270,7 +490,7 @@ HRESULT CAnchoAddonService::FinalConstruct()
   IF_FAILED_RET(CComObject<CIECookieManager>::CreateInstance(&pCookiesManager));
   pCookiesManager->setNotificationCallback(ACookieCallbackFunctor::APtr(new CookieNotificationCallback(*this)));
   pCookiesManager->startWatching();
-  
+
   m_Cookies = pCookiesManager;
   return S_OK;
 }
@@ -375,9 +595,11 @@ STDMETHODIMP CAnchoAddonService::createTabNotification(INT aTabID, INT aRequestI
 {
   CreateTabCallbackMap::iterator it = m_CreateTabCallbacks.find(aRequestID);
   if (it != m_CreateTabCallbacks.end()) {
-    CComVariant tabInfo;
-    IF_FAILED_RET(getTabInfo(aTabID, it->second.creator, &tabInfo));
-    IF_FAILED_RET(it->second.callback.Invoke1((DISPID) 0, &tabInfo));
+    try {
+      it->second->execute(aTabID);
+    } catch (std::exception &e) {
+      ATLTRACE("Error: %s\n", e.what());
+    }
     m_CreateTabCallbacks.erase(it);
     return S_OK;
   }

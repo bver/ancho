@@ -137,12 +137,11 @@ STDMETHODIMP CAnchoAddon::ApplyContentScripts(IWebBrowser2* pBrowser, BSTR bstrU
   if(!m_pAddonBackground || !m_pBackgroundConsole) {
     hr = m_pAnchoService->GetAddonBackground(CComBSTR(m_sExtensionName), &m_pAddonBackground);
     IF_FAILED_RET(hr);
-   
     // get console
     m_pBackgroundConsole = m_pAddonBackground;
     ATLASSERT(m_pBackgroundConsole);
   }
-  if(!m_pContentAPI) {
+  if(!m_pContentInfo) {
     // tell background we are there and get instance id
     m_pAddonBackground->AdviseInstance(&m_InstanceID);
 
@@ -212,7 +211,7 @@ STDMETHODIMP CAnchoAddon::ApplyContentScripts(IWebBrowser2* pBrowser, BSTR bstrU
 
   VariantVector scripts;
   IF_FAILED_RET(addJSArrayToVariantVector(jsObj.pdispVal, scripts));
-  
+
   // scripts array is in reverse order here!
   for(VariantVector::reverse_iterator it = scripts.rbegin(); it != scripts.rend(); it++) {
     if( it->vt == VT_BSTR ) {

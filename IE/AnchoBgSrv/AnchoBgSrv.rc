@@ -71,6 +71,7 @@ UTILS.JS                HTML                    "res\\js\\utils\\utils.js"
 TYPECHECKING.JS         HTML                    "res\\js\\utils\\typeChecking.js"
 TABS_SPEC.JS            HTML                    "res\\js\\specifications\\tabs_spec.js"
 COOKIES_SPEC.JS         HTML                    "res\\js\\specifications\\cookies_spec.js"
+WINDOWS_SPEC.JS         HTML                    "res\\js\\specifications\\windows_spec.js"
 #endif    // German (Germany) resources
 /////////////////////////////////////////////////////////////////////////////
 

@@ -264,6 +264,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\PopupWindow.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\stdafx.cpp"
 				>
 				<FileConfiguration
@@ -331,6 +335,10 @@
 			</File>
 			<File
 				RelativePath=".\LogWindow.h"
+				>
+			</File>
+			<File
+				RelativePath=".\PopupWindow.h"
 				>
 			</File>
 			<File
@@ -520,10 +528,6 @@
 			>
 		</File>
 		<File
-			RelativePath=".\res\js\utils.js"
-			>
-		</File>
-		<File
 			RelativePath=".\res\js\utils\utils.js"
 			>
 		</File>
@@ -541,6 +545,10 @@
 		</File>
 		<File
 			RelativePath=".\res\js\windows.js"
+			>
+		</File>
+		<File
+			RelativePath=".\res\js\specifications\windows_spec.js"
 			>
 		</File>
 	</Files>

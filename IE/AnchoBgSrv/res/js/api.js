@@ -26,11 +26,11 @@ exports.chrome = {};
 // create and initialize the background API
 (function(chrome, instanceID) {
   chrome.bookmarks = require("bookmarks.js").createAPI(instanceID);
-  
+
   var browserAction = require("browserAction.js");
   browserAction.initAPI(manifest.browser_action);
   chrome.browserAction = browserAction.createAPI(instanceID);
-  
+
   chrome.browsingData = require("browsingData.js");
   chrome.contentSettings = require("contentSettings.js");
   chrome.contextMenus = require("contextMenus.js");
@@ -95,7 +95,7 @@ exports.getContentAPI = function(instanceID) {
     && manifest.content_scripts[0].js instanceof Array
     ? manifest.content_scripts[0].js
     : []
-  );    
+  );
   return { api: api, scripts: scripts };
 };
 
