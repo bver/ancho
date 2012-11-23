@@ -264,6 +264,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\PopupWindow.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\stdafx.cpp"
 				>
 				<FileConfiguration
@@ -331,6 +335,10 @@
 			</File>
 			<File
 				RelativePath=".\LogWindow.h"
+				>
+			</File>
+			<File
+				RelativePath=".\PopupWindow.h"
 				>
 			</File>
 			<File

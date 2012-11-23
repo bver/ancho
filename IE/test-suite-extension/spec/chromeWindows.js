@@ -25,37 +25,30 @@ define(function() {
       
       runs(function(){
         expect(windows).toBeDefined();
-        for (var i = 0; i < windows.length; ++i) {
+        /*for (var i = 0; i < windows.length; ++i) {
           console.info("Window " + i);
           for (j in windows[i]) {
             console.info("\t" + j + ": " + windows[i][j]);
           }
-        }
-        /*expect(tabs.length).toBe(1);
-        expect(tabs[0].id).toBe(tabID);*/
+        }*/
       });
     });
     
     it('Can create browser window', function(){
-      var window;
+      var win;
       var callbackCalled = false;
-      var callback = function(aWindow){ callbackCalled = true; window = aWindow;}
+      var callback = function(aWindow){ callbackCalled = true; win = aWindow;}
       
       runs(function(){
-          chrome.windows.create({type: 'normal'/*'popup'*/},callback);
+          chrome.windows.create({type: 'normal', url :'http://www.wikipedia.org'}, callback);
       });
       
-      /*waitsFor(function() {
+      waitsFor(function() {
         return callbackCalled;
-      }, "Callback for windows query was not called", 3000);*/
+      }, "Callback for window creation was not called", 3000);
       
       runs(function(){
-        /*expect(window).toBeDefined();
-          for (j in window) {
-            console.info("\t" + j + ": " + window[j]);
-          }*/
-        /*expect(tabs.length).toBe(1);
-        expect(tabs[0].id).toBe(tabID);*/
+        expect(win).toBeDefined();
       });
     });
 

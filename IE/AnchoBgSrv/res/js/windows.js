@@ -13,6 +13,8 @@ var EventFactory = require("utils.js").EventFactory;
 require("windows_spec.js");
 var preprocessArguments = require("typeChecking.js").preprocessArguments;
 var notImplemented = require("typeChecking.js").notImplemented;
+var addonRootURL = require("extension.js").addonRootURL;
+
 
 var EVENT_LIST = ['onCreated',
                   'onFocusChanged',
@@ -78,15 +80,26 @@ var Windows = function(instanceID) {
   //----------------------------------------------------------------------------
   // chrome.windows.remove
   this.remove = function(windowId, callback) {
-    var args = notImplemented('chrome.windows.remove', arguments);
+    var args = preprocessArguments('chrome.windows.remove', arguments);
+    serviceAPI.closeWindow(args['windowId']);
+    if (args['callback']) {
+      args['callback']();
+    }
   };
 
   //----------------------------------------------------------------------------
   // chrome.windows.update
   this.update = function(windowId, updateInfo, callback) {
-    var args = notImplemented('chrome.windows.update', arguments);
+    var args = preprocessArguments('chrome.windows.update', arguments);
+    serviceAPI.updateWindow(args.windowId, args.updateInfo);
+    if (args.callback) {
+      this.get(args.windowId, { populate: false }, args.callback);
+    }
   };
 
+  this.test = function() {
+    serviceAPI.createPopupWindow(addonRootURL + "popup.html");
+  }
   //============================================================================
   // events
 
