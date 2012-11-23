@@ -133,6 +133,7 @@ STDMETHODIMP CAnchoAddon::executeScriptFile(BSTR aFile)
 //  ApplyContentScripts
 STDMETHODIMP CAnchoAddon::ApplyContentScripts(IWebBrowser2* pBrowser, BSTR bstrUrl, documentLoadPhase aPhase)
 {
+  HRESULT hr = S_OK;
   //If create AddonBackground sooner - background script will be executed before initialization of tab windows
   if(!m_pAddonBackground || !m_pBackgroundConsole) {
     hr = m_pAnchoService->GetAddonBackground(CComBSTR(m_sExtensionName), &m_pAddonBackground);
