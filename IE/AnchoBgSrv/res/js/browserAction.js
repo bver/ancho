@@ -7,7 +7,7 @@
 
 //******************************************************************************
 //* requires
-var Event = require("Event.js").Event;
+var Event = require("events.js").Event;
 var EventFactory = require("utils.js").EventFactory;
 
 var EVENT_LIST = ['onClicked'];
@@ -17,7 +17,7 @@ require("browserAction_spec.js");
 var preprocessArguments = require("typeChecking.js").preprocessArguments;
 var notImplemented = require("typeChecking.js").notImplemented;
 
-
+var addonRootURL = require("extension.js").addonRootURL;
 
 var browserActionInfo;
 
@@ -131,7 +131,7 @@ exports.releaseAPI = function(instanceID) {
   EventFactory.releaseEvents(instanceID, API_NAME, EVENT_LIST); ;
 }
 
-exports.initAPI = function(browserActionData) {
+exports.initBrowserAction = function(browserActionData) {
   var debugString = "browserAction.initAPI(..) called.";
 
   if (browserActionData) {
@@ -151,6 +151,11 @@ exports.initAPI = function(browserActionData) {
       debugString = debugString + " title: " + browserActionData.default_title + ";";
     }
     if (browserActionData.default_popup) {
+      browserActionInfo.onClick = function(aX, aY) {
+        var createFullAPI = require("api.js").createFullAPI;
+        
+        serviceAPI.createPopupWindow(addonRootURL + browserActionData.default_popup, aX, aY);
+      }
       debugString = debugString + " popup: " + browserActionData.default_popup + ";";
     }
     serviceAPI.addBrowserActionInfo(browserActionInfo);
