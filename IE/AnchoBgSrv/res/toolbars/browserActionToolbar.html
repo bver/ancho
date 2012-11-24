@@ -12,7 +12,6 @@
     .baButton {
       height: 21px;
       width: 21px;
-      /*background-image:url('./testIcon.png');*/
       background-color:#0000FF20;
       background-repeat: no-repeat;
       background-position:center;
@@ -34,14 +33,6 @@
     }
   </style>
   <script>
-  var a ={
-    icon: ' ',
-    title: ' ',
-    badgeBackground: ' ',
-    badgeText: ' ',
-    onclick: ' '
-  };
-
   function buttonOnMouseOver(aElement) {
     aElement.style.border = '#CCCCCC solid 1px';
   }
@@ -52,20 +43,26 @@
     aElement.style.border = '#000000 solid 1px';
 	}
 
-	var mouseEventsString = 'onclick="browserActions[this.id].onClick()" onmousedown="buttonOnMouseDown(this)" onmouseup="buttonOnMouseOver(this)" onmouseover="buttonOnMouseOver(this)" onmouseout="buttonOnMouseOut(this)" ';
+	var mouseEventsString = 'onclick="browserActions[this.id].onClick(event.screenX, event.screenY+15)" onmousedown="buttonOnMouseDown(this)" onmouseup="buttonOnMouseOver(this)" onmouseover="buttonOnMouseOver(this)" onmouseout="buttonOnMouseOut(this)" ';
 
   function getButtonCode(aId) {
 		var str = '<div class="baButton" id=\"' + aId  + '\" ' ;
 		if (browserActions[aId].title) {
 			str += 'title=' + '\"' + browserActions[aId].title + '\"';
-		}
-		str += mouseEventsString;
+	  }
+	  if (browserActions[aId].enabled) {
+	    str += mouseEventsString;
+	  }
 		if (browserActions[aId].icon) {
 		  str += 'style="background-image: url(' + browserActions[aId].icon + ')" ';
 		}
 		str += '>';
     if (browserActions[aId].badge) {
-      str += '<div class="baBadge">' + browserActions[aId].badge + '</div>';
+      str += '<div class="baBadge"'
+      if (browserActions[aId].badgeBackgroundColor) {
+        str += 'style="background-color:"' + browserActions[aId].badgeBackgroundColor + '" ';
+      }
+      str += '>' + browserActions[aId].badge + '</div>';
     }
     str += '</div>';
 
@@ -95,7 +92,7 @@
 		browserActions = actions;
     updateBrowserActions();
   }
-	var callbackID = external.setBrowserActionUpdateCallback( initBrowserActions );
+	var callbackID = external.setBrowserActionUpdateCallback(initBrowserActions);
 	
 	window.onload = initBrowserActions;
   </script>

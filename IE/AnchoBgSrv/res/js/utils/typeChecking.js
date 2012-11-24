@@ -340,7 +340,7 @@ var ObjectValidator = function(aSpec) {
     for (var i in properties) {
       property = aObject[i];
       propertySpecification = properties[i];
-      if (property) {
+      if (property !== undefined) {
         validator = validatorManager.getValidator(propertySpecification);
         var report = validator.validate(property);
         if (!report.success) {
@@ -348,7 +348,7 @@ var ObjectValidator = function(aSpec) {
           return createValidationReportError(e, validationError.DIFFERENT_TYPE);
         }
       } else {
-        if (propertySpecification.required) {
+      if (propertySpecification.required) {
           var e = 'Missing property \'' + i + '\'!';
           return createValidationReportError(e, validationError.MISSING_PROPERTY);
         }

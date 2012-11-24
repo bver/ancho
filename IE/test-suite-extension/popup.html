@@ -1,27 +1,35 @@
 <html>
 <head>
-<style>
+	<style>
+		body, html {
+      margin: 0px;
+      padding: 0px;
+      background-color: rgb(150,255,255);
+		}
+
 div, td, th { color: black; }
 </style>
 <script>
 
-	function test(){
-		s = '';
-		for ( i in window ) {
-			s += i +'; ';
+		function test() {
+			console.log('Test - calling function from popup');
 		}
-		var w=window,d=document,e=d.documentElement,g=d.getElementsByTagName('body')[0],x=g.scrollWidth||w.innerWidth||e.clientWidth||g.clientWidth,y=g.scrollHeight||w.innerHeight||e.clientHeight||g.clientHeight;
-		//alert(s);
-		alert("W: " + x + "\nH: " + y)
-		/*alert("h: " + window.document.body.clientheight + "; " + window.document.body.scrollheight + "; " + window.document.body.offsetheight
-			+ "\nw :" + window.document.body.clientwidth + "; " + window.document.body.scrollwidth + "; " + window.document.body.offsetwidth
-			);*/
-	}
+		var badges = ["ABC", "DEF", "GHI", ""]
+		var badgeId = 0;
+		function changeBadgeText() {
+			chrome.browserAction.setBadgeText({text:badges[badgeId]});
+			badgeId = (++badgeId % 4);
+		}
 </script>
 </head>
 <body >
-	<div onclick="test()" id="testContainer" style="width: 300px; height: 400px" >
+	<div id="testContainer" style="width: 300px; height: 300px" >
 		Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+		<br/>
+		<a href="http://www.seznam.cz" target="_blank">Open new page</a><br/>
+		<a href="javascript:test()">Call function which prints to the console</a><br/>
+		<a href="javascript:changeBadgeText()">Change Badge Text</a><br/>
+		<a href="javascript:chrome.browserAction.disable()">Disable browser action</a><br/>
 	</div>
 </body>
 

@@ -109,7 +109,7 @@ library AnchoBgSrvLib
     HRESULT updateWindow([in] INT aWindowId, [in] LPDISPATCH aProperties);
     HRESULT createWindow([in] LPDISPATCH aProperties, [in] LPDISPATCH aCreator, [in] LPDISPATCH aCallback);
     HRESULT closeWindow([in] INT aWindowId);
-    HRESULT createPopupWindow([in] BSTR aUrl);
+    HRESULT createPopupWindow([in] BSTR aUrl, INT aX, INT aY, [in] LPDISPATCH aInjectedData, [in] LPDISPATCH aCloseCallback);
     HRESULT getCurrentWindowId([out, retval] INT *aWinId);
 
     HRESULT executeScript([in] BSTR aExtensionId, [in] INT aTabID, [in] BSTR aCode, [in] BOOL aFileSpecified, [in] BOOL aInAllFrames);

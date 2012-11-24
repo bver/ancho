@@ -37,7 +37,7 @@ public:
   HRESULT FinalConstruct();
   void FinalRelease();
 
-  static HRESULT CreatePopupWindow(HWND aParent, const DispatchMap &aInjectedObjects, LPCWSTR aURL);
+  static HRESULT CreatePopupWindow(HWND aParent, const DispatchMap &aInjectedObjects, LPCWSTR aURL, int aX, int aY, CIDispatchHelper aCloseCallback);
 
   LRESULT OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
   LRESULT OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled);
@@ -50,5 +50,6 @@ private:
   DispatchMap m_InjectedObjects;
   CStringW    m_sURL;
   DWORD       m_WebBrowserEventsCookie;
+  CIDispatchHelper m_CloseCallback;
 };
 

@@ -445,7 +445,7 @@
 			>
 		</File>
 		<File
-			RelativePath=".\res\js\Event.js"
+			RelativePath=".\res\js\events.js"
 			>
 		</File>
 		<File

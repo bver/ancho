@@ -78,3 +78,22 @@ exports.cleanWhiteSpace = function(aString) {
   }
   return aString.replace(/^\s+|\s+$/g, '');
 }
+
+
+exports.stringColorRepresentation = function(aColor) {
+  if (exports.isString(aColor)) {
+    if (/#[0-9A-F]{6}/i.exec(aColor)) {
+      return aColor;
+    }
+  } else if (exports.isArray(aColor)){
+    if (aColor.length === 3) {
+      var str = '#'; 
+      for (var i = 0; i < 3; ++i) {
+        var tmp = Math.max(0, Math.min(aColor[i], 255))
+        str += tmp.toString(16);
+      }
+      return str;
+    }
+  }
+  throw new Error('Unsupported color format');
+}

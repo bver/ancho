@@ -108,7 +108,12 @@ private:
   HRESULT ApplyContentScripts(BSTR bstrUrl, VARIANT_BOOL bIsMainFrame, documentLoadPhase aPhase);
 
   HWND getTabWindow();
-  HWND getMainWindow();
+  HWND getFrameTabWindow()
+    {return findParentWindowByClass(L"Frame Tab");}
+  HWND getMainWindow()
+    {return findParentWindowByClass(L"IEFrame");}
+
+  HWND findParentWindowByClass(std::wstring aClassName);
   bool isTabActive();
 private:
   // -------------------------------------------------------------------------

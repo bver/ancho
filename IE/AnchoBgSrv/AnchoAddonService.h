@@ -93,7 +93,7 @@ public:
   STDMETHOD(updateWindow)(INT aWindowId, LPDISPATCH aProperties);
   STDMETHOD(createWindow)(LPDISPATCH aProperties, LPDISPATCH aCreator, LPDISPATCH aCallback);
   STDMETHOD(closeWindow)(INT aWindowId);
-  STDMETHOD(createPopupWindow)(BSTR aUrl);
+  STDMETHOD(createPopupWindow)(BSTR aUrl, INT aX, INT aY, LPDISPATCH aInjectedData, LPDISPATCH aCloseCallback);
   STDMETHOD(getCurrentWindowId)(INT *aWinId);
 
 

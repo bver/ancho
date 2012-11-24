@@ -8,6 +8,7 @@
  *
  * Global objects available:
  *  addonAPI      :   The addon object (IAnchoBackgroundAPI)
+ *  serviceAPI    :   The central service managing all addons (IAnchoServiceApi)
  ******************************************************************************/
 
 // get manifest
@@ -54,14 +55,14 @@ var API_NAMES = ["bookmarks",
 // create and initialize the background API
 function getFullAPI(chrome, aInstance) {
   for (var i = 0; i < API_NAMES.length; ++i) {
-    console.debug("Creating chrome." + API_NAMES[i] + " API instancen." + aInstance);
+    console.debug("Creating chrome." + API_NAMES[i] + " API instance n. " + aInstance);
     chrome[API_NAMES[i]] = require(API_NAMES[i] + ".js").createAPI(aInstance);
   }
 }
 
 function releaseFullAPIInstance(aInstance) {
   for (var i = 0; i < API_NAMES.length; ++i) {
-    console.debug("Releasing chrome." + API_NAMES[i] + " API instance n." + aInstance);
+    console.debug("Releasing chrome." + API_NAMES[i] + " API instance n. " + aInstance);
     require(API_NAMES[i] + ".js").releaseAPI(aInstance);
   }
 }
@@ -99,7 +100,7 @@ exports.createFullAPI = function(aInstanceID) {
 
 exports.releaseFullAPI = function(aInstanceID) {
   if (fullAPIInstances[aInstanceID]) {
-    releaseFullAPIInstance[aInstanceID];
+    releaseFullAPIInstance(aInstanceID);
     delete fullAPIInstances[aInstanceID]
   }
 };

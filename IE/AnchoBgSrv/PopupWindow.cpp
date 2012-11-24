@@ -40,6 +40,7 @@ LRESULT CPopupWindow::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
 
   CIDispatchHelper script = CIDispatchHelper::GetScriptDispatch(m_pWebBrowser);
   for (DispatchMap::iterator it = m_InjectedObjects.begin(); it != m_InjectedObjects.end(); ++it) {
+    ATLTRACE(L"INJECTING OBJECT %s\n", it->first.c_str());
     script.SetProperty((LPOLESTR)(it->first.c_str()), CComVariant(it->second));
   }
 
@@ -53,17 +54,18 @@ LRESULT CPopupWindow::OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 {
   AtlUnadvise(m_pWebBrowser, DIID_DWebBrowserEvents2, m_WebBrowserEventsCookie);
   bHandled = FALSE;
+  //Cleanup procedure
+  m_CloseCallback.Invoke0(DISPID(0));
   m_pWebBrowser.Release();
-//  m_pDispApiJS.Release();
   return 1;
 }
 
 LRESULT CPopupWindow::OnActivate(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
-/*  if (wParam == WA_INACTIVE) {
+  if (wParam == WA_INACTIVE) {
     DestroyWindow();
     return 0;
-  }*/
+  }
   return 1;
 }
 
@@ -88,13 +90,14 @@ STDMETHODIMP_(void) CPopupWindow::OnDocumentComplete(LPDISPATCH aDispatch, VARIA
   //TODO - autoresize
 }
 
-HRESULT CPopupWindow::CreatePopupWindow(HWND aParent, const DispatchMap &aInjectedObjects, LPCWSTR aURL)
+HRESULT CPopupWindow::CreatePopupWindow(HWND aParent, const DispatchMap &aInjectedObjects, LPCWSTR aURL, int aX, int aY, CIDispatchHelper aCloseCallback)
 {
   CPopupWindowComObject * pNewWindow = NULL;
   IF_FAILED_RET(CPopupWindowComObject::CreateInstance(&pNewWindow));
   pNewWindow->m_sURL = aURL;
   pNewWindow->m_InjectedObjects = aInjectedObjects;
-  RECT r = {50,50,550,550};
+  pNewWindow->m_CloseCallback = aCloseCallback;
+  RECT r = {aX, aY, aX + 400, aY + 400};
 
   if (!pNewWindow->Create(aParent, r, NULL, WS_POPUP))
   {

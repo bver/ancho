@@ -374,7 +374,7 @@ HWND CAnchoRuntime::getTabWindow()
 
 //----------------------------------------------------------------------------
 //
-HWND CAnchoRuntime::getMainWindow()
+HWND CAnchoRuntime::findParentWindowByClass(std::wstring aClassName)
 {
   HWND window = getTabWindow();
   wchar_t className[256];
@@ -382,7 +382,7 @@ HWND CAnchoRuntime::getMainWindow()
     if (!GetClassName(window, className, 256)) {
       return NULL;
     }
-    if (std::wstring(L"IEFrame") == className) {
+    if (aClassName == className) {
       return window;
     }
     window = GetParent(window);
