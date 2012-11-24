@@ -36,7 +36,7 @@ var BrowserAction = function(instanceID) {
   //----------------------------------------------------------------------------
   // chrome.browserAction.getBadgeBackgroundColor
   this.getBadgeBackgroundColor = function(details, callback) {
-    var args = notImplemented('chrome.browserAction.getBadgeBackgroundColor', arguments);
+    var args = preprocessArguments('chrome.browserAction.getBadgeBackgroundColor', arguments);
     if (!browserActionInfo) {
       throw new Error('This extension has no action specified.');
     }
