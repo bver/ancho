@@ -16,9 +16,19 @@
     this._tab = Utils.getWindowId(window);
     // Event handlers
     this.onEvent = new Event(window, this._tab, this._state, 'debugger.event');
+    this.onDetach = new Event(window, this._tab, this._state, 'debugger.detach');
   }
 
   DebuggerAPI.prototype = {
+    attach: function(target, requiredVersion, /* optional */ callback) {
+    },
+
+    detach: function(target, /* optional */ callback) {
+    },
+
+    sendCommand: function(target, method, /* optional */ commandParams,
+      /* optional */ callback) {
+    }
   };
 
   module.exports = DebuggerAPI;
