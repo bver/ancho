@@ -7,7 +7,7 @@
 
 //******************************************************************************
 //* requires
-var Event = require("Event.js").Event;
+var Event = require("events.js").Event;
 var EventFactory = require("utils.js").EventFactory;
 
 var EVENT_LIST = ['onAdded', 'onRemoved'];

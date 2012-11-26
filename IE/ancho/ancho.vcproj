@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
+	Version="9.00"
 	Name="ancho"
 	ProjectGUID="{50B17414-D115-4F76-B5A4-F357AC84001C}"
 	RootNamespace="ancho"
@@ -82,7 +82,7 @@
 				Name="VCLinkerTool"
 				RegisterOutput="true"
 				IgnoreImportLibrary="true"
-				AdditionalDependencies="libbhohelper.lib anchocommons.lib"
+				AdditionalDependencies="libbhohelper.lib libprothandlers.lib anchocommons.lib"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="&quot;$(OutDir)&quot;;&quot;$(SolutionDir)anchocommons\$(ConfigurationName)&quot;"
 				ModuleDefinitionFile=".\ancho.def"
@@ -268,6 +268,18 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\HtmlPanel.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\HtmlPanelUIHandler.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\HtmlToolbarWindow.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\stdafx.cpp"
 				>
 				<FileConfiguration
@@ -286,6 +298,10 @@
 						UsePrecompiledHeader="1"
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\Toolbar.cpp"
+				>
 			</File>
 		</Filter>
 		<Filter
@@ -314,6 +330,18 @@
 				>
 			</File>
 			<File
+				RelativePath=".\HtmlPanel.h"
+				>
+			</File>
+			<File
+				RelativePath=".\HtmlPanelUIHandler.h"
+				>
+			</File>
+			<File
+				RelativePath=".\HtmlToolbarWindow.h"
+				>
+			</File>
+			<File
 				RelativePath=".\Resource.h"
 				>
 			</File>
@@ -323,6 +351,14 @@
 			</File>
 			<File
 				RelativePath=".\targetver.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Toolbar.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Toolbar.ipp"
 				>
 			</File>
 		</Filter>
@@ -341,6 +377,10 @@
 			</File>
 			<File
 				RelativePath=".\AnchoRuntime.rgs"
+				>
+			</File>
+			<File
+				RelativePath=".\AnchoToolbar.rgs"
 				>
 			</File>
 		</Filter>

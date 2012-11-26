@@ -154,6 +154,6 @@ STDMETHODIMP CIECookie::get_expirationDate(VARIANT * aRet)
 {
   ENSURE_RETVAL(aRet);
   aRet->vt = VT_R8;
-  aRet->dblVal = fileTimeToUnixTime(*reinterpret_cast<filetime_t*>(&m_ExpirationTime));
+  aRet->dblVal = static_cast<double>(fileTimeToUnixTime(*reinterpret_cast<filetime_t*>(&m_ExpirationTime)));
   return S_OK;
 }

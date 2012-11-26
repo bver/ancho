@@ -180,6 +180,11 @@ STDMETHODIMP_(void) CAnchoRuntime::OnBrowserBeforeNavigate2(LPDISPATCH pDisp, VA
   m_pAnchoService->createTabNotification(m_TabID, requestID);
 }
 
+STDMETHODIMP_(void) CAnchoRuntime::OnNewWindow3(IDispatch *pDisp, VARIANT_BOOL Cancel, DWORD dwFlags,	BSTR bstrUrlContext, BSTR bstrUrl)
+{
+  ATLTRACE(L"OnNewWindow3-------------------\n");
+}
+
 //----------------------------------------------------------------------------
 //  OnFrameStart
 STDMETHODIMP CAnchoRuntime::OnFrameStart(BSTR bstrUrl, VARIANT_BOOL bIsMainFrame)
@@ -342,6 +347,8 @@ STDMETHODIMP CAnchoRuntime::fillTabInfo(VARIANT* aInfo)
   obj.SetProperty(L"id", CComVariant(m_TabID));
 
   obj.SetProperty(L"active", CComVariant(isTabActive()));
+
+  obj.SetProperty(L"windowId", reinterpret_cast<INT>(getMainWindow()));
   return S_OK;
 }
 
@@ -363,6 +370,24 @@ HWND CAnchoRuntime::getTabWindow()
     pServiceProvider->Release();
   }
   return hwndBrowser;
+}
+
+//----------------------------------------------------------------------------
+//
+HWND CAnchoRuntime::findParentWindowByClass(std::wstring aClassName)
+{
+  HWND window = getTabWindow();
+  wchar_t className[256];
+  while (window) {
+    if (!GetClassName(window, className, 256)) {
+      return NULL;
+    }
+    if (aClassName == className) {
+      return window;
+    }
+    window = GetParent(window);
+  }
+  return NULL;
 }
 //----------------------------------------------------------------------------
 //

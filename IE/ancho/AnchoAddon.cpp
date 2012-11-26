@@ -7,6 +7,7 @@
 #include "stdafx.h"
 #include "AnchoAddon.h"
 #include "dllmain.h"
+#include "ProtocolHandlerRegistrar.h"
 
 extern class CanchoModule _AtlModule;
 
@@ -57,6 +58,9 @@ STDMETHODIMP CAnchoAddon::Init(LPCOLESTR lpsExtensionID, IAnchoAddonService * pS
   {
     return HRESULT_FROM_WIN32(ERROR_INVALID_DATA);
   }
+
+  IF_FAILED_RET(CProtocolHandlerRegistrar::
+    RegisterTemporaryFolderHandler(s_AnchoProtocolHandlerScheme, m_sExtensionName, m_sExtensionPath));
 
   // get addon instance
   //IF_FAILED_RET(m_pAnchoService->GetAddonBackground(CComBSTR(m_sExtensionName), &m_pAddonBackground));
@@ -133,16 +137,17 @@ STDMETHODIMP CAnchoAddon::executeScriptFile(BSTR aFile)
 //  ApplyContentScripts
 STDMETHODIMP CAnchoAddon::ApplyContentScripts(IWebBrowser2* pBrowser, BSTR bstrUrl, documentLoadPhase aPhase)
 {
+  HRESULT hr = S_OK;
   //If create AddonBackground sooner - background script will be executed before initialization of tab windows
   if(!m_pAddonBackground || !m_pBackgroundConsole) {
     hr = m_pAnchoService->GetAddonBackground(CComBSTR(m_sExtensionName), &m_pAddonBackground);
     IF_FAILED_RET(hr);
-   
+
     // get console
     m_pBackgroundConsole = m_pAddonBackground;
     ATLASSERT(m_pBackgroundConsole);
   }
-  if(!m_pContentAPI) {
+  if(!m_pContentInfo) {
     // tell background we are there and get instance id
     m_pAddonBackground->AdviseInstance(&m_InstanceID);
 
@@ -212,7 +217,7 @@ STDMETHODIMP CAnchoAddon::ApplyContentScripts(IWebBrowser2* pBrowser, BSTR bstrU
 
   VariantVector scripts;
   IF_FAILED_RET(addJSArrayToVariantVector(jsObj.pdispVal, scripts));
-  
+
   // scripts array is in reverse order here!
   for(VariantVector::reverse_iterator it = scripts.rbegin(); it != scripts.rend(); it++) {
     if( it->vt == VT_BSTR ) {

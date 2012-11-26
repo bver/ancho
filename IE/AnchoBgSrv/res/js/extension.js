@@ -7,7 +7,7 @@
 
 //******************************************************************************
 //* requires
-var Event = require("Event.js").Event;
+var Event = require("events.js").Event;
 
 var EventFactory = require("utils.js").EventFactory;
 
@@ -112,6 +112,11 @@ var MessageSender = function(aTab) {
 };
 exports.MessageSender = MessageSender;
 
+
+var addonRootURL = 'chrome-extension://' + addonAPI.id + '/';
+exports.addonRootURL = addonRootURL;
+
+
 //******************************************************************************
 //* main closure
 var Extension = function(instanceID) {
@@ -163,7 +168,7 @@ var Extension = function(instanceID) {
   // chrome.extension.getURL
   //   returns   string
   this.getURL = function(path) {
-    return 'chrome-extension://' + addonAPI.id + '/' + path;
+    return addonRootURL + path;
   };
 
   //----------------------------------------------------------------------------

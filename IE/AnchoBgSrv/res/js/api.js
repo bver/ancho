@@ -8,58 +8,107 @@
  *
  * Global objects available:
  *  addonAPI      :   The addon object (IAnchoBackgroundAPI)
+ *  serviceAPI    :   The central service managing all addons (IAnchoServiceApi)
  ******************************************************************************/
 
 // get manifest
 var manifest = require("manifest").manifest;
 
 console.info("Loading extension [" + addonAPI.id + "] [" + addonAPI.guid + "]");
+
 //------------------------------------------------------------------------------
 // BACKGROUND API
 //------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------
-// exports.chrome will be available to background pages as 'chrome'.
-// This name is defined in anchocommons/strings.cpp
 exports.chrome = {};
 
-// create and initialize the background API
-(function(chrome, instanceID) {
-  chrome.bookmarks = require("bookmarks.js").createAPI(instanceID);
-  
-  var browserAction = require("browserAction.js");
-  browserAction.initAPI(manifest.browser_action);
-  chrome.browserAction = browserAction.createAPI(instanceID);
-  
-  chrome.browsingData = require("browsingData.js");
-  chrome.contentSettings = require("contentSettings.js");
-  chrome.contextMenus = require("contextMenus.js");
-  chrome.cookies = require("cookies.js").createAPI(instanceID);
-  chrome.events = require("event.js");
-  chrome.extension = require("extension.js").createAPI(instanceID);
-  chrome.fileBrowserHandler = require("fileBrowserHandler.js").createAPI(instanceID);
-  chrome.history = require("history.js").createAPI(instanceID);
-  chrome.i18n = require("i18n.js");
-  chrome.idle = require("idle.js").createAPI(instanceID);
-  chrome.management = require("management.js").createAPI(instanceID);
-  chrome.omnibox = require("omnibox.js").createAPI(instanceID);
-  chrome.pageAction = require("pageAction.js").createAPI(instanceID);
-  chrome.pageCapture = require("pageCapture.js");
-  chrome.permissions = require("permissions.js").createAPI(instanceID);
-  chrome.privacy = require("privacy.js");
-  chrome.proxy = require("proxy.js").createAPI(instanceID);
-  chrome.storage = require("storage.js").createAPI(instanceID);
-  chrome.tabs = require("tabs.js").createAPI(instanceID);
-  chrome.topSites = require("topSites.js");
-  chrome.tts = require("tts.js");
-  chrome.ttsEngine = require("ttsEngine.js").createAPI(instanceID);
-  chrome.webNavigation = require("webNavigation.js").createAPI(instanceID);
-  chrome.webRequest = require("webRequest.js").createAPI(instanceID);
-  chrome.webstore = require("webstore.js");
-  chrome.windows = require("windows.js").createAPI(instanceID); ;
-})(exports.chrome, 0)
+var API_NAMES = ["bookmarks",
+    "browserAction",
+    "browsingData",
+    "contentSettings",
+    "contextMenus",
+    "cookies",
+    "events",
+    "extension",
+    "fileBrowserHandler",
+    "history",
+    "i18n",
+    "idle",
+    "management",
+    "omnibox",
+    "pageAction",
+    "pageCapture",
+    "permissions",
+    "privacy",
+    "proxy",
+    "storage",
+    "tabs",
+    "topSites",
+    "tts",
+    "ttsEngine",
+    "webNavigation",
+    "webRequest",
+    "webstore",
+    "windows"];
 
+// create and initialize the background API
+function getFullAPI(chrome, aInstance) {
+  for (var i = 0; i < API_NAMES.length; ++i) {
+    console.debug("Creating chrome." + API_NAMES[i] + " API instance n. " + aInstance);
+    chrome[API_NAMES[i]] = require(API_NAMES[i] + ".js").createAPI(aInstance);
+  }
+}
+
+function releaseFullAPIInstance(aInstance) {
+  for (var i = 0; i < API_NAMES.length; ++i) {
+    console.debug("Releasing chrome." + API_NAMES[i] + " API instance n. " + aInstance);
+    require(API_NAMES[i] + ".js").releaseAPI(aInstance);
+  }
+}
+
+// exports.chrome will be available to background pages as 'chrome'.
+// This name is defined in anchocommons/strings.cpp
+getFullAPI(exports.chrome, 0);
 exports.console = console;
+
+//***************************************************
+//*********** MANAGING CHROME API INSTANCES ********
+
+// ------------- INSTANCE IDs ----------------------
+//    0         - background script
+//    >0        - content scripts - equals tabId
+//    [-20..-1] - reserved for errors
+//    <-20      - other full APIs (popups)
+// ------------- INSTANCE IDs ----------------------
+
+var fullAPINextID = -21;
+
+
+var fullAPIInstances = {};
+
+exports.reserveFullAPIInstanceID = function() {
+  return fullAPINextID--;
+}
+
+exports.createFullAPI = function(aInstanceID) {
+  var chromeAPI = {};
+  getFullAPI(chromeAPI, aInstanceID);
+  fullAPIInstances[aInstanceID] = chromeAPI;
+  return chromeAPI;
+};
+
+exports.releaseFullAPI = function(aInstanceID) {
+  if (fullAPIInstances[aInstanceID]) {
+    releaseFullAPIInstance(aInstanceID);
+    delete fullAPIInstances[aInstanceID]
+  }
+};
+
+var browserAction = require("browserAction.js");
+browserAction.initBrowserAction(manifest.browser_action);
+
+
 //------------------------------------------------------------------------------
 // CONTENT API
 //------------------------------------------------------------------------------
@@ -95,7 +144,7 @@ exports.getContentAPI = function(instanceID) {
     && manifest.content_scripts[0].js instanceof Array
     ? manifest.content_scripts[0].js
     : []
-  );    
+  );
   return { api: api, scripts: scripts };
 };
 

@@ -10,6 +10,7 @@ import "ocidl.idl";
 // forwards
 interface IAnchoAddonBackground;
 interface IAnchoRuntime;
+interface IAnchoServiceApi;
 
 /*==========================================================================*/
 [
@@ -31,6 +32,9 @@ interface IAnchoAddonService : IUnknown
   HRESULT invokeEventObjectInAllExtensions([in] BSTR aEventName, [in] LPDISPATCH aArgs);
 
   HRESULT webBrowserReady();
+
+  HRESULT registerBrowserActionToolbar([out, retval] BSTR * aUrl);
+  HRESULT getDispatchObject([out, retval] IDispatch **aRet);
 };
 
 
@@ -100,8 +104,23 @@ library AnchoBgSrvLib
     HRESULT removeTabs([in] LPDISPATCH aTabs, [in] LPDISPATCH aCallback);
     HRESULT queryTabs([in] LPDISPATCH aQueryInfo, [in] LPDISPATCH aCreator, [out, retval] VARIANT* aRet);
 
+    HRESULT getWindow([in] INT aWindowId, [in] LPDISPATCH aCreator, [in] BOOL aPopulate, [out, retval] VARIANT* aRet);
+    HRESULT getAllWindows([in] LPDISPATCH aCreator, [in] BOOL aPopulate, [out, retval] VARIANT* aRet);
+    HRESULT updateWindow([in] INT aWindowId, [in] LPDISPATCH aProperties);
+    HRESULT createWindow([in] LPDISPATCH aProperties, [in] LPDISPATCH aCreator, [in] LPDISPATCH aCallback);
+    HRESULT closeWindow([in] INT aWindowId);
+    HRESULT createPopupWindow([in] BSTR aUrl, INT aX, INT aY, [in] LPDISPATCH aInjectedData, [in] LPDISPATCH aCloseCallback);
+    HRESULT getCurrentWindowId([out, retval] INT *aWinId);
+
     HRESULT executeScript([in] BSTR aExtensionId, [in] INT aTabID, [in] BSTR aCode, [in] BOOL aFileSpecified, [in] BOOL aInAllFrames);
     HRESULT invokeExternalEventObject([in] BSTR aExtensionId, [in] BSTR aEventName, [in] LPDISPATCH aArgs, [out, retval] VARIANT* aRet);
+
+    HRESULT getBrowserActions([out, retval] VARIANT* aBrowserActionsArray);
+    HRESULT addBrowserActionInfo([in] LPDISPATCH aBrowserActionInfo);
+    HRESULT setBrowserActionUpdateCallback([in] LPDISPATCH aBrowserActionUpdateCallback);
+    HRESULT browserActionNotification();
+
+    HRESULT testFunction();
   };
 
   /*==========================================================================*/
@@ -113,19 +132,19 @@ library AnchoBgSrvLib
     pointer_default(unique)
   ]
   interface IIECookie : IDispatch{
-    [id(1), propget, helpstring("property name")] 
+    [id(1), propget, helpstring("property name")]
     HRESULT name([out, retval] BSTR * pbsRet);
 
-    [id(2), propget, helpstring("property value")] 
+    [id(2), propget, helpstring("property value")]
     HRESULT value([out, retval] BSTR * pbsRet);
 
-    [id(3), propget, helpstring("property domain")] 
+    [id(3), propget, helpstring("property domain")]
     HRESULT domain([out, retval] BSTR * pbsRet);
 
-    [id(4), propget, helpstring("property path")] 
+    [id(4), propget, helpstring("property path")]
     HRESULT path([out, retval] BSTR * pbsRet);
 
-    [id(5), propget, helpstring("property expirationDate")] 
+    [id(5), propget, helpstring("property expirationDate")]
     HRESULT expirationDate([out, retval] VARIANT * aRet);
   };
 
@@ -137,16 +156,16 @@ library AnchoBgSrvLib
     pointer_default(unique)
   ]
   interface IIECookieManager : IDispatch{
-    [id(1), helpstring("enumCookies")] 
+    [id(1), helpstring("enumCookies")]
     HRESULT enumCookies([in] LPDISPATCH pCallback);
-    
-    [id(2), helpstring("removeCookie")] 
+
+    [id(2), helpstring("removeCookie")]
     HRESULT removeCookie([in] BSTR aUrl, [in] BSTR aName);
 
-    [id(3), helpstring("setCookie")] 
+    [id(3), helpstring("setCookie")]
     HRESULT setCookie([in] BSTR aUrl, [in] BSTR aName, [in] BSTR aData);
 
-    [id(4), helpstring("getCookie")] 
+    [id(4), helpstring("getCookie")]
     HRESULT getCookie([in] BSTR aUrl, [in] BSTR aName, [out, retval] VARIANT * aRet);
   };
 
@@ -260,4 +279,5 @@ library AnchoBgSrvLib
   {
     [default] interface IIECookieManager;
   };
+
 };

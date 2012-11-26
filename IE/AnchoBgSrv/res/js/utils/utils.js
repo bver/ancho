@@ -7,7 +7,7 @@
 
 //******************************************************************************
 //* requires
-var Event = require("Event.js").Event;
+var Event = require("events.js").Event;
 
 exports.EventFactory = {
 
@@ -31,8 +31,13 @@ exports.isArray = function(aArg) {
   return Object.prototype.toString.call(aArg) === '[object Array]';
 }
 
+exports.isFunction = function(aArg) {
+  return Object.prototype.toString.call(aArg) === '[object Function]'
+    || aArg.constructor.toString().match('function Function');
+}
+
 exports.isObject = function(aArg) {
-  return typeof (aArg);
+  return typeof (aArg) == 'object' && !exports.isFunction(aArg);
 }
 
 exports.isString = function(aArg) {
@@ -45,11 +50,6 @@ exports.isInteger = function(aArg) {
 
 exports.isNumber = function(aArg) {
   return (typeof (aArg) === 'number');
-}
-
-exports.isFunction = function(aArg) {
-  return Object.prototype.toString.call(aArg) === '[object Function]'
-    || aArg.constructor.toString().match('function Function');
 }
 
 exports.typeName = function(aArg) {
@@ -77,4 +77,23 @@ exports.cleanWhiteSpace = function(aString) {
     throw new Error('Expected string instead of :' + exports.typeName(aString));
   }
   return aString.replace(/^\s+|\s+$/g, '');
+}
+
+
+exports.stringColorRepresentation = function(aColor) {
+  if (exports.isString(aColor)) {
+    if (/#[0-9A-F]{6}/i.exec(aColor)) {
+      return aColor;
+    }
+  } else if (exports.isArray(aColor)){
+    if (aColor.length === 3) {
+      var str = '#'; 
+      for (var i = 0; i < 3; ++i) {
+        var tmp = Math.max(0, Math.min(aColor[i], 255))
+        str += tmp.toString(16);
+      }
+      return str;
+    }
+  }
+  throw new Error('Unsupported color format');
 }

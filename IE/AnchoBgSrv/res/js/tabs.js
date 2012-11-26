@@ -7,9 +7,10 @@
 
 //******************************************************************************
 //* requires
-var Event = require("Event.js").Event;
+var Event = require("events.js").Event;
 var EventFactory = require("utils.js").EventFactory;
 
+var windows = require("windows.js").windows;
 require("tabs_spec.js");
 var preprocessArguments = require("typeChecking.js").preprocessArguments;
 var notImplemented = require("typeChecking.js").notImplemented;
@@ -214,6 +215,13 @@ var Tabs = function(instanceID) {
       }
       if (aQueryInfo.active) {
         retVal = retVal && (aTab.active == aQueryInfo.active);
+      }
+      if (aQueryInfo.windowId) {
+        var winId = aQueryInfo.windowId;
+        if (windows.WINDOW_ID_CURRENT == winId) {
+          winId = serviceAPI.getCurrentWindowId();
+        }
+        retVal = retVal && (aTab.windowId == winId);
       }
       return retVal;
     }

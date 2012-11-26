@@ -12,7 +12,7 @@ var validationError = {
     'NOT_NULL' : 7
   };
 
-//Used when value can be of more than one type - 
+//Used when value can be of more than one type -
 //does checking for all types and succeeds when at least one succeeds.
 var MultiTypeValidator = function(aSpec) {
   var spec = aSpec;
@@ -108,12 +108,20 @@ var ValidatorManager = function() {
     if (!aName || !utils.isString(aName)) {
       throw new Error('Wrong validator name!');
     }
-    var validatorBase = validators[aSpecification.type];
+    var validatorBase;
+    var specification;
+    if (utils.isString(aSpecification.type)) {
+      validatorBase = validators[aSpecification.type];
+      specification = aSpecification;
+    } else {
+      validatorBase = validators[aSpecification.type.type];
+      specification = aSpecification.type;
+    }
     if (!validatorBase) {
       throw new Error('Validator wrapper \'' + aName + '\' needs existing validator : \'' + aSpecification.type + '\'')
     }
     var validatorConstructor = function() {
-      validatorBase.call(this, aSpecification);
+      validatorBase.call(this, specification);
     }
     this.addValidator(aName, validatorConstructor);
   }
@@ -332,7 +340,7 @@ var ObjectValidator = function(aSpec) {
     for (var i in properties) {
       property = aObject[i];
       propertySpecification = properties[i];
-      if (property) {
+      if (property !== undefined) {
         validator = validatorManager.getValidator(propertySpecification);
         var report = validator.validate(property);
         if (!report.success) {
@@ -340,7 +348,7 @@ var ObjectValidator = function(aSpec) {
           return createValidationReportError(e, validationError.DIFFERENT_TYPE);
         }
       } else {
-        if (propertySpecification.required) {
+      if (propertySpecification.required) {
           var e = 'Missing property \'' + i + '\'!';
           return createValidationReportError(e, validationError.MISSING_PROPERTY);
         }
@@ -397,6 +405,15 @@ var ArrayValidator = function(aSpec) {
   }
 }
 validatorManager.addValidator('array', ArrayValidator);
+
+
+var ImageDataValidator = function() {
+  this.validate = function(aArg) {
+    //TODO - implement properly
+    return createValidationReportSuccess();
+  }
+};
+validatorManager.addValidator('imagedata', ImageDataValidator);
 
 //Validation procedure - throws an exception when validation error uccured.
 var preprocessArguments = function(aMethodName, aArguments) {

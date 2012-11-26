@@ -18,10 +18,11 @@
 <script>
   require(
   [
-    'spec/chromeEvents',
-    'spec/chromeExtension',
+    //'spec/chromeEvents',
+    //'spec/chromeExtension',
+    //'spec/chromeWindows',
     'spec/chromeTabs',
-    'spec/chromeCookies'
+    //'spec/chromeCookies'
   ],
   function() {
     jasmine.getEnv().addReporter(new ConsoleReporter(console));
@@ -49,7 +50,6 @@
           port.postMessage('Responding to message received through port');
       });
   });
-
 </script>
 
 

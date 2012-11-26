@@ -49,6 +49,7 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 //
 
 IDR_ANCHO               REGISTRY                "ancho.rgs"
+IDR_ANCHOTOOLBAR        REGISTRY                "AnchoToolbar.rgs"
 
 #ifdef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
