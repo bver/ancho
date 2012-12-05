@@ -189,14 +189,14 @@ STDMETHODIMP_(void) CAnchoRuntime::OnNewWindow3(IDispatch *pDisp, VARIANT_BOOL C
 //  OnFrameStart
 STDMETHODIMP CAnchoRuntime::OnFrameStart(BSTR bstrUrl, VARIANT_BOOL bIsMainFrame)
 {
-  return ApplyContentScripts(bstrUrl, bIsMainFrame, documentLoadStart);
+  return InitializeContentScripting(bstrUrl, bIsMainFrame, documentLoadStart);
 }
 
 //----------------------------------------------------------------------------
 //  OnFrameEnd
 STDMETHODIMP CAnchoRuntime::OnFrameEnd(BSTR bstrUrl, VARIANT_BOOL bIsMainFrame)
 {
-  return ApplyContentScripts(bstrUrl, bIsMainFrame, documentLoadEnd);
+  return InitializeContentScripting(bstrUrl, bIsMainFrame, documentLoadEnd);
 }
 
 //----------------------------------------------------------------------------
@@ -215,8 +215,8 @@ STDMETHODIMP CAnchoRuntime::OnFrameRedirect(BSTR bstrOldUrl, BSTR bstrNewUrl)
 }
 
 //----------------------------------------------------------------------------
-//  ApplyContentScripts
-HRESULT CAnchoRuntime::ApplyContentScripts(BSTR bstrUrl, VARIANT_BOOL bIsMainFrame, documentLoadPhase aPhase)
+//  InitializeContentScripting
+HRESULT CAnchoRuntime::InitializeContentScripting(BSTR bstrUrl, VARIANT_BOOL bIsMainFrame, documentLoadPhase aPhase)
 {
   CComPtr<IWebBrowser2> webBrowser;
   if (bIsMainFrame) {
@@ -240,7 +240,7 @@ HRESULT CAnchoRuntime::ApplyContentScripts(BSTR bstrUrl, VARIANT_BOOL bIsMainFra
   }
   AddonMap::iterator it = m_Addons.begin();
   while(it != m_Addons.end()) {
-    it->second->ApplyContentScripts(webBrowser, bstrUrl, aPhase);
+    it->second->InitializeContentScripting(webBrowser, bstrUrl, aPhase);
     ++it;
   }
 
