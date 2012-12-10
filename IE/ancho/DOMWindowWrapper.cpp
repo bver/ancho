@@ -1,13 +1,11 @@
 /****************************************************************************
  * DOMWindowWrapper.cpp : Implementation of DOMWindowWrapper
- * Copyright 2012 Salsita software (http://www.salsitasoft.com).
+ * Copyright 2012 Salsita Software (http://www.salsitasoft.com).
  * Author: Arne Seib <kontakt@seiberspace.de>
  ****************************************************************************/
 
 #include "StdAfx.h"
 #include "DOMWindowWrapper.h"
-
-#define SAFE_FORWARD_CALL(obj, mthd, ...) (obj) ? obj->mthd(__VA_ARGS__) : E_UNEXPECTED
 
 // ---------------------------------------------------------------------------
 // createInstance
@@ -23,6 +21,28 @@ HRESULT DOMWindowWrapper::createInstance(IWebBrowser2 * aWebBrowser,
 }
 
 // ---------------------------------------------------------------------------
+// getEventPropertyName
+const wchar_t *DOMWindowWrapper::getEventPropertyName(DISPID id) {
+  // for simplicity and speed we use a hardcoded, static map here
+  switch(id) {
+    case -2147412073: return L"onbeforeunload";
+    case -2147412002: return L"onmessage";
+    case -2147412097: return L"onblur";
+    case -2147412079: return L"onunload";
+    case -2147412003: return L"onhashchange";
+    case -2147412080: return L"onload";
+    case -2147412081: return L"onscroll";
+    case -2147412045: return L"onafterprint";
+    case -2147412076: return L"onresize";
+    case -2147412083: return L"onerror";
+    case -2147412099: return L"onhelp";
+    case -2147412046: return L"onbeforeprint";
+    case -2147412098: return L"onfocus";
+  }
+  return NULL;
+}
+
+// ---------------------------------------------------------------------------
 // init
 HRESULT DOMWindowWrapper::init(IWebBrowser2 * aWebBrowser)
 {
@@ -33,6 +53,22 @@ HRESULT DOMWindowWrapper::init(IWebBrowser2 * aWebBrowser)
   if (!mDOMWindow) {
     return E_INVALIDARG;
   }
+
+  // also create NULL properties for all events in getEventPropertyName
+  mDOMEventProperties[-2147412073].vt = VT_NULL;
+  mDOMEventProperties[-2147412002].vt = VT_NULL;
+  mDOMEventProperties[-2147412097].vt = VT_NULL;
+  mDOMEventProperties[-2147412079].vt = VT_NULL;
+  mDOMEventProperties[-2147412003].vt = VT_NULL;
+  mDOMEventProperties[-2147412080].vt = VT_NULL;
+  mDOMEventProperties[-2147412081].vt = VT_NULL;
+  mDOMEventProperties[-2147412045].vt = VT_NULL;
+  mDOMEventProperties[-2147412076].vt = VT_NULL;
+  mDOMEventProperties[-2147412083].vt = VT_NULL;
+  mDOMEventProperties[-2147412099].vt = VT_NULL;
+  mDOMEventProperties[-2147412046].vt = VT_NULL;
+  mDOMEventProperties[-2147412098].vt = VT_NULL;
+
   return S_OK;
 }
 
@@ -62,6 +98,7 @@ void DOMWindowWrapper::FinalRelease()
   mDOMWindowProperties.clear();
   mDOMWindowPropertyIDs.clear();
   mDOMWindowPropertyNames.clear();
+  mDOMEventProperties.clear();
 }
 
 // ---------------------------------------------------------------------------
@@ -71,11 +108,26 @@ HRESULT DOMWindowWrapper::dispatchMethod(DISPID dispIdMember, REFIID riid,
                                          VARIANT *pVarResult,
                                          EXCEPINFO *pExcepInfo,
                                          IServiceProvider *pspCaller,
-                                         UINT *puArgErr, BOOL aIsInvokeEx,
-                                         BOOL & aHandled) const
+                                         UINT *puArgErr, BOOL & aHandled) const
 {
-  // do nothing, window will handle this
-  return E_NOTIMPL;
+  if (dispIdMember < DISPID_DOMWINDOW_EX_FIRST) {
+    return S_OK;  // original window will handle
+  }
+
+  aHandled = TRUE;
+  // we handle it
+  MapDISPIDToCComVariant::const_iterator it
+    = mDOMWindowProperties.find(dispIdMember);
+  if (it != mDOMWindowProperties.end()) {
+    if (it->second.vt != VT_DISPATCH) {
+      return DISP_E_TYPEMISMATCH;
+    }
+    return it->second.pdispVal->Invoke(0, riid, lcid, DISPATCH_METHOD,
+        pDispParams, pVarResult, pExcepInfo, puArgErr);
+  }
+
+
+  return DISP_E_MEMBERNOTFOUND;
 }
 
 // ---------------------------------------------------------------------------
@@ -86,21 +138,33 @@ HRESULT DOMWindowWrapper::dispatchPropertyGet(WORD wFlags, DISPID dispIdMember,
                                          VARIANT *pVarResult,
                                          EXCEPINFO *pExcepInfo,
                                          IServiceProvider *pspCaller,
-                                         UINT *puArgErr, BOOL aIsInvokeEx,
-                                         BOOL & aHandled) const
+                                         UINT *puArgErr, BOOL & aHandled) const
 {
-  if (!aIsInvokeEx) {
-    // goes to original window
+  MapDISPIDToCComVariant::const_iterator it = mDOMWindowProperties.end();
+  BOOL propertyFound = FALSE;
+
+  const wchar_t * eventName = getEventPropertyName(dispIdMember);
+  if (eventName) {
+    // if an event property is requested...
+    it = mDOMEventProperties.find(dispIdMember);
+    propertyFound = (it != mDOMEventProperties.end());
+  }
+  else if (dispIdMember < DISPID_DOMWINDOW_EX_FIRST) {
+    // no event and not an expando property: let original window handle it
     return S_OK;
   }
+  else {
+    // it IS an expando property
+    it = mDOMWindowProperties.find(dispIdMember);
+    propertyFound = (it != mDOMWindowProperties.end());
+  }
 
-  MapDISPIDToCComVariant::const_iterator it =
-      mDOMWindowProperties.find(dispIdMember);
-  if (it != mDOMWindowProperties.end()) {
-    aHandled = TRUE;
+  aHandled = TRUE;
+  // we handle it
+  if (propertyFound) {
     ATLASSERT(pVarResult);
-    CComVariant vt(it->second);
-    return vt.Detach(pVarResult);
+    ::VariantCopy(pVarResult, &it->second);
+    return S_OK;
   }
   return DISP_E_MEMBERNOTFOUND;
 }
@@ -113,20 +177,14 @@ HRESULT DOMWindowWrapper::dispatchPropertyPut(WORD wFlags, DISPID dispIdMember,
                                          VARIANT *pVarResult,
                                          EXCEPINFO *pExcepInfo,
                                          IServiceProvider *pspCaller,
-                                         UINT *puArgErr, BOOL aIsInvokeEx,
-                                         BOOL & aHandled)
+                                         UINT *puArgErr, BOOL & aHandled)
 {
-  if (!aIsInvokeEx) {
-    // goes to original window
-    return S_OK;
-  }
-
   // The on.... properties store some event handlers that will not get called
   // if set on the wrapper. To work around this problem we use attachEvent
   // instead.
-  const wchar_t * eventName = getEventHandlerPropertyName(dispIdMember);
+  const wchar_t * eventName = getEventPropertyName(dispIdMember);
   if (eventName) {
-    // Yes, it is an event. Prepare arguments.
+    // Yes, it is an event. Prepare arguments for detachEvent / attachEvent.
     CComVariant dispparamsVariants[] = {NULL, eventName};
     DISPPARAMS params = {dispparamsVariants, NULL, 2, 0};
 
@@ -135,8 +193,8 @@ HRESULT DOMWindowWrapper::dispatchPropertyPut(WORD wFlags, DISPID dispIdMember,
     // if we have a handler stored for this event remove the old event handler
     // first
     MapDISPIDToCComVariant::const_iterator it =
-        mDOMWindowProperties.find(dispIdMember);
-    if (it != mDOMWindowProperties.end()) {
+        mDOMEventProperties.find(dispIdMember);
+    if (it != mDOMEventProperties.end() && VT_NULL != it->second.vt) {
       dispparamsVariants[0] = it->second;
       script.Call(L"detachEvent", &params);
     }
@@ -146,9 +204,13 @@ HRESULT DOMWindowWrapper::dispatchPropertyPut(WORD wFlags, DISPID dispIdMember,
       dispparamsVariants[0] = pDispParams->rgvarg[0];
       script.Call(L"attachEvent", &params);
     }
+    // store the property
+    mDOMEventProperties[dispIdMember] = pDispParams->rgvarg[0];
   }
-  // now store the property
-  mDOMWindowProperties[dispIdMember] = pDispParams->rgvarg[0];
+  else {
+    // store the property
+    mDOMWindowProperties[dispIdMember] = pDispParams->rgvarg[0];
+  }
   aHandled = TRUE;
   return S_OK;
 }
@@ -168,81 +230,6 @@ HRESULT DOMWindowWrapper::dispatchConstruct(DISPID dispIdMember,
 }
 
 // ---------------------------------------------------------------------------
-// IDispatch methods
-
-// ---------------------------------------------------------------------------
-// GetTypeInfoCount
-STDMETHODIMP DOMWindowWrapper::GetTypeInfoCount(UINT *pctinfo)
-{
-  return SAFE_FORWARD_CALL(mDOMWindow, GetTypeInfoCount, pctinfo);
-}
-
-// ---------------------------------------------------------------------------
-// GetTypeInfo
-STDMETHODIMP DOMWindowWrapper::GetTypeInfo(UINT iTInfo, LCID lcid,
-                                           ITypeInfo **ppTInfo)
-{
-  return SAFE_FORWARD_CALL(mDOMWindow, GetTypeInfo, iTInfo, lcid, ppTInfo);
-}
-
-// ---------------------------------------------------------------------------
-// GetIDsOfNames
-STDMETHODIMP DOMWindowWrapper::GetIDsOfNames(REFIID riid, LPOLESTR *rgszNames,
-                                             UINT cNames, LCID lcid,
-                                             DISPID *rgDispId)
-{
-  return SAFE_FORWARD_CALL(
-      mDOMWindow, GetIDsOfNames, riid, rgszNames, cNames, lcid, rgDispId);
-}
-
-// ---------------------------------------------------------------------------
-// Invoke
-STDMETHODIMP DOMWindowWrapper::Invoke(DISPID dispIdMember, REFIID riid,
-                                      LCID lcid, WORD wFlags,
-                                      DISPPARAMS *pDispParams,
-                                      VARIANT *pVarResult,
-                                      EXCEPINFO *pExcepInfo, UINT *puArgErr)
-{
-  // Note: Invoke will not get called from scripts, everything is aHandled by
-  // InvokeEx. However, we have to handle Invoke also
-  BOOL handled = FALSE;
-  HRESULT hrRet = E_INVALIDARG;
-  switch(wFlags) {
-    case DISPATCH_METHOD:
-      hrRet = dispatchMethod(dispIdMember, riid, lcid, pDispParams, pVarResult,
-          pExcepInfo, NULL, puArgErr, FALSE, handled);
-      break;
-    case DISPATCH_PROPERTYGET:
-    case DISPATCH_METHOD|DISPATCH_PROPERTYGET:
-      // http://msdn.microsoft.com/en-us/library/windows/desktop/ms221486%28v=vs.85%29.aspx :
-      // "Some languages cannot distinguish between retrieving a property and
-      // calling a method. In this case, you should set the flags
-      // DISPATCH_PROPERTYGET and DISPATCH_METHOD".
-      // This means, we have to handle both cases as dispatchPropertyGet.
-      hrRet = dispatchPropertyGet(wFlags, dispIdMember, riid, lcid, pDispParams,
-          pVarResult, pExcepInfo, NULL, puArgErr, FALSE, handled);
-      break;
-    case DISPATCH_PROPERTYPUT:
-    case DISPATCH_PROPERTYPUTREF:
-    case DISPATCH_PROPERTYPUT|DISPATCH_PROPERTYPUTREF:
-      hrRet = dispatchPropertyPut(wFlags, dispIdMember, riid, lcid, pDispParams,
-          pVarResult, pExcepInfo, NULL, puArgErr, FALSE, handled);
-      break;
-    default:
-      ATLTRACE(_T("DOMWindowWrapper::Invoke ************* Unknown Flag 0x%08x\n"), wFlags);
-      ATLASSERT(0 && "Ooops - did we forget to handle something?");
-      return E_INVALIDARG;
-      break;
-  }
-  if (handled) {
-    return hrRet;
-  }
-
-  return SAFE_FORWARD_CALL(mDOMWindow, Invoke, dispIdMember, riid, lcid,
-      wFlags, pDispParams, pVarResult, pExcepInfo, puArgErr);
-}
-
-// ---------------------------------------------------------------------------
 // IDispatchEx methods
 
 // ---------------------------------------------------------------------------
@@ -253,44 +240,33 @@ STDMETHODIMP DOMWindowWrapper::GetDispID(BSTR bstrName, DWORD grfdex,
   // check if we already have this DISPID in our local map
   MapNameToDISPID::const_iterator it = mDOMWindowPropertyIDs.find(bstrName);
   if (it != mDOMWindowPropertyIDs.end()) {
+    // yep!
     (*pid) = it->second;
     return S_OK;
   }
 
-  // Don't have it yet, let original window do the work. We need a DISPID from
-  // the original window, although we don't want to actually set the property
-  if (grfdex & fdexNameEnsure)
-  {
-    // See if the dispid already exists in the original window. To do so call
-    // GetDispID without fdexNameEnsure flag.
-    HRESULT hr = SAFE_FORWARD_CALL(
-        mDOMWindow, GetDispID, bstrName, grfdex & ~fdexNameEnsure, pid);
-    if (DISP_E_UNKNOWNNAME == hr)
-    {
-      // no, don't have, so create it..
-      hr = SAFE_FORWARD_CALL(mDOMWindow, GetDispID, bstrName, grfdex, pid);
-      if (FAILED(hr))
-      {
-        return hr;
-      }
-      // ... and immediately delete it, we don't want to poison the window
-      // properties
-
-      // NOTE: See comment in DeleteMemberByName. This call seems to be not
-      // required at all, but we keep it - MS likes to change things from time
-      // to time, so if one day IE works as it's supposed to we might need it..
-      mDOMWindow->DeleteMemberByDispID(*pid);
-    }
-    else if (FAILED(hr))
-    {
-      return hr;
-    }
-    mDOMWindowPropertyIDs[bstrName] = (*pid);
-    mDOMWindowPropertyNames[(*pid)] = bstrName;
-    return S_OK;
+  // Don't have it, see if window knows the property and if it is a
+  // non-expando property. Unset fdexNameEnsure because the window should
+  // not create a property.
+  HRESULT hr = mDOMWindow->GetDispID(bstrName, grfdex & ~fdexNameEnsure, pid);
+  if (S_OK == hr && (*pid) < DISPID_DOMWINDOW_EX_FIRST) {
+    // yep!
+    return hr;
   }
-  // all other cases are handled by the original window
-  return SAFE_FORWARD_CALL(mDOMWindow, GetDispID, bstrName, grfdex, pid);
+  if (!(grfdex & fdexNameEnsure)) {
+    // should not create the property, so just return error
+    return DISP_E_UNKNOWNNAME;
+  }
+
+  // the property should be created
+  hr = mDOMWindow->GetDispID(bstrName, fdexNameCaseSensitive | fdexNameEnsure, pid);
+  if (FAILED(hr)) {
+    return hr;
+  }
+  mDOMWindowPropertyIDs[bstrName] = *pid;
+  mDOMWindowPropertyNames[*pid] = bstrName;
+  mDOMWindowProperties[*pid].vt = VT_EMPTY;
+  return S_OK;
 }
 
 // ---------------------------------------------------------------------------
@@ -305,19 +281,23 @@ STDMETHODIMP DOMWindowWrapper::InvokeEx(DISPID id, LCID lcid, WORD wFlags,
   switch(wFlags) {
     case DISPATCH_METHOD:
       hrRet = dispatchMethod(id, IID_NULL, lcid, pdp, pvarRes, pei, pspCaller,
-          NULL, TRUE, handled);
+          NULL, handled);
       break;
     case DISPATCH_PROPERTYGET:
     case DISPATCH_METHOD|DISPATCH_PROPERTYGET:
-      // see Invoke
+      // http://msdn.microsoft.com/en-us/library/windows/desktop/ms221486%28v=vs.85%29.aspx :
+      // "Some languages cannot distinguish between retrieving a property and
+      // calling a method. In this case, you should set the flags
+      // DISPATCH_PROPERTYGET and DISPATCH_METHOD".
+      // This means, we have to handle both cases as dispatchPropertyGet.
       hrRet = dispatchPropertyGet(wFlags, id, IID_NULL, lcid, pdp, pvarRes,
-          pei, pspCaller, NULL, TRUE, handled);
+          pei, pspCaller, NULL, handled);
       break;
     case DISPATCH_PROPERTYPUT:
     case DISPATCH_PROPERTYPUTREF:
     case DISPATCH_PROPERTYPUT|DISPATCH_PROPERTYPUTREF:
       hrRet = dispatchPropertyPut(wFlags, id, IID_NULL, lcid, pdp, pvarRes,
-          pei, pspCaller, NULL, TRUE, handled);
+          pei, pspCaller, NULL, handled);
       break;
     case DISPATCH_CONSTRUCT:
       hrRet = dispatchConstruct(id, IID_NULL, lcid, pdp, pvarRes, pei,
@@ -333,8 +313,7 @@ STDMETHODIMP DOMWindowWrapper::InvokeEx(DISPID id, LCID lcid, WORD wFlags,
     return hrRet;
   }
 
-  return SAFE_FORWARD_CALL(mDOMWindow, InvokeEx, id, lcid, wFlags, pdp,
-      pvarRes, pei, pspCaller);
+  return mDOMWindow->InvokeEx(id, lcid, wFlags, pdp, pvarRes, pei, pspCaller);
 }
 
 // ---------------------------------------------------------------------------
@@ -345,7 +324,7 @@ STDMETHODIMP DOMWindowWrapper::DeleteMemberByName(BSTR bstrName,DWORD grfdex)
   // window!
   // This means in turn: We don't have to do anything here, just let window
   // return an error.
-  return SAFE_FORWARD_CALL(mDOMWindow, DeleteMemberByName, bstrName, grfdex);
+  return mDOMWindow->DeleteMemberByName(bstrName, grfdex);
 }
 
 // ---------------------------------------------------------------------------
@@ -353,7 +332,7 @@ STDMETHODIMP DOMWindowWrapper::DeleteMemberByName(BSTR bstrName,DWORD grfdex)
 STDMETHODIMP DOMWindowWrapper::DeleteMemberByDispID(DISPID id)
 {
   // see DeleteMemberByName
-  return SAFE_FORWARD_CALL(mDOMWindow, DeleteMemberByDispID, id);
+  return mDOMWindow->DeleteMemberByDispID(id);
 }
 
 // ---------------------------------------------------------------------------
@@ -363,15 +342,14 @@ STDMETHODIMP DOMWindowWrapper::GetMemberProperties(DISPID id, DWORD
 {
   // for now it looks like we don't need this
   ATLASSERT(0 && "Seems we have to implement this");
-  return SAFE_FORWARD_CALL(
-      mDOMWindow, GetMemberProperties, id, grfdexFetch, pgrfdex);
+  return mDOMWindow->GetMemberProperties(id, grfdexFetch, pgrfdex);
 }
 
 // ---------------------------------------------------------------------------
 // GetMemberName
 STDMETHODIMP DOMWindowWrapper::GetMemberName(DISPID id, BSTR *pbstrName)
 {
-  HRESULT hr = SAFE_FORWARD_CALL(mDOMWindow, GetMemberName, id, pbstrName);
+  HRESULT hr = mDOMWindow->GetMemberName(id, pbstrName);
   if (S_OK == hr) {
     return hr;
   }
@@ -389,35 +367,50 @@ STDMETHODIMP DOMWindowWrapper::GetMemberName(DISPID id, BSTR *pbstrName)
 STDMETHODIMP DOMWindowWrapper::GetNextDispID(DWORD grfdex, DISPID id,
                                              DISPID *pid)
 {
-  // ask window first
-  HRESULT hr = SAFE_FORWARD_CALL(mDOMWindow, GetNextDispID, grfdex, id, pid);
-  if (S_FALSE == hr) {
-    // window has no more properties, continue with our own props now
-    if (mDOMWindowProperties.empty()) {
-      // well, we don't have any
+  HRESULT hr = E_FAIL;
+  MapDISPIDToCComVariant::const_iterator it = mDOMWindowProperties.end();
+  if (id < DISPID_DOMWINDOW_EX_FIRST) {
+    // The previous property is still within the range of non-expando
+    // properties, so let's ask the window for the next id
+    hr = mDOMWindow->GetNextDispID(grfdex, id, pid);
+    if (S_OK == hr && (*pid) < DISPID_DOMWINDOW_EX_FIRST) {
+      // a property is found AND is also in the non-expando range, so we are done
       return hr;
     }
-    // it is important at this point that mDOMWindowProperties is not empty
-    MapDISPIDToCComVariant::const_iterator it = mDOMWindowProperties.find(id);
-    if (it == mDOMWindowProperties.end()) {
-      // id is not in our map, so it should be the last id of the real
-      // window, so let's return the first id in our map
-      (*pid) = mDOMWindowProperties.begin()->first;
-      return S_OK;
+    // Window has no more properties OR the property found is an expando
+    // property, so continue with our own properties.
+    // The previous id is < DISPID_DOMWINDOW_EX_FIRST, so get our first id.
+    if (mDOMWindowProperties.empty()) {
+      // well, we don't have any
+      return S_FALSE;
     }
-    // Ok, it _is_ an id in our map. Now we can find the next id and return it.
-    ++it;
-    if (it != mDOMWindowProperties.end()) {
-      (*pid) = it->first;
-      return S_OK;
-    }
+    // set iterator to begin
+    it = mDOMWindowProperties.begin();
   }
-  return hr;
+  else {
+    // The previous id is >= DISPID_DOMWINDOW_EX_FIRST, so get the next id
+    // from our own list of properties.
+    it = mDOMWindowProperties.find(id);
+    if (it == mDOMWindowProperties.end()) {
+      // not found - this should not happen
+      ATLASSERT(0);
+      return S_FALSE;
+    }
+    // set iterator to next
+    ++it;
+  }
+  if (it == mDOMWindowProperties.end()) {
+    // nothing any more
+    return S_FALSE;
+  }
+  // now we have the next id
+  (*pid) = it->first;
+  return S_OK;
 }
 
 // ---------------------------------------------------------------------------
 // GetNameSpaceParent
 STDMETHODIMP DOMWindowWrapper::GetNameSpaceParent(IUnknown **ppunk)
 {
-  return SAFE_FORWARD_CALL(mDOMWindow, GetNameSpaceParent, ppunk);
+  return mDOMWindow->GetNameSpaceParent(ppunk);
 }

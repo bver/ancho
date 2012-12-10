@@ -1,6 +1,6 @@
 /****************************************************************************
  * DOMWindowWrapper.h : Declaration of the DOMWindowWrapper
- * Copyright 2012 Salsita software (http://www.salsitasoft.com).
+ * Copyright 2012 Salsita Software (http://www.salsitasoft.com).
  * Author: Arne Seib <kontakt@seiberspace.de>
  ****************************************************************************/
 
@@ -42,14 +42,19 @@ public:
 
 public:
   // -------------------------------------------------------------------------
-  // IDispatch methods
-  STDMETHOD(GetTypeInfoCount)(UINT *pctinfo);
-  STDMETHOD(GetTypeInfo)(UINT iTInfo, LCID lcid, ITypeInfo **ppTInfo);
-  STDMETHOD(GetIDsOfNames)(REFIID riid, LPOLESTR *rgszNames, UINT cNames,
-                           LCID lcid, DISPID *rgDispId);
-  STDMETHOD(Invoke)(DISPID dispIdMember, REFIID riid, LCID lcid, WORD wFlags,
-                    DISPPARAMS *pDispParams, VARIANT *pVarResult,
-                    EXCEPINFO *pExcepInfo, UINT *puArgErr);
+  // IDispatch methods: simply forward
+  __forceinline STDMETHOD(GetTypeInfoCount)(UINT *pctinfo)
+    { return mDOMWindow->GetTypeInfoCount(pctinfo); }
+  __forceinline STDMETHOD(GetTypeInfo)(UINT iTInfo, LCID lcid, ITypeInfo **ppTInfo)
+    { return mDOMWindow->GetTypeInfo(iTInfo, lcid, ppTInfo); }
+  __forceinline STDMETHOD(GetIDsOfNames)(REFIID riid, LPOLESTR *rgszNames, UINT cNames,
+                                         LCID lcid, DISPID *rgDispId)
+    { return mDOMWindow->GetIDsOfNames(riid, rgszNames, cNames, lcid, rgDispId); }
+  __forceinline STDMETHOD(Invoke)(DISPID dispIdMember, REFIID riid, LCID lcid, WORD wFlags,
+                                  DISPPARAMS *pDispParams, VARIANT *pVarResult,
+                                  EXCEPINFO *pExcepInfo, UINT *puArgErr)
+    { return mDOMWindow->Invoke(dispIdMember, riid, lcid, wFlags, pDispParams,
+                                pVarResult, pExcepInfo, puArgErr); }
 
   // -------------------------------------------------------------------------
   // IDispatchEx methods
@@ -68,31 +73,13 @@ private:
   // -------------------------------------------------------------------------
   // ctor
   DOMWindowWrapper()
-  {
-  }
+    {}
 
   HRESULT init(IWebBrowser2 * aWebBrowser);
 
-  static const wchar_t *getEventHandlerPropertyName(DISPID id) {
-    // for simplicity and speed we use a hardcoded, static map here
-    switch(id) {
-      case -2147412073: return L"onbeforeunload";
-      case -2147412002: return L"onmessage";
-      case -2147412097: return L"onblur";
-      case -2147412079: return L"onunload";
-      case -2147412003: return L"onhashchange";
-      case -2147412080: return L"onload";
-      case -2147412081: return L"onscroll";
-      case -2147412045: return L"onafterprint";
-      case -2147412076: return L"onresize";
-      case -2147412083: return L"onerror";
-      case -2147412099: return L"onhelp";
-      case -2147412046: return L"onbeforeprint";
-      case -2147412098: return L"onfocus";
-      case -2147417605: return L"attachEvent";
-    }
-    return NULL;
-  }
+  // Map DISPIDs of on... properties to their names. The on... properties need
+  // a special handling (see dispatchPropertyPut).
+  static const wchar_t *getEventPropertyName(DISPID id);
 
   // -------------------------------------------------------------------------
   // IDispatch::Invoke and IDispatchEx::InvokeEx handlers
@@ -101,29 +88,35 @@ private:
   HRESULT dispatchMethod(DISPID dispIdMember, REFIID riid, LCID lcid,
                     DISPPARAMS *pDispParams, VARIANT *pVarResult,
                     EXCEPINFO *pExcepInfo, IServiceProvider *pspCaller,
-                    UINT *puArgErr, BOOL aIsInvokeEx, BOOL & aHandled) const;
+                    UINT *puArgErr, BOOL & aHandled) const;
   HRESULT dispatchPropertyGet(WORD wFlags, DISPID dispIdMember, REFIID riid,
                     LCID lcid, DISPPARAMS *pDispParams, VARIANT *pVarResult,
                     EXCEPINFO *pExcepInfo, IServiceProvider *pspCaller,
-                    UINT *puArgErr, BOOL aIsInvokeEx, BOOL & aHandled) const;
+                    UINT *puArgErr, BOOL & aHandled) const;
   HRESULT dispatchPropertyPut(WORD wFlags, DISPID dispIdMember, REFIID riid,
                     LCID lcid, DISPPARAMS *pDispParams, VARIANT *pVarResult,
                     EXCEPINFO *pExcepInfo, IServiceProvider *pspCaller,
-                    UINT *puArgErr, BOOL aIsInvokeEx, BOOL & aHandled);
+                    UINT *puArgErr, BOOL & aHandled);
   HRESULT dispatchConstruct(DISPID dispIdMember, REFIID riid,
                     LCID lcid, DISPPARAMS *pDispParams, VARIANT *pVarResult,
                     EXCEPINFO *pExcepInfo, IServiceProvider *pspCaller,
                     UINT *puArgErr, BOOL & aHandled) const;
 
 private:
+  // -------------------------------------------------------------------------
+  // Private types.
   typedef std::map<DISPID, CComVariant> MapDISPIDToCComVariant;
   typedef std::map<CComBSTR, DISPID> MapNameToDISPID;
   typedef std::map<DISPID, CComBSTR> MapDISPIDToName;
 
-  friend ComObject;   // needs to call constructor
-
   // -------------------------------------------------------------------------
   // Private members.
+
+  friend ComObject;   // needs to call constructor
+
+  // The first DISPID for dynamic properties the IE dom window uses.
+  // NOTE: This value comes from debugging, it is not documented.
+  enum { DISPID_DOMWINDOW_EX_FIRST = 10000 };
 
   // the original DOM window
   CComQIPtr<IDispatchEx>  mDOMWindow;
@@ -133,4 +126,8 @@ private:
   MapNameToDISPID         mDOMWindowPropertyIDs;
   // map DISPID -> name (for reverse lookups in GetMemberName()
   MapDISPIDToName         mDOMWindowPropertyNames;
+
+  // Event properties. We can't store them in the expando property map
+  // because this will mess up GetNextDispID.
+  MapDISPIDToCComVariant  mDOMEventProperties;
 };
