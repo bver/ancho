@@ -20,6 +20,9 @@ var EVENT_LIST = ['onCreated',
                   'onFocusChanged',
                   'onRemoved'];
 var API_NAME = 'windows';
+
+exports.WINDOW_ID_NONE = -1;
+exports.WINDOW_ID_CURRENT = -2;
 //******************************************************************************
 //* main closure
 var Windows = function(instanceID) {
@@ -30,8 +33,8 @@ var Windows = function(instanceID) {
   //============================================================================
   // public properties
 
-  this.WINDOW_ID_NONE = -1;
-  this.WINDOW_ID_CURRENT = -2;
+  this.WINDOW_ID_NONE = exports.WINDOW_ID_NONE;
+  this.WINDOW_ID_CURRENT = exports.WINDOW_ID_CURRENT;
 
   //============================================================================
   // public methods

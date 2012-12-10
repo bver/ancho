@@ -28,7 +28,7 @@ var MessageSender = require("extension.js").MessageSender;
 var CallbackWrapper = require("extension.js").CallbackWrapper;
 var PortPair = require("extension.js").PortPair;
 var addPortPair = require("extension.js").addPortPair;
-
+var windows = require("windows.js");
 //Used for gathering callbacks from removeTabs
 //singleTabRemoveCallback is called from even if the tab was already removed
 var removeCallbackWrapper = function(aTabs, aCallback) {
