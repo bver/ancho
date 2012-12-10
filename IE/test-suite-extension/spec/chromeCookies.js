@@ -25,7 +25,7 @@ define(function() {
             expect(cookieStores).not.toBe(null);
         });
     });
-    
+
     it('can getAll() cookies', function(){
         var cookies = null;
         var callback = function(aCookies){cookies = aCookies;}
@@ -41,7 +41,7 @@ define(function() {
             expect(cookies).not.toBe(null);
         });
     });
-    
+
     it('Can set, get and remove cookies', function(){
         var expirationDate = new Date;
         expirationDate.setHours( expirationDate.getHours()+1 );
@@ -59,17 +59,17 @@ define(function() {
 				
         describe('setting cookie', function(){
           it('can set cookie, call the callback and catch an event', function(){
-            chrome.cookies.onChanged.addListener(function(aChangeInfo){ 
-                  eventInvoked = eventInvoked || (aChangeInfo.cookie.name.indexOf(testName) != -1 && aChangeInfo.cookie.value === testValue);                
+            chrome.cookies.onChanged.addListener(function(aChangeInfo){
+                  eventInvoked = eventInvoked || (aChangeInfo.cookie.name.indexOf(testName) != -1 && aChangeInfo.cookie.value === testValue);
                 });
-        
+
             runs( function() {
                 chrome.cookies.set({url: testUrl, value : testValue, name : testName, expirationDate: expirationDate}, callback);
             });
             waitsFor(function() {
               return cookieWasSet && eventInvoked;
             }, "Callback for setting cookie was not called", 3000);
-    
+
             runs(function(){
               expect(cookie).not.toBe(null);
               expect(cookie.value).toBe(testValue);
@@ -84,11 +84,11 @@ define(function() {
             runs( function() {
                 chrome.cookies.get({url: testUrl, name : testName}, callback);
             });
-            
+
             waitsFor(function() {
               return cookieWasSet;
             }, "Callback for getting cookie was not called", 3000);
-            
+
             runs(function(){
               expect(cookie).not.toBe(null);
               expect(cookie.value).toBe(testValue);
@@ -101,14 +101,14 @@ define(function() {
         });
         describe('getting a cookie', function(){
           it('can get a cookie', function() {
-              
+
               runs(function(){
                   chrome.cookies.remove({url: testUrl, name : testName}, removeCallback);
             });
             waitsFor(function() {
               return cookieRemoveCalled;
             }, "Callback for removing cookie was not called", 3000);
-            
+
             runs(function(){
               expect(removedCookieDetails).not.toBe(null);
               expect(removedCookieDetails.url).toBe(testUrl);
@@ -118,17 +118,17 @@ define(function() {
           });
         });
 
-				describe('getting an undefined cookie', function(){
+        describe('getting an undefined cookie', function(){
           it('doesn\'t fail for undefined cookie', function() {
-                      
+
             runs(function(){
               chrome.cookies.get({url: testUrl, name : "ANCHO__UNDEFINED"}, callback);
             });
-						waitsFor(function() {
+            waitsFor(function() {
               return cookieWasSet;
             }, "Callback for getting undefined cookie was not called", 3000);
 
-						runs(function(){
+            runs(function(){
               expect(cookie).toBe(null);
             });
           });
