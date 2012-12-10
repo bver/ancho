@@ -77,9 +77,12 @@ var Cookies = function(instanceID) {
   this.get = function(details, callback) {
     var args = preprocessArguments('chrome.cookies.get', arguments);
     var data = serviceAPI.cookieManager.getCookie(args['details'].url, args['details'].name);
-    var cookie = parseCookieString(data);
-    cookie.url = args['details'].url;
-    
+    var cookie = null;
+    if (data) {
+      cookie = parseCookieString(data);
+      cookie.url = args['details'].url;
+    }
+
     args['callback'](cookie);
   };
 

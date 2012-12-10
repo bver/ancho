@@ -56,6 +56,7 @@ define(function() {
         var testValue = 'TEST';
         var testName = 'testName'
         var eventInvoked = false;
+				
         describe('setting cookie', function(){
           it('can set cookie, call the callback and catch an event', function(){
             chrome.cookies.onChanged.addListener(function(aChangeInfo){ 
@@ -113,6 +114,22 @@ define(function() {
               expect(removedCookieDetails.url).toBe(testUrl);
               expect(removedCookieDetails.name).toBe(testName);
               chrome.cookies.get({url: testUrl, name : testName}, callback);
+            });
+          });
+        });
+
+				describe('getting an undefined cookie', function(){
+          it('doesn\'t fail for undefined cookie', function() {
+                      
+            runs(function(){
+              chrome.cookies.get({url: testUrl, name : "ANCHO__UNDEFINED"}, callback);
+            });
+						waitsFor(function() {
+              return cookieWasSet;
+            }, "Callback for getting undefined cookie was not called", 3000);
+
+						runs(function(){
+              expect(cookie).toBe(null);
             });
           });
         });
