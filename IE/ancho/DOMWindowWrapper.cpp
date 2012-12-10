@@ -25,19 +25,19 @@ HRESULT DOMWindowWrapper::createInstance(IWebBrowser2 * aWebBrowser,
 const wchar_t *DOMWindowWrapper::getEventPropertyName(DISPID id) {
   // for simplicity and speed we use a hardcoded, static map here
   switch(id) {
-    case -2147412073: return L"onbeforeunload";
-    case -2147412002: return L"onmessage";
-    case -2147412097: return L"onblur";
-    case -2147412079: return L"onunload";
-    case -2147412003: return L"onhashchange";
-    case -2147412080: return L"onload";
-    case -2147412081: return L"onscroll";
-    case -2147412045: return L"onafterprint";
-    case -2147412076: return L"onresize";
-    case -2147412083: return L"onerror";
-    case -2147412099: return L"onhelp";
-    case -2147412046: return L"onbeforeprint";
-    case -2147412098: return L"onfocus";
+    case DISPID_ONBEFOREUNLOAD: return L"onbeforeunload";
+    case DISPID_ONMESSAGE: return L"onmessage";
+    case DISPID_ONBLUR: return L"onblur";
+    case DISPID_ONUNLOAD: return L"onunload";
+    case DISPID_ONHASHCHANGE: return L"onhashchange";
+    case DISPID_ONLOAD: return L"onload";
+    case DISPID_ONSCROLL: return L"onscroll";
+    case DISPID_ONAFTERPRINT: return L"onafterprint";
+    case DISPID_ONRESIZE: return L"onresize";
+    case DISPID_ONERROR: return L"onerror";
+    case DISPID_ONHELP: return L"onhelp";
+    case DISPID_ONBEFOREPRINT: return L"onbeforeprint";
+    case DISPID_ONFOCUS: return L"onfocus";
   }
   return NULL;
 }
@@ -55,19 +55,19 @@ HRESULT DOMWindowWrapper::init(IWebBrowser2 * aWebBrowser)
   }
 
   // also create NULL properties for all events in getEventPropertyName
-  mDOMEventProperties[-2147412073].vt = VT_NULL;
-  mDOMEventProperties[-2147412002].vt = VT_NULL;
-  mDOMEventProperties[-2147412097].vt = VT_NULL;
-  mDOMEventProperties[-2147412079].vt = VT_NULL;
-  mDOMEventProperties[-2147412003].vt = VT_NULL;
-  mDOMEventProperties[-2147412080].vt = VT_NULL;
-  mDOMEventProperties[-2147412081].vt = VT_NULL;
-  mDOMEventProperties[-2147412045].vt = VT_NULL;
-  mDOMEventProperties[-2147412076].vt = VT_NULL;
-  mDOMEventProperties[-2147412083].vt = VT_NULL;
-  mDOMEventProperties[-2147412099].vt = VT_NULL;
-  mDOMEventProperties[-2147412046].vt = VT_NULL;
-  mDOMEventProperties[-2147412098].vt = VT_NULL;
+  mDOMEventProperties[DISPID_ONBEFOREUNLOAD].vt = VT_NULL;
+  mDOMEventProperties[DISPID_ONMESSAGE].vt = VT_NULL;
+  mDOMEventProperties[DISPID_ONBLUR].vt = VT_NULL;
+  mDOMEventProperties[DISPID_ONUNLOAD].vt = VT_NULL;
+  mDOMEventProperties[DISPID_ONHASHCHANGE].vt = VT_NULL;
+  mDOMEventProperties[DISPID_ONLOAD].vt = VT_NULL;
+  mDOMEventProperties[DISPID_ONSCROLL].vt = VT_NULL;
+  mDOMEventProperties[DISPID_ONAFTERPRINT].vt = VT_NULL;
+  mDOMEventProperties[DISPID_ONRESIZE].vt = VT_NULL;
+  mDOMEventProperties[DISPID_ONERROR].vt = VT_NULL;
+  mDOMEventProperties[DISPID_ONHELP].vt = VT_NULL;
+  mDOMEventProperties[DISPID_ONBEFOREPRINT].vt = VT_NULL;
+  mDOMEventProperties[DISPID_ONFOCUS].vt = VT_NULL;
 
   return S_OK;
 }

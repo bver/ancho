@@ -116,6 +116,24 @@ private:
   // NOTE: This value comes from debugging, it is not documented.
   enum { DISPID_DOMWINDOW_EX_FIRST = 10000 };
 
+  // These DISPIDs are related to on... properties. We have to handle them
+  // in a special way, so we need the IDs.
+  enum {
+    DISPID_ONBEFOREUNLOAD = -2147412073,
+    DISPID_ONMESSAGE      = -2147412002,
+    DISPID_ONBLUR         = -2147412097,
+    DISPID_ONUNLOAD       = -2147412079,
+    DISPID_ONHASHCHANGE   = -2147412003,
+    DISPID_ONLOAD         = -2147412080,
+    DISPID_ONSCROLL       = -2147412081,
+    DISPID_ONAFTERPRINT   = -2147412045,
+    DISPID_ONRESIZE       = -2147412076,
+    DISPID_ONERROR        = -2147412083,
+    DISPID_ONHELP         = -2147412099,
+    DISPID_ONBEFOREPRINT  = -2147412046,
+    DISPID_ONFOCUS        = -2147412098
+  };
+
   // the original DOM window
   CComQIPtr<IDispatchEx>  mDOMWindow;
   // map DISPID -> VARIANT (the actual property)
