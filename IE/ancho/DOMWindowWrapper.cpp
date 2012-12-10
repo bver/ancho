@@ -108,7 +108,7 @@ HRESULT DOMWindowWrapper::dispatchMethod(DISPID dispIdMember, REFIID riid,
                                          VARIANT *pVarResult,
                                          EXCEPINFO *pExcepInfo,
                                          IServiceProvider *pspCaller,
-                                         UINT *puArgErr, BOOL & aHandled) const
+                                         BOOL & aHandled) const
 {
   if (dispIdMember < DISPID_DOMWINDOW_EX_FIRST) {
     return S_OK;  // original window will handle
@@ -123,7 +123,7 @@ HRESULT DOMWindowWrapper::dispatchMethod(DISPID dispIdMember, REFIID riid,
       return DISP_E_TYPEMISMATCH;
     }
     return it->second.pdispVal->Invoke(0, riid, lcid, DISPATCH_METHOD,
-        pDispParams, pVarResult, pExcepInfo, puArgErr);
+        pDispParams, pVarResult, pExcepInfo, NULL);
   }
 
 
@@ -138,7 +138,7 @@ HRESULT DOMWindowWrapper::dispatchPropertyGet(WORD wFlags, DISPID dispIdMember,
                                          VARIANT *pVarResult,
                                          EXCEPINFO *pExcepInfo,
                                          IServiceProvider *pspCaller,
-                                         UINT *puArgErr, BOOL & aHandled) const
+                                         BOOL & aHandled) const
 {
   MapDISPIDToCComVariant::const_iterator it = mDOMWindowProperties.end();
   BOOL propertyFound = FALSE;
@@ -177,7 +177,7 @@ HRESULT DOMWindowWrapper::dispatchPropertyPut(WORD wFlags, DISPID dispIdMember,
                                          VARIANT *pVarResult,
                                          EXCEPINFO *pExcepInfo,
                                          IServiceProvider *pspCaller,
-                                         UINT *puArgErr, BOOL & aHandled)
+                                         BOOL & aHandled)
 {
   // The on.... properties store some event handlers that will not get called
   // if set on the wrapper. To work around this problem we use attachEvent
@@ -223,7 +223,7 @@ HRESULT DOMWindowWrapper::dispatchConstruct(DISPID dispIdMember,
                                          VARIANT *pVarResult,
                                          EXCEPINFO *pExcepInfo,
                                          IServiceProvider *pspCaller,
-                                         UINT *puArgErr, BOOL & aHandled) const
+                                         BOOL & aHandled) const
 {
   // do nothing, window will handle this
   return E_NOTIMPL;
@@ -281,7 +281,7 @@ STDMETHODIMP DOMWindowWrapper::InvokeEx(DISPID id, LCID lcid, WORD wFlags,
   switch(wFlags) {
     case DISPATCH_METHOD:
       hrRet = dispatchMethod(id, IID_NULL, lcid, pdp, pvarRes, pei, pspCaller,
-          NULL, handled);
+          handled);
       break;
     case DISPATCH_PROPERTYGET:
     case DISPATCH_METHOD|DISPATCH_PROPERTYGET:
@@ -291,17 +291,17 @@ STDMETHODIMP DOMWindowWrapper::InvokeEx(DISPID id, LCID lcid, WORD wFlags,
       // DISPATCH_PROPERTYGET and DISPATCH_METHOD".
       // This means, we have to handle both cases as dispatchPropertyGet.
       hrRet = dispatchPropertyGet(wFlags, id, IID_NULL, lcid, pdp, pvarRes,
-          pei, pspCaller, NULL, handled);
+          pei, pspCaller, handled);
       break;
     case DISPATCH_PROPERTYPUT:
     case DISPATCH_PROPERTYPUTREF:
     case DISPATCH_PROPERTYPUT|DISPATCH_PROPERTYPUTREF:
       hrRet = dispatchPropertyPut(wFlags, id, IID_NULL, lcid, pdp, pvarRes,
-          pei, pspCaller, NULL, handled);
+          pei, pspCaller, handled);
       break;
     case DISPATCH_CONSTRUCT:
       hrRet = dispatchConstruct(id, IID_NULL, lcid, pdp, pvarRes, pei,
-          pspCaller, NULL, handled);
+          pspCaller, handled);
       break;
     default:
       ATLTRACE(_T("DOMWindowWrapper::InvokeEx ************* Unknown Flag 0x%08x\n"), wFlags);

@@ -82,25 +82,23 @@ private:
   static const wchar_t *getEventPropertyName(DISPID id);
 
   // -------------------------------------------------------------------------
-  // IDispatch::Invoke and IDispatchEx::InvokeEx handlers
-  // For calls from Invoke pspCaller is NULL, for InvokeEx puArgErr is NULL.
-  // riid is IID_NULL for InvokeEx.
+  // IDispatchEx::InvokeEx handlers.
   HRESULT dispatchMethod(DISPID dispIdMember, REFIID riid, LCID lcid,
                     DISPPARAMS *pDispParams, VARIANT *pVarResult,
                     EXCEPINFO *pExcepInfo, IServiceProvider *pspCaller,
-                    UINT *puArgErr, BOOL & aHandled) const;
+                    BOOL & aHandled) const;
   HRESULT dispatchPropertyGet(WORD wFlags, DISPID dispIdMember, REFIID riid,
                     LCID lcid, DISPPARAMS *pDispParams, VARIANT *pVarResult,
                     EXCEPINFO *pExcepInfo, IServiceProvider *pspCaller,
-                    UINT *puArgErr, BOOL & aHandled) const;
+                    BOOL & aHandled) const;
   HRESULT dispatchPropertyPut(WORD wFlags, DISPID dispIdMember, REFIID riid,
                     LCID lcid, DISPPARAMS *pDispParams, VARIANT *pVarResult,
                     EXCEPINFO *pExcepInfo, IServiceProvider *pspCaller,
-                    UINT *puArgErr, BOOL & aHandled);
+                    BOOL & aHandled);
   HRESULT dispatchConstruct(DISPID dispIdMember, REFIID riid,
                     LCID lcid, DISPPARAMS *pDispParams, VARIANT *pVarResult,
                     EXCEPINFO *pExcepInfo, IServiceProvider *pspCaller,
-                    UINT *puArgErr, BOOL & aHandled) const;
+                    BOOL & aHandled) const;
 
 private:
   // -------------------------------------------------------------------------
