@@ -11,6 +11,10 @@ var Event = require("events.js").Event;
 
 var EventFactory = require("utils.js").EventFactory;
 
+require("extension_spec.js");
+var preprocessArguments = require("typeChecking.js").preprocessArguments;
+var notImplemented = require("typeChecking.js").notImplemented;
+
 var EVENT_LIST = ['onConnect',
                   'onConnectExternal',
                   'onMessage',
@@ -104,10 +108,25 @@ var CallbackWrapper = function(responseCallback) {
 }
 exports.CallbackWrapper = CallbackWrapper;
 
-var MessageSender = function(aTab) {
+var MessageSender = function(aInstanceId) {
   this.id = addonAPI.id;
-  if (aTab) {
-    this.tab = aTab; //optional
+
+  if (aInstanceId > 0) { //we are in tab context
+    this.tab = serviceAPI.getTabInfo(aInstanceId, Object);
+  } else {
+    this.tab = { //Dummy tab - reproducing chrome behavior
+      "active": false,
+      "highlighted": false,
+      "id": -1,
+      "incognito": false,
+      "index": -1,
+      "pinned": false,
+      "selected": false,
+      "status": "complete",
+      "title": "", //TODO - get proper value for popup windows
+      "url": "", //TODO - get proper value for popup windows
+      "windowId": -1
+    };
   }
 };
 exports.MessageSender = MessageSender;
@@ -136,13 +155,14 @@ var Extension = function(instanceID) {
   // chrome.extension.connect
   //   returns   Port
   this.connect = function(extensionId, connectInfo) {
+    var args = preprocessArguments('chrome.extension.connect', arguments);
     console.debug("extension.connect(..) called");
-    var name = (connectInfo != undefined) ? connectInfo.name : undefined;
-    var pair = new PortPair(name, new MessageSender());
+    var name = (args.connectInfo != undefined) ? connectInfo.name : undefined;
+    var pair = new PortPair(name, new MessageSender(_instanceID));
     addPortPair(pair, _instanceID);
-    if (extensionId != undefined && extensionId != addonAPI.id) {
+    if (args.extensionId != undefined && args.extensionId != addonAPI.id) {
       serviceAPI.invokeExternalEventObject(
-              extensionId,
+              args.extensionId,
               'extension.onConnectExternal',
               [pair.far]
               );
@@ -161,7 +181,7 @@ var Extension = function(instanceID) {
   // chrome.extension.getBackgroundPage
   //   returns   global
   this.getBackgroundPage = function() {
-    console.debug("extension.getBackgroundPage(..) called");
+    var args = notImplemented('chrome.extension.getBackgroundPage', arguments);
   };
 
   //----------------------------------------------------------------------------
@@ -175,44 +195,46 @@ var Extension = function(instanceID) {
   // chrome.extension.getViews
   //   returns   array of global
   this.getViews = function(fetchProperties) {
-    console.debug("extension.getViews(..) called");
+    var args = notImplemented('chrome.extension.getViews', arguments);
   };
 
   //----------------------------------------------------------------------------
   // chrome.extension.isAllowedFileSchemeAccess
   this.isAllowedFileSchemeAccess = function(callback) {
-    console.debug("extension.isAllowedFileSchemeAccess(..) called");
+    var args = notImplemented('chrome.extension.isAllowedFileSchemeAccess', arguments);
   };
 
   //----------------------------------------------------------------------------
   // chrome.extension.isAllowedIncognitoAccess
   this.isAllowedIncognitoAccess = function(callback) {
-    console.debug("extension.isAllowedIncognitoAccess(..) called");
+    var args = notImplemented('chrome.extension.isAllowedIncognitoAccess', arguments);
   };
 
   //----------------------------------------------------------------------------
   // chrome.extension.sendMessage
   this.sendMessage = function(extensionId, message, responseCallback) {
-    console.debug("extension.sendMessage(..) called: " + message);
-    var sender = new MessageSender();
+    var args = preprocessArguments('chrome.extension.sendMessage', arguments);
+    console.debug("extension.sendMessage(..) called: " + args.message);
+
+    var sender = new MessageSender(_instanceID);
     var callback = undefined;
     var ret = undefined;
-    if (responseCallback) {
-      callbackWrapper = new CallbackWrapper(responseCallback);
+    if (args.responseCallback) {
+      callbackWrapper = new CallbackWrapper(args.responseCallback);
       callback = callbackWrapper.callback;
     }
-    if (extensionId && extensionId != addonAPI.id) {
+    if (args.extensionId && args.extensionId != addonAPI.id) {
       ret = serviceAPI.invokeExternalEventObject(
-            extensionId,
+            args.extensionId,
             'extension.onMessageExternal',
-            [message, sender, callback]
+            [args.message, sender, callback]
             );
     } else {
       ret = addonAPI.invokeEventObject(
             'extension.onMessage',
             _instanceID,
             true, //we are skipping _instanceID
-            [message, sender, callback]
+            [args.message, sender, callback]
             );
     }
 
@@ -233,7 +255,7 @@ var Extension = function(instanceID) {
   //----------------------------------------------------------------------------
   // chrome.extension.setUpdateUrlData
   this.setUpdateUrlData = function(data) {
-    console.debug("extension.setUpdateUrlData(..) called");
+    var args = notImplemented('chrome.extension.setUpdateUrlData', arguments);
   };
 
   //============================================================================
