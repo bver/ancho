@@ -142,11 +142,10 @@ void CAnchoAddon::CleanupContentScripting()
   if (m_Magpie) {
     m_Magpie->Shutdown();
   }
-  DOMWindowWrapper::ComObject * p = m_wrappedWindow.Detach();
-  if (p) {
-    p->forceDelete();
-    p = NULL;
+  if (m_wrappedWindow) {
+    m_wrappedWindow->cleanup();
   }
+  m_wrappedWindow.Release();
 }
 
 //----------------------------------------------------------------------------
@@ -217,8 +216,9 @@ STDMETHODIMP CAnchoAddon::InitializeContentScripting(IWebBrowser2* pBrowser, BST
   IF_FAILED_RET(addJSArrayToVariantVector(jsObj.pdispVal, scripts));
 
   // scripts array is in reverse order here!
-  for(VariantVector::reverse_iterator it = scripts.rbegin(); it != scripts.rend(); it++) {
+   for(VariantVector::reverse_iterator it = scripts.rbegin(); it != scripts.rend(); it++) {
     if( it->vt == VT_BSTR ) {
+      const wchar_t * pp = it->bstrVal;
       m_Magpie->ExecuteGlobal(it->bstrVal);
     }
   }

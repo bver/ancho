@@ -8,6 +8,47 @@
 #include "DOMWindowWrapper.h"
 
 // ---------------------------------------------------------------------------
+// HTMLWindowInterfaces::operator =
+DOMWindowWrapper::HTMLWindowInterfaces &
+    DOMWindowWrapper::HTMLWindowInterfaces::operator = (LPDISPATCH pDisp) {
+  dispEx = pDisp;
+  w2 = pDisp;
+  w3 = pDisp;
+  w4 = pDisp;
+  w5 = pDisp;
+  return *this;
+}
+
+// ---------------------------------------------------------------------------
+// HTMLWindowInterfaces::getDispID
+#define RETURN_IDS_OF_NAMES_FROM_IF(_if) \
+  if (_if && SUCCEEDED(_if->GetIDsOfNames(IID_NULL, names, 1, LANG_NEUTRAL, &id))) { \
+    return S_OK; \
+  }
+
+HRESULT DOMWindowWrapper::HTMLWindowInterfaces::
+    getDispID(LPOLESTR name, DISPID & id)
+{
+  LPOLESTR names[] = {name};
+  RETURN_IDS_OF_NAMES_FROM_IF(w2);
+  RETURN_IDS_OF_NAMES_FROM_IF(w3);
+  RETURN_IDS_OF_NAMES_FROM_IF(w4);
+  RETURN_IDS_OF_NAMES_FROM_IF(w5);
+  return DISP_E_UNKNOWNNAME;
+}
+#undef RETURN_IDS_OF_NAMES_FROM_IF
+
+// ---------------------------------------------------------------------------
+// HTMLWindowInterfaces::Release
+void DOMWindowWrapper::HTMLWindowInterfaces::Release() {
+  dispEx.Release();
+  w2.Release();
+  w3.Release();
+  w4.Release();
+  w5.Release();
+}
+
+// ---------------------------------------------------------------------------
 // createInstance
 HRESULT DOMWindowWrapper::createInstance(IWebBrowser2 * aWebBrowser,
                                          CComPtr<ComObject> & aRet)
@@ -49,8 +90,8 @@ HRESULT DOMWindowWrapper::init(IWebBrowser2 * aWebBrowser)
   if (!aWebBrowser) {
     return E_INVALIDARG;
   }
-  mDOMWindow = CIDispatchHelper::GetScriptDispatch(aWebBrowser);
-  if (!mDOMWindow) {
+  mDOMWindowInterfaces = CIDispatchHelper::GetScriptDispatch(aWebBrowser);
+  if (!mDOMWindowInterfaces.dispEx) {
     return E_INVALIDARG;
   }
 
@@ -74,31 +115,23 @@ HRESULT DOMWindowWrapper::init(IWebBrowser2 * aWebBrowser)
 
 // -------------------------------------------------------------------------
 // forceDelete
-void DOMWindowWrapper::forceDelete()
+void DOMWindowWrapper::cleanup()
 {
   // *sigh* - jquery (and probably other scripts) leaks like Deepwater
-  // Horizon on IE, so we have to use dirty tricks to get rid of the
-  // fakewindow. NEVER DO THIS NORMALLY!
-  // The only reason why it is safe to do this here is that the fakewindow
-  // definitely does not get used anymore after magpie is finished.
-  // So this means: Call ONLY AFTER MAGPIE IS SHUT DOWN!!
-
-  FinalRelease();
-  DWORD outstandingRefs = m_dwRef;
-  for (DWORD n = 0; n < outstandingRefs; n++) {
-    Release();
-  }
+  // Horizon on IE, so we don't get released. Let's at least release
+  // everything we use in this place.
+  mDOMWindowInterfaces.Release();
+  mDOMWindowProperties.clear();
+  mDOMWindowPropertyIDs.clear();
+  mDOMWindowPropertyNames.clear();
+  mDOMEventProperties.clear();
 }
 
 // ---------------------------------------------------------------------------
 // FinalRelease
 void DOMWindowWrapper::FinalRelease()
 {
-  mDOMWindow.Release();
-  mDOMWindowProperties.clear();
-  mDOMWindowPropertyIDs.clear();
-  mDOMWindowPropertyNames.clear();
-  mDOMEventProperties.clear();
+  cleanup();
 }
 
 // ---------------------------------------------------------------------------
@@ -188,7 +221,7 @@ HRESULT DOMWindowWrapper::dispatchPropertyPut(WORD wFlags, DISPID dispIdMember,
     CComVariant dispparamsVariants[] = {NULL, eventName};
     DISPPARAMS params = {dispparamsVariants, NULL, 2, 0};
 
-    CIDispatchHelper script(mDOMWindow);
+    CIDispatchHelper script(mDOMWindowInterfaces.dispEx);
 
     // if we have a handler stored for this event remove the old event handler
     // first
@@ -237,6 +270,10 @@ HRESULT DOMWindowWrapper::dispatchConstruct(DISPID dispIdMember,
 STDMETHODIMP DOMWindowWrapper::GetDispID(BSTR bstrName, DWORD grfdex,
                                          DISPID *pid)
 {
+  if (!pid) {
+    return E_POINTER;
+  }
+
   // check if we already have this DISPID in our local map
   MapNameToDISPID::const_iterator it = mDOMWindowPropertyIDs.find(bstrName);
   if (it != mDOMWindowPropertyIDs.end()) {
@@ -248,7 +285,13 @@ STDMETHODIMP DOMWindowWrapper::GetDispID(BSTR bstrName, DWORD grfdex,
   // Don't have it, see if window knows the property and if it is a
   // non-expando property. Unset fdexNameEnsure because the window should
   // not create a property.
-  HRESULT hr = mDOMWindow->GetDispID(bstrName, grfdex & ~fdexNameEnsure, pid);
+
+  // Check if window has a IHTMLWindow2,3.. property of this name. If so,
+  // return that ID, so that things like document, navigator etc are still
+  // callable, even if they are mapped to expando properties.
+  // Basically this means: Every property that exists in IHTMLWindowN,
+  // we map back to its original.
+  HRESULT hr = mDOMWindowInterfaces.getDispID(bstrName, *pid);
   if (S_OK == hr && (*pid) < DISPID_DOMWINDOW_EX_FIRST) {
     // yep!
     return hr;
@@ -259,7 +302,7 @@ STDMETHODIMP DOMWindowWrapper::GetDispID(BSTR bstrName, DWORD grfdex,
   }
 
   // the property should be created
-  hr = mDOMWindow->GetDispID(bstrName, fdexNameCaseSensitive | fdexNameEnsure, pid);
+  hr = mDOMWindowInterfaces.dispEx->GetDispID(bstrName, fdexNameCaseSensitive | fdexNameEnsure, pid);
   if (FAILED(hr)) {
     return hr;
   }
@@ -313,7 +356,7 @@ STDMETHODIMP DOMWindowWrapper::InvokeEx(DISPID id, LCID lcid, WORD wFlags,
     return hrRet;
   }
 
-  return mDOMWindow->InvokeEx(id, lcid, wFlags, pdp, pvarRes, pei, pspCaller);
+  return mDOMWindowInterfaces.dispEx->InvokeEx(id, lcid, wFlags, pdp, pvarRes, pei, pspCaller);
 }
 
 // ---------------------------------------------------------------------------
@@ -324,7 +367,7 @@ STDMETHODIMP DOMWindowWrapper::DeleteMemberByName(BSTR bstrName,DWORD grfdex)
   // window!
   // This means in turn: We don't have to do anything here, just let window
   // return an error.
-  return mDOMWindow->DeleteMemberByName(bstrName, grfdex);
+  return mDOMWindowInterfaces.dispEx->DeleteMemberByName(bstrName, grfdex);
 }
 
 // ---------------------------------------------------------------------------
@@ -332,7 +375,7 @@ STDMETHODIMP DOMWindowWrapper::DeleteMemberByName(BSTR bstrName,DWORD grfdex)
 STDMETHODIMP DOMWindowWrapper::DeleteMemberByDispID(DISPID id)
 {
   // see DeleteMemberByName
-  return mDOMWindow->DeleteMemberByDispID(id);
+  return mDOMWindowInterfaces.dispEx->DeleteMemberByDispID(id);
 }
 
 // ---------------------------------------------------------------------------
@@ -342,14 +385,14 @@ STDMETHODIMP DOMWindowWrapper::GetMemberProperties(DISPID id, DWORD
 {
   // for now it looks like we don't need this
   ATLASSERT(0 && "Seems we have to implement this");
-  return mDOMWindow->GetMemberProperties(id, grfdexFetch, pgrfdex);
+  return mDOMWindowInterfaces.dispEx->GetMemberProperties(id, grfdexFetch, pgrfdex);
 }
 
 // ---------------------------------------------------------------------------
 // GetMemberName
 STDMETHODIMP DOMWindowWrapper::GetMemberName(DISPID id, BSTR *pbstrName)
 {
-  HRESULT hr = mDOMWindow->GetMemberName(id, pbstrName);
+  HRESULT hr = mDOMWindowInterfaces.dispEx->GetMemberName(id, pbstrName);
   if (S_OK == hr) {
     return hr;
   }
@@ -372,7 +415,7 @@ STDMETHODIMP DOMWindowWrapper::GetNextDispID(DWORD grfdex, DISPID id,
   if (id < DISPID_DOMWINDOW_EX_FIRST) {
     // The previous property is still within the range of non-expando
     // properties, so let's ask the window for the next id
-    hr = mDOMWindow->GetNextDispID(grfdex, id, pid);
+    hr = mDOMWindowInterfaces.dispEx->GetNextDispID(grfdex, id, pid);
     if (S_OK == hr && (*pid) < DISPID_DOMWINDOW_EX_FIRST) {
       // a property is found AND is also in the non-expando range, so we are done
       return hr;
@@ -412,5 +455,5 @@ STDMETHODIMP DOMWindowWrapper::GetNextDispID(DWORD grfdex, DISPID id,
 // GetNameSpaceParent
 STDMETHODIMP DOMWindowWrapper::GetNameSpaceParent(IUnknown **ppunk)
 {
-  return mDOMWindow->GetNameSpaceParent(ppunk);
+  return mDOMWindowInterfaces.dispEx->GetNameSpaceParent(ppunk);
 }
