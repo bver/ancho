@@ -8,6 +8,7 @@
 
   var Utils = require('./utils');
   var Event = require('./event');
+  var Config = require('./config');
 
   function ExtensionAPI(state, window) {
     this._state = state;
@@ -32,15 +33,14 @@
     getURL: function(path) {
       // RequireJS uses extension.getUrl() in require.load(),
       // we need to strip the /content/chrome-ext prefix here.
-      var stripPrefix = '/content/chrome-ext/';
-      if (0 === path.indexOf(stripPrefix)) {
-        path = path.substr(stripPrefix.length);
+      if (0 === path.indexOf(Config.hostExtensionPath)) {
+        path = path.substr(Config.hostExtensionPath.length);
       }
       // Treat all paths as relative so they are resolved from the root URI.
       if (path[0] === '/') {
         path = path.substr(1);
       }
-      var baseURI = Services.io.newURI('chrome://ancho/content/chrome-ext/', '', null);
+      var baseURI = Services.io.newURI(Config.hostExtensionRoot, '', null);
       var uri = Services.io.newURI(path, '', baseURI);
       return uri.spec;
     }

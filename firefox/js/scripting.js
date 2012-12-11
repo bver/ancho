@@ -10,6 +10,7 @@
   var API = require('./api');
   var readStringFromUrl = require('./utils').readStringFromUrl;
   var contentScripts = require('./config').contentScripts;
+  var Config = require('./config');
 
   function prepareWindow(window) {
     if (!('require' in window)) {
@@ -49,7 +50,8 @@
             if (sandbox.jQuery) {
               sandbox.jQuery.ajaxSettings.xhr = Require.createWrappedXMLHttpRequest;
             }
-            var scriptUri = Services.io.newURI('chrome://ancho/content/chrome-ext/' + scriptInfo.js[k], '', null);
+            var scriptUri = Services.io.newURI(Config.hostExtensionRoot
+                  + scriptInfo.js[k], '', null);
             var script = readStringFromUrl(scriptUri);
             Cu.evalInSandbox(script, sandbox);
           }

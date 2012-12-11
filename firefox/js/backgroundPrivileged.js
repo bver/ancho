@@ -85,7 +85,7 @@ window.addEventListener('load', function(event) {
   ExtensionState.startSingletonAPIs(window);
   createWindowWatcher();
   var spec = Config.backgroundPage
-        ? 'chrome://ancho/content/chrome-ext/' + Config.backgroundPage
+        ? Config.hostExtensionRoot + Config.backgroundPage
         // Cannot use 'about:blank' here, because DOM for 'about:blank'
         // is inappropriate for script inserting: neither 'document.head'
         // nor 'document.body' are defined.
@@ -95,7 +95,7 @@ window.addEventListener('load', function(event) {
     // load background scripts, if any
     for (var i = 0; i < Config.backgroundScripts.length; i++) {
       var script = targetWindow.document.createElement('script');
-      script.src = 'chrome://ancho/content/chrome-ext/' + Config.backgroundScripts[i];
+      script.src = Config.hostExtensionRoot + Config.backgroundScripts[i];
       targetWindow.document.head.appendChild(script);
     }
   });
