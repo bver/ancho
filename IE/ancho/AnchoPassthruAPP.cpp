@@ -213,7 +213,7 @@ STDMETHODIMP_(void) CAnchoPassthruAPP::DocumentSink::OnReadyStateChange(IHTMLEve
   CComBSTR readyState;
   m_Doc->get_readyState(&readyState);
 
-  if (L"complete" == readyState) {
+  if (readyState == L"complete") {
     CComBSTR loc;
     // Now that the document is loaded, check again to see if we are the main frame.
     HRESULT hr = m_Doc->get_URL(&loc);
