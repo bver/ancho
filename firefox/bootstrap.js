@@ -95,7 +95,8 @@ function loadConfig(addon) {
           matches.push(
             scriptInfo.matches[j]
               .replace('<all_urls>', '*')
-              .replace('*', '.*', 'g')
+              .replace(/\./g, '\\.')
+              .replace(/\*/g, '.*')
           );
         }
         var js = [];

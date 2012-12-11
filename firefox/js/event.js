@@ -9,11 +9,10 @@
     }, false);
 
     function notifyListeners(targetTab, params) {
-      var res, results = [];
+      var results = [];
       if (!targetTab || (targetTab === tabId)) {
         for (var i = 0; i < listeners.length; i++) {
-          res = listeners[i].apply(this, params);
-          results.push(res);
+          results.push(listeners[i].apply(this, params));
         }
       }
       return results;
