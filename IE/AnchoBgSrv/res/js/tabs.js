@@ -49,7 +49,7 @@ var removeCallbackWrapper = function(aTabs, aCallback) {
 var Tabs = function(instanceID) {
   //============================================================================
   // private variables
-
+  _instanceID = instanceID;
   //============================================================================
   // public properties
 
@@ -109,7 +109,7 @@ var Tabs = function(instanceID) {
     var args = preprocessArguments('chrome.tabs.connect', arguments);
 
     var name = (args['connectInfo'] != undefined) ? args['connectInfo'].name : undefined;
-    var pair = new PortPair(name, new MessageSender());
+    var pair = new PortPair(name, new MessageSender(_instanceID));
     addPortPair(pair, _instanceID);
     addonAPI.invokeEventObject(
               'extension.onConnect',
@@ -272,7 +272,7 @@ var Tabs = function(instanceID) {
   this.sendMessage = function(tabId, message, responseCallback) {
     var args = preprocessArguments('chrome.tabs.sendMessage', arguments);
 
-    sender = new MessageSender();
+    sender = new MessageSender(_instanceID);
     callback = undefined;
     ret = undefined;
     if (responseCallback) {

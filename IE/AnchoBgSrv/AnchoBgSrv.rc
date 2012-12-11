@@ -93,6 +93,7 @@ TABS_SPEC.JS            HTML                    "res\\js\\specifications\\tabs_s
 COOKIES_SPEC.JS         HTML                    "res\\js\\specifications\\cookies_spec.js"
 BROWSER_ACTION_TOOLBAR.HTML HTML                    "res\\toolbars\\browserActionToolbar.html"
 BROWSERACTION_SPEC.JS   HTML                    "res\\js\\specifications\\browserAction_spec.js"
+EXTENSION_SPEC.JS       HTML                    "res\\js\\specifications\\extension_spec.js"
 
 #ifdef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////

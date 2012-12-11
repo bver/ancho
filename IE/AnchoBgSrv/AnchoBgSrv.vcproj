@@ -453,6 +453,10 @@
 			>
 		</File>
 		<File
+			RelativePath=".\res\js\specifications\extension_spec.js"
+			>
+		</File>
+		<File
 			RelativePath=".\res\js\fileBrowserHandler.js"
 			>
 		</File>
