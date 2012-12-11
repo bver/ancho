@@ -5,10 +5,6 @@
   var Cu = Components.utils;
   var Cr = Components.results;
 
-  function CCIN(cName, ifaceName) {
-    return Cc[cName].createInstance(Ci[ifaceName]);
-  }
-
   Cu.import('resource://gre/modules/Services.jsm');
 
   var Event = require('./event');
@@ -17,6 +13,10 @@
   var HTTP_ON_MODIFY_REQUEST = 'http-on-modify-request';
   var HTTP_ON_EXAMINE_RESPONSE = 'http-on-examine-response';
   var HTTP_ON_EXAMINE_CACHED_RESPONSE = 'http-on-examine-cached-response';
+
+  var BinaryInputStream = Components.Constructor('@mozilla.org/binaryinputstream;1', 'nsIBinaryInputStream');
+  var StorageStream = Components.Constructor('@mozilla.org/storagestream;1', 'nsIStorageStream');
+  var BinaryOutputStream = Components.Constructor('@mozilla.org/binaryoutputstream;1', 'nsIBinaryOutputStream');
 
 
   /* Exported class: WebRequestSingleton */
@@ -81,7 +81,7 @@
       return;
     }
 
-    if (aTopic == HTTP_ON_MODIFY_REQUEST) {
+    if (aTopic === HTTP_ON_MODIFY_REQUEST) {
       this.handleOnModifyRequest(aTopic, httpChannel, win);
     } else if ( (aTopic === HTTP_ON_EXAMINE_RESPONSE) ||
                 (aTopic === HTTP_ON_EXAMINE_CACHED_RESPONSE) ) {
@@ -99,42 +99,38 @@
   };
 
   WebRequestSingleton.prototype._getFrameIds = function(win) {
-    // helper function
-    function getElementId(self, elem, def) {
-      if (elem.frameElement) {
-        if (!elem.frameElement.__apicaWID) {
-          try {
-            elem.frameElement.__apicaWID = self._state.getGlobalId('webRequest.frameId');
-          } catch (e) {
-            dump('' + e + '\n');
-          }
+    var self = this;
+    // helper functions
+    // for inner window
+    function getElementId(win) {
+      if (!win.frameElement.__apicaWID) {
+        try {
+          win.frameElement.__apicaWID = self._state.getGlobalId('webRequest.frameId');
+        } catch (e) {
+          dump('' + e + '\n');
         }
-        return elem.frameElement.__apicaWID;
+      }
+      return win.frameElement.__apicaWID;
+    }
+    // for any window
+    function getFrameId(win) {
+      if (win === win.parent) {
+        return 0;
       } else {
-        return def;
+        return getElementId(win);
       }
     }
-    // default result object (for top-level)
-    var res = {
-      me: 0,
-      parent: -1
-    };
-    // top-level
-    if (win === win.parent) {
-      return res;
-    }
-    // embedded
-    var w = win.parent;
-    if (w === w.parent) {
-      // `w` is top level
-      res.parent = 0;
+
+    var res = {};
+    res.me = getFrameId(win);
+    if (0 === res.me) {
+      res.parent = -1;
     } else {
-      // w is not top-level
-      res.parent = getElementId(this, w, 0);
+      res.parent = getFrameId(win.parent);
     }
-    res.me = getElementId(this, win, -1);
+
     return res;
-  }
+  };
 
   WebRequestSingleton.prototype.handleOnModifyRequest = function(topic, httpChannel, win) {
     var url = httpChannel.URI.spec;
@@ -143,21 +139,18 @@
     var frameIds = this._getFrameIds(win);
     var loadFlags = httpChannel.loadFlags;
 
+    var requestData = this._getRequest(tabId, Utils.removeFragment(url));
+    var requestId = requestData
+                    ? requestData.requestId
+                    : this._state.getGlobalId('webRequest.requestId');
+
     var type = 'other';
 
     // is it main request of the tab?
     if (loadFlags & Ci.nsIChannel.LOAD_DOCUMENT_URI) {
       if (0 === frameIds.me) {
         type = 'main_frame';
-        this._flagTab(tabId, 'loading');
-        var self = this;
-        /* FIXME: The code below does not work, we don't get the event.
-           Strange thing is that at this moment, the win.document.readyState
-           is set to 'complete' already. */
-        win.addEventListener('DOMContentLoaded', function() {
-          win.removeEventListener('DOMContentLoaded', parameters.callee, false);
-          self._flagTab(tabId, null);
-        });
+        this._flagTab(tabId, requestId);
       } else {
         type = 'sub_frame';
       }
@@ -168,7 +161,7 @@
     }
 
     // is it request for an image? there is no direct way, from debugging
-    // experience image requests usualy have loadFlags == 0 or contain
+    // experience image requests usualy have loadFlags === 0 or contain
     // LOAD_INITIAL_DOCUMENT_URI flag. But sometimes it also contains other flags.
     // Therefore there is also check for Accept header, which should ensure
     // that browser wants an image.
@@ -184,11 +177,6 @@
 
     // TODO: recognize other types: stylesheet, script, object
 
-    var requestData = this._getRequest(tabId, Utils.removeFragment(url));
-    var requestId = requestData
-                    ? requestData.requestId
-                    : this._state.getGlobalId('webRequest.requestId');
-
     // http://code.google.com/chrome/extensions/webRequest.html#event-onBeforeRequest
     var params = {
       tabId : tabId,
@@ -202,23 +190,26 @@
     };
 
     // store the request
-    this._setRequest(tabId, Utils.removeFragment(url), {
-      requestId: params.requestId,
-      frameId: params.frameId,
-      parentFrameId: params.parentFrameId,
-      type: params.type,
-      method: params.method
-    });
+    this._setRequest(tabId, Utils.removeFragment(url), params);
+
+    // helper function: test if the request should be cancelled,
+    // if so: cancel and remove the request from the request list
+    function resultCancelledRequest(results) {
+      for (var i = 0; i < results.length; i++) {
+        if (results[i] && results[i].cancel) {
+          httpChannel.cancel(Cr.NS_BINDING_ABORTED);
+          this._setRequest(tabId, Utils.removeFragment(url), null);
+          // TODO: fire onErrorOccurred ?
+          return true;
+        }
+      }
+      return false;
+    }
 
     // fire onBeforeRequest; TODO: implement redirection
     var results = this.onBeforeRequest.fire([ params ]);
-    for (var i = 0; i < results.length; i++) {
-      if (results[i] && results[i].cancel) {
-        httpChannel.cancel(Cr.NS_BINDING_ABORTED);
-        // TODO: fire onErrorOccurred?
-        this._setRequest(tabId, Utils.removeFragment(url), null);
-        return;
-      }
+    if (resultCancelledRequest(results)) {
+      return;
     }
 
     var visitor = new HttpHeaderVisitor();
@@ -228,13 +219,8 @@
     params.timeStamp = (new Date()).getTime();
     params.requestHeaders = visitor.headers;
     results = this.onBeforeSendHeaders.fire([ params ]);
-    for (var i = 0; i < results.length; i++) {
-      if (results[i] && results[i].cancel) {
-        httpChannel.cancel(Cr.NS_BINDING_ABORTED);
-        // TODO: fire onErrorOccurred?
-        this._setRequest(tabId, Utils.removeFragment(url), null);
-        return;
-      }
+    if (resultCancelledRequest(results)) {
+      return;
     }
 
     // fire onSendHeaders;
@@ -244,7 +230,7 @@
     this.onSendHeaders.fire([ params ]);
 
     // dispatching dedicated listening thread for in case the request
-    // will be servered completely from cache
+    // will be served completely from cache
     var mainThread = Cc["@mozilla.org/thread-manager;1"].getService().mainThread;
     mainThread.dispatch(new ListenerThread({
         id: tabId,
@@ -259,10 +245,24 @@
     var url = httpChannel.URI.spec;
     var tabId = win.top ? Utils.getWindowId(win.top) : -1;
 
-    var requestData = this._getRequest(tabId, Utils.removeFragment(url));
-    if (!requestData) {
+    var params = this._getRequest(tabId, Utils.removeFragment(url));
+    if (!params) {
       // we are not monitoring this request
       return;
+    }
+
+    // TODO: FIXME: this is still not working:
+    // + document.readyState === 'complete'
+    // + DOMContentLoaded event never fired  (apparently, the document is 'complete')
+    var self = this;
+    if (params.requestId === this._flagTab(tabId)) {
+      // dump('\n\n\n\n\n!!!!! HERE !!!!!!\n\n');
+      // dump('win.document.readyState === ' + win.document.readyState + '\n\n\n\n\n');
+      win.addEventListener('DOMContentLoaded', function() {
+        dump('\n\n\n\n\n\n\n\n\n\n\n!!!!! HERE !!!!!!\n\n\n\n\n\n\n\n\n\n\n');
+        win.removeEventListener('DOMContentLoaded', parameters.callee, false);
+        self._flagTab(tabId, null);
+      });
     }
 
     var visitor = new HttpHeaderVisitor();
@@ -271,19 +271,10 @@
     var statusCode = httpChannel.responseStatus;
     var statusText = httpChannel.responseStatusText;
 
-    var params = {
-      tabId : tabId,
-      url : url,
-      timeStamp: (new Date()).getTime(),
-      responseHeaders: visitor.headers,
-      statusLine: '' + statusCode + ' ' + statusText,
-      // stored values:
-      requestId: requestData.requestId,
-      frameId: requestData.frameId,
-      parentFrameId: requestData.parentFrameId,
-      type : requestData.type,
-      method: requestData.method
-    };
+    params.url = url;
+    params.timeStamp = (new Date()).getTime();
+    params.responseHeaders = visitor.headers;
+    params.statusLine = '' + statusCode + ' ' + statusText;
 
     // fire onHeadersReceived; TODO: implement changing the response headers
     var results = this.onHeadersReceived.fire([ params ]);
@@ -300,7 +291,7 @@
       params.timeStamp = (new Date()).getTime();
       params.redirectUrl = httpChannel.getResponseHeader('Location');
       this._setRequest(tabId, Utils.removeFragment(url), null);
-      this._setRequest(tabId, Utils.removeFragment(params.redirectUrl), requestData);
+      this._setRequest(tabId, Utils.removeFragment(params.redirectUrl), params);
       this.onBeforeRedirect.fire([ params ]);
       return;
     }
@@ -323,7 +314,7 @@
     return this._requests[tabId][uri];
   };
 
-  // store or delete (request == null) request-related data
+  // store or delete (request === null) request-related data
   WebRequestSingleton.prototype._setRequest = function(tabId, uri, request) {
     var tab = this._requests[tabId];
     if (!tab) {
@@ -337,7 +328,7 @@
     return request;
   };
 
-  // get (flag parameter missing) or set tab flag
+  // get (`flag` parameter missing) or set tab flag
   WebRequestSingleton.prototype._flagTab = function(tabId, flag) {
     var tab = this._requests[tabId];
     if (!tab) {
@@ -470,9 +461,9 @@
     /*
     dump('+++ StreamListener.onDataAvailable()\n');
 
-    var binaryInputStream = CCIN("@mozilla.org/binaryinputstream;1", "nsIBinaryInputStream");
-    var storageStream = CCIN("@mozilla.org/storagestream;1", "nsIStorageStream");
-    var binaryOutputStream = CCIN("@mozilla.org/binaryoutputstream;1", "nsIBinaryOutputStream");
+    var binaryInputStream = new BinaryInputStream();
+    var storageStream = new StorageStream();
+    var binaryOutputStream = BinaryOutputStream();
 
     binaryInputStream.setInputStream(stream);
     storageStream.init(8192, count, null);

@@ -7,12 +7,13 @@
   var Event = require('./event');
   var Utils = require('./utils');
   var WindowWatcher = require('./windowWatcher');
+  var Config = require('./config');
 
 
   var BrowserActionAPI = function() {
     // TODO: this.onClicked = new Event();
     // TODO : get default button icon url
-    var urlPrefix = 'chrome://ancho/content/chrome-ext/';
+    var urlPrefix = Config.hostExtensionRoot;
     // FIXME: get default extension icon URL from manifest.json
     // FIXME: Config undefined here...
     this.iconEnabled = false && Config.browser_action
@@ -55,25 +56,23 @@
       toolbarButton.appendChild(panel);
       panel.appendChild(iframe);
       toolbarButton
-          .addEventListener('click', function() {
-            iframe.setAttribute('src', 'about:blank');
-            panel.openPopup(toolbarButton, "after_start", 0, 0, false, false);
-            // FIXME: get popup URL from manifest.json
-            loadHtml(document, iframe,
-              'chrome://ancho/content/chrome-ext/',
-              'html/popup.html',
-              [], function() {
-                var body = iframe.contentDocument.body;
-                panel.height = body.scrollHeight + PANEL_MARGIN_SIZE;
-                panel.width = body.scrollWidth + PANEL_MARGIN_SIZE;
-                iframe.height = body.scrollHeight;
-                iframe.width = body.scrollWidth;
-                iframe.contentWindow.close = function() {
-                  panel.hidePopup();
-                };
-              }
-            );
-          });
+        .addEventListener('click', function() {
+          iframe.setAttribute('src', 'about:blank');
+          panel.openPopup(toolbarButton, "after_start", 0, 0, false, false);
+          // FIXME: get popup URL from manifest.json
+          loadHtml(document, iframe, Config.hostExtensionRoot + 'html/popup.html',
+            function() {
+              var body = iframe.contentDocument.body;
+              panel.height = body.scrollHeight + PANEL_MARGIN_SIZE;
+              panel.width = body.scrollWidth + PANEL_MARGIN_SIZE;
+              iframe.height = body.scrollHeight;
+              iframe.width = body.scrollWidth;
+              iframe.contentWindow.close = function() {
+                panel.hidePopup();
+              };
+            }
+          );
+        });
     }
     this._setIcon(window, this.currentIcon, true);
   };
