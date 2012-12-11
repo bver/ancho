@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9.00"
+	Version="9,00"
 	Name="ancho"
 	ProjectGUID="{50B17414-D115-4F76-B5A4-F357AC84001C}"
 	RootNamespace="ancho"
@@ -268,6 +268,10 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\DOMWindowWrapper.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\HtmlPanel.cpp"
 				>
 			</File>
@@ -327,6 +331,10 @@
 			</File>
 			<File
 				RelativePath=".\dllmain.h"
+				>
+			</File>
+			<File
+				RelativePath=".\DOMWindowWrapper.h"
 				>
 			</File>
 			<File

@@ -105,7 +105,7 @@ private:
   void DestroyAddons();
   HRESULT Init();
   HRESULT Cleanup();
-  HRESULT ApplyContentScripts(BSTR bstrUrl, VARIANT_BOOL bIsMainFrame, documentLoadPhase aPhase);
+  HRESULT InitializeContentScripting(BSTR bstrUrl, VARIANT_BOOL bIsMainFrame, documentLoadPhase aPhase);
 
   HWND getTabWindow();
   HWND getFrameTabWindow()

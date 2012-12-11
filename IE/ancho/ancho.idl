@@ -34,7 +34,7 @@ library anchoLib
   interface IAnchoAddon : IUnknown
   {
     HRESULT Init([in] LPCOLESTR lpsExtensionID, [in] IAnchoAddonService * pService, [in] IWebBrowser2 * pWebBrowser);
-    HRESULT ApplyContentScripts([in] IWebBrowser2 * pWebBrowser, [in] BSTR bstrUrl, documentLoadPhase aPhase);
+    HRESULT InitializeContentScripting([in] IWebBrowser2 * pWebBrowser, [in] BSTR bstrUrl, documentLoadPhase aPhase);
     HRESULT Shutdown();
 
     HRESULT executeScriptCode(BSTR aCode);

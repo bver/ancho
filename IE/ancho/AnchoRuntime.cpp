@@ -156,6 +156,10 @@ STDMETHODIMP_(void) CAnchoRuntime::OnBrowserBeforeNavigate2(LPDISPATCH pDisp, VA
   removeUrlFragment(pURL->bstrVal, &bstrUrl);
   m_Frames[(BSTR) bstrUrl] = pWebBrowser;
 
+  // Store the URL being loaded (used by the protocol sink).
+  HRESULT hr = m_pWebBrowser->PutProperty(L"_anchoLoadingURL", *pURL);
+  ATLASSERT(SUCCEEDED(hr));
+
   // Check if this is a new tab we are creating programmatically.
   // If so redirect it to the correct URL.
   std::wstring url(pURL->bstrVal, SysStringLen(pURL->bstrVal));
@@ -189,14 +193,14 @@ STDMETHODIMP_(void) CAnchoRuntime::OnNewWindow3(IDispatch *pDisp, VARIANT_BOOL C
 //  OnFrameStart
 STDMETHODIMP CAnchoRuntime::OnFrameStart(BSTR bstrUrl, VARIANT_BOOL bIsMainFrame)
 {
-  return ApplyContentScripts(bstrUrl, bIsMainFrame, documentLoadStart);
+  return InitializeContentScripting(bstrUrl, bIsMainFrame, documentLoadStart);
 }
 
 //----------------------------------------------------------------------------
 //  OnFrameEnd
 STDMETHODIMP CAnchoRuntime::OnFrameEnd(BSTR bstrUrl, VARIANT_BOOL bIsMainFrame)
 {
-  return ApplyContentScripts(bstrUrl, bIsMainFrame, documentLoadEnd);
+  return InitializeContentScripting(bstrUrl, bIsMainFrame, documentLoadEnd);
 }
 
 //----------------------------------------------------------------------------
@@ -215,8 +219,8 @@ STDMETHODIMP CAnchoRuntime::OnFrameRedirect(BSTR bstrOldUrl, BSTR bstrNewUrl)
 }
 
 //----------------------------------------------------------------------------
-//  ApplyContentScripts
-HRESULT CAnchoRuntime::ApplyContentScripts(BSTR bstrUrl, VARIANT_BOOL bIsMainFrame, documentLoadPhase aPhase)
+//  InitializeContentScripting
+HRESULT CAnchoRuntime::InitializeContentScripting(BSTR bstrUrl, VARIANT_BOOL bIsMainFrame, documentLoadPhase aPhase)
 {
   CComPtr<IWebBrowser2> webBrowser;
   if (bIsMainFrame) {
@@ -240,7 +244,7 @@ HRESULT CAnchoRuntime::ApplyContentScripts(BSTR bstrUrl, VARIANT_BOOL bIsMainFra
   }
   AddonMap::iterator it = m_Addons.begin();
   while(it != m_Addons.end()) {
-    it->second->ApplyContentScripts(webBrowser, bstrUrl, aPhase);
+    it->second->InitializeContentScripting(webBrowser, bstrUrl, aPhase);
     ++it;
   }
 
