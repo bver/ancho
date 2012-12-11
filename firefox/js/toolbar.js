@@ -7,10 +7,11 @@
 
   var State = require('./state');
   var loadHtml = require('./scripting').loadHtml;
+  var Config = require('./config');
 
   var Toolbar = {
     TOOLBAR_ID: '__ANCHO_TOOLBAR__',
-    EXTENSION_ROOT_DIR: 'chrome://ancho/content/chrome-ext/',
+    EXTENSION_ROOT_DIR: Config.hostExtensionRoot,
 
     // Remember the current options of the toolbar.
     // null means there is no active toolbar present.
