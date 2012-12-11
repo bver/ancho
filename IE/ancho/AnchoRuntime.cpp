@@ -156,6 +156,10 @@ STDMETHODIMP_(void) CAnchoRuntime::OnBrowserBeforeNavigate2(LPDISPATCH pDisp, VA
   removeUrlFragment(pURL->bstrVal, &bstrUrl);
   m_Frames[(BSTR) bstrUrl] = pWebBrowser;
 
+  // Store the URL being loaded (used by the protocol sink).
+  HRESULT hr = m_pWebBrowser->PutProperty(L"_anchoLoadingURL", *pURL);
+  ATLASSERT(SUCCEEDED(hr));
+
   // Check if this is a new tab we are creating programmatically.
   // If so redirect it to the correct URL.
   std::wstring url(pURL->bstrVal, SysStringLen(pURL->bstrVal));

@@ -280,9 +280,20 @@ STDMETHODIMP CAnchoPassthruAPP::Continue(PROTOCOLDATA* data)
       CComPtr<IWebBrowser2> browser;
       IF_FAILED_RET(getBrowserForHTMLDocument(m_Doc, &browser));
 
-      CComBSTR url;
-      IF_FAILED_RET(browser->get_LocationURL(&url));
-      m_IsMainFrame = (url == bstrUrl);
+      CComVariant var;
+      IF_FAILED_RET(browser->GetProperty(L"_anchoLoadingURL", &var));
+      if (VT_BSTR == var.vt) {
+        CComBSTR topLevelUrl = var.bstrVal;
+        // Check whether we have recorded a redirect for the top-level URL.
+        RedirectList::iterator it = m_Redirects.begin();
+        while(it != m_Redirects.end()) {
+          if (wcscmp(it->first.c_str(), topLevelUrl) == 0) {
+            topLevelUrl = it->second.c_str();
+          }
+          ++it;
+        }
+        m_IsMainFrame = (topLevelUrl == bstrUrl);
+      }
 
       // We only want to handle the top-level request and any frames, not subordinate
       // requests like images. Usually the desired requests will have a bind context,
@@ -293,7 +304,6 @@ STDMETHODIMP CAnchoPassthruAPP::Continue(PROTOCOLDATA* data)
         return S_OK;
       }
 
-      CComVariant var;
       IF_FAILED_RET(browser->GetProperty(L"_anchoBrowserEvents", &var));
 
       m_BrowserEvents = var.pdispVal;
