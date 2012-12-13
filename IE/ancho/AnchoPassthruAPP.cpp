@@ -284,14 +284,6 @@ STDMETHODIMP CAnchoPassthruAPP::Continue(PROTOCOLDATA* data)
 
       CComBSTR topLevelUrl; // = var.bstrVal;
       IF_FAILED_RET(browser->get_LocationURL(&topLevelUrl));
-      // Check whether we have recorded a redirect for the top-level URL.
-      RedirectList::iterator it = m_Redirects.begin();
-      while(it != m_Redirects.end()) {
-        if (wcscmp(it->first.c_str(), topLevelUrl) == 0) {
-          topLevelUrl = it->second.c_str();
-        }
-        ++it;
-      }
       // If we're refreshing then the sink won't know it is a frame, and the URL
       // will match the one already loaded into the browser.
       m_IsRefreshingMainFrame = !(pSink->IsFrame()) && (topLevelUrl == bstrUrl);
