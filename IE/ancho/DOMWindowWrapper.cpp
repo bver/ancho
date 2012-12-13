@@ -21,22 +21,21 @@ DOMWindowWrapper::HTMLWindowInterfaces &
 
 // ---------------------------------------------------------------------------
 // HTMLWindowInterfaces::getDispID
-#define RETURN_IDS_OF_NAMES_FROM_IF(_if) \
-  if (_if && SUCCEEDED(_if->GetIDsOfNames(IID_NULL, names, 1, LANG_NEUTRAL, &id))) { \
-    return S_OK; \
-  }
-
 HRESULT DOMWindowWrapper::HTMLWindowInterfaces::
     getDispID(LPOLESTR name, DISPID & id)
 {
   LPOLESTR names[] = {name};
-  RETURN_IDS_OF_NAMES_FROM_IF(w2);
-  RETURN_IDS_OF_NAMES_FROM_IF(w3);
-  RETURN_IDS_OF_NAMES_FROM_IF(w4);
-  RETURN_IDS_OF_NAMES_FROM_IF(w5);
+#define RETURN_IDS_OF_NAMES_FROM_IFACE(_if) \
+  if (_if && SUCCEEDED(_if->GetIDsOfNames(IID_NULL, names, 1, LANG_NEUTRAL, &id))) { \
+    return S_OK; \
+  }
+  RETURN_IDS_OF_NAMES_FROM_IFACE(w2);
+  RETURN_IDS_OF_NAMES_FROM_IFACE(w3);
+  RETURN_IDS_OF_NAMES_FROM_IFACE(w4);
+  RETURN_IDS_OF_NAMES_FROM_IFACE(w5);
+#undef RETURN_IDS_OF_NAMES_FROM_IFACE
   return DISP_E_UNKNOWNNAME;
 }
-#undef RETURN_IDS_OF_NAMES_FROM_IF
 
 // ---------------------------------------------------------------------------
 // HTMLWindowInterfaces::Release
