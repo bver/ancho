@@ -14,6 +14,10 @@ const wchar_t * s_AnchoExtensionsRegistryKey =
 const wchar_t * s_AnchoExtensionsRegistryEntryGUID =
     L"guid";
 
+// registry entry "Flags"
+const wchar_t * s_AnchoExtensionsRegistryEntryFlags =
+    L"Flags";
+
 // registry entry "Path"
 const wchar_t * s_AnchoExtensionsRegistryEntryPath =
     L"Path";
