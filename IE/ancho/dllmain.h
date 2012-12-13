@@ -1,18 +1,17 @@
 // dllmain.h : Declaration of module class.
 
-class CanchoModule : public CAtlDllModuleT< CanchoModule >
+class CAnchoModule : public CAtlDllModuleT<CAnchoModule>
 {
 public :
   HINSTANCE m_hInstance;
   DECLARE_LIBID(LIBID_anchoLib)
   DECLARE_REGISTRY_APPID_RESOURCEID(IDR_ANCHO, "{AD78048F-6651-4A8D-B10B-4E2F65F4FD67}")
-/*
-  // Obtain a Class Factory
-  HRESULT GetClassObject(REFCLSID rclsid, REFIID riid, LPVOID* ppv) throw()
-  {
-    return AtlComModuleGetClassObject(&_AtlComModule, CLSID_AnchoRuntime, riid, ppv);
-  }
-*/
+
+  BOOL WINAPI DllMain(DWORD dwReason, LPVOID lpReserved) throw();
+
+protected:
+  CComPtr<IClassFactory> m_CFHTTP;
+  CComPtr<IClassFactory> m_CFHTTPS;
 };
 
-extern class CanchoModule _AtlModule;
+extern class CAnchoModule _AtlModule;

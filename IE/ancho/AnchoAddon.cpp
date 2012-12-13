@@ -9,8 +9,6 @@
 #include "dllmain.h"
 #include "ProtocolHandlerRegistrar.h"
 
-extern class CanchoModule _AtlModule;
-
 /*============================================================================
  * class CAnchoAddon
  */
