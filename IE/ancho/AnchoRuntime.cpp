@@ -18,8 +18,6 @@
 #include <Iepmapi.h>
 #pragma comment(lib, "Iepmapi.lib")
 
-extern class CanchoModule _AtlModule;
-
 /*============================================================================
  * class CAnchoRuntime
  */
