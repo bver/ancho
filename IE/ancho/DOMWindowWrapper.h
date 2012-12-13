@@ -38,22 +38,22 @@ public:
   void FinalRelease();
 
   // helper - see comment in implementation
-  void forceDelete();
+  void cleanup();
 
 public:
   // -------------------------------------------------------------------------
   // IDispatch methods: simply forward
   __forceinline STDMETHOD(GetTypeInfoCount)(UINT *pctinfo)
-    { return mDOMWindow->GetTypeInfoCount(pctinfo); }
+    { return mDOMWindowInterfaces.dispEx->GetTypeInfoCount(pctinfo); }
   __forceinline STDMETHOD(GetTypeInfo)(UINT iTInfo, LCID lcid, ITypeInfo **ppTInfo)
-    { return mDOMWindow->GetTypeInfo(iTInfo, lcid, ppTInfo); }
+    { return mDOMWindowInterfaces.dispEx->GetTypeInfo(iTInfo, lcid, ppTInfo); }
   __forceinline STDMETHOD(GetIDsOfNames)(REFIID riid, LPOLESTR *rgszNames, UINT cNames,
                                          LCID lcid, DISPID *rgDispId)
-    { return mDOMWindow->GetIDsOfNames(riid, rgszNames, cNames, lcid, rgDispId); }
+    { return mDOMWindowInterfaces.dispEx->GetIDsOfNames(riid, rgszNames, cNames, lcid, rgDispId); }
   __forceinline STDMETHOD(Invoke)(DISPID dispIdMember, REFIID riid, LCID lcid, WORD wFlags,
                                   DISPPARAMS *pDispParams, VARIANT *pVarResult,
                                   EXCEPINFO *pExcepInfo, UINT *puArgErr)
-    { return mDOMWindow->Invoke(dispIdMember, riid, lcid, wFlags, pDispParams,
+    { return mDOMWindowInterfaces.dispEx->Invoke(dispIdMember, riid, lcid, wFlags, pDispParams,
                                 pVarResult, pExcepInfo, puArgErr); }
 
   // -------------------------------------------------------------------------
@@ -107,6 +107,28 @@ private:
   typedef std::map<CComBSTR, DISPID> MapNameToDISPID;
   typedef std::map<DISPID, CComBSTR> MapDISPIDToName;
 
+  /*==========================================================================
+   * class HTMLWindowInterfaces
+   *  Keeps track of all known IHTMLWindowN interfaces to get the original
+   * DISPIDs of the wrapped window. We need this class, because the "window"
+   * object we obtain from the webbrowser seems to be kind of a wrapper
+   * itself - it has all the default properties wrapped up as expando
+   * properties.
+   * It's only purpose is to ask all known interfaces for a certain DISPID.
+   */
+  class HTMLWindowInterfaces {
+  public:
+    HRESULT getDispID(LPOLESTR name, DISPID & id);
+    HTMLWindowInterfaces & operator = (LPDISPATCH pDisp);
+    void Release();
+
+    CComQIPtr<IDispatchEx>   dispEx;
+    CComQIPtr<IHTMLWindow2>  w2;
+    CComQIPtr<IHTMLWindow3>  w3;
+    CComQIPtr<IHTMLWindow4>  w4;
+    CComQIPtr<IHTMLWindow5>  w5;
+  };
+
   // -------------------------------------------------------------------------
   // Private members.
 
@@ -135,7 +157,8 @@ private:
   };
 
   // the original DOM window
-  CComQIPtr<IDispatchEx>  mDOMWindow;
+  HTMLWindowInterfaces    mDOMWindowInterfaces;
+
   // map DISPID -> VARIANT (the actual property)
   MapDISPIDToCComVariant  mDOMWindowProperties;
   // map name -> DISPID

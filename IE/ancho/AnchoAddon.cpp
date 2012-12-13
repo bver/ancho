@@ -9,8 +9,6 @@
 #include "dllmain.h"
 #include "ProtocolHandlerRegistrar.h"
 
-extern class CanchoModule _AtlModule;
-
 /*============================================================================
  * class CAnchoAddon
  */
@@ -32,6 +30,17 @@ STDMETHODIMP CAnchoAddon::Init(LPCOLESTR lpsExtensionID, IAnchoAddonService * pS
   if (ERROR_SUCCESS != res)
   {
     return HRESULT_FROM_WIN32(res);
+  }
+
+  // load flags to see if the addon is disabled
+  DWORD flags = 0;
+  res = regKey.QueryDWORDValue(s_AnchoExtensionsRegistryEntryFlags, flags);
+  // to stay compatible with older versions we treat "no flags at all" as "enabled"
+  if ( (ERROR_SUCCESS == res) && !(flags & ENABLED))
+  {
+    // ... means: only when flag is present AND ENABLED is not set
+    // the addon is disabled
+    return E_ABORT;
   }
 
   // get addon GUID
@@ -142,11 +151,10 @@ void CAnchoAddon::CleanupContentScripting()
   if (m_Magpie) {
     m_Magpie->Shutdown();
   }
-  DOMWindowWrapper::ComObject * p = m_wrappedWindow.Detach();
-  if (p) {
-    p->forceDelete();
-    p = NULL;
+  if (m_wrappedWindow) {
+    m_wrappedWindow->cleanup();
   }
+  m_wrappedWindow.Release();
 }
 
 //----------------------------------------------------------------------------

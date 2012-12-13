@@ -25,6 +25,12 @@ class ATL_NO_VTABLE CAnchoAddon :
   public IAnchoAddon
 {
 public:
+  // enum for registry flags
+  enum {
+    NONE    = 0x00000000,
+    ENABLED = 0x00000001,
+    MASK    = 0x00000001  // masks all valid flags
+  };
   // -------------------------------------------------------------------------
   // ctor
   CAnchoAddon() : m_InstanceID(0)

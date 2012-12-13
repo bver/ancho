@@ -124,8 +124,9 @@ private:
   public:
     // -------------------------------------------------------------------------
     // Constructor/destructor
-    DocumentSink(IInternetProtocolRoot* app, IHTMLDocument2 *doc, DAnchoBrowserEvents* events, BSTR bstrUrl) :
-      m_APP(app), m_Doc(doc), m_Events(events), m_Url(bstrUrl)
+    DocumentSink(IInternetProtocolRoot* app, IHTMLDocument2 *doc, DAnchoBrowserEvents* events,
+      BSTR bstrUrl, BOOL bIsRefreshingMainFrame) :
+      m_APP(app), m_Doc(doc), m_Events(events), m_Url(bstrUrl), m_IsRefreshingMainFrame(bIsRefreshingMainFrame)
     {
     }
     ~DocumentSink();
@@ -140,7 +141,7 @@ private:
     // Methods
     STDMETHOD_(void, OnReadyStateChange)(IHTMLEventObj* ev);
 
-  protected:
+  private:
     // -------------------------------------------------------------------------
     // Data members
     CComPtr<IHTMLDocument2> m_Doc;
@@ -148,6 +149,7 @@ private:
     // Hold a pointer to the APP so we don't get freed too early.
     CComPtr<IInternetProtocolRoot> m_APP;
     CComBSTR m_Url;
+    BOOL m_IsRefreshingMainFrame;
   };
 
   // -------------------------------------------------------------------------
@@ -157,15 +159,18 @@ private:
 public:
   // -------------------------------------------------------------------------
   // Destructor
-  CAnchoPassthruAPP() : m_DocSink(NULL), m_IsMainFrame(false) {}
+  CAnchoPassthruAPP() : m_DocSink(NULL), m_IsRefreshingMainFrame(false), m_ProcessedReportData(false) {}
   virtual ~CAnchoPassthruAPP();
 
-protected:
+private:
   // -------------------------------------------------------------------------
   // Data members
   CComQIPtr<DAnchoBrowserEvents> m_BrowserEvents;
   CComPtr<IHTMLDocument2> m_Doc;
-  bool m_IsMainFrame;
+  // It's hellish to figure out if we are refreshing the main frame (e.g. on F5).
+  // So we use the URL to check (see implementation) and remember the state in this variable.
+  bool m_IsRefreshingMainFrame;
+  bool m_ProcessedReportData;
   CComPtr<IWebBrowser2> m_Browser;
   std::set<CComPtr<IWebBrowser2> > m_FoundFrames;
   DocumentSink* m_DocSink;

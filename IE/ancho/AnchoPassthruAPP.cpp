@@ -213,14 +213,11 @@ STDMETHODIMP_(void) CAnchoPassthruAPP::DocumentSink::OnReadyStateChange(IHTMLEve
   CComBSTR readyState;
   m_Doc->get_readyState(&readyState);
 
-  if (L"complete" == readyState) {
+  if (readyState == L"complete") {
     CComBSTR loc;
-    // Now that the document is loaded, check again to see if we are the main frame.
-    HRESULT hr = m_Doc->get_URL(&loc);
-    BOOL isMainFrame = SUCCEEDED(hr) && (loc == m_Url);
     DispEventUnadvise(m_Doc);
     m_Doc = NULL;
-    m_Events->OnFrameEnd(m_Url, isMainFrame ? VARIANT_TRUE : VARIANT_FALSE);
+    m_Events->OnFrameEnd(m_Url, m_IsRefreshingMainFrame ? VARIANT_TRUE : VARIANT_FALSE);
 
     // Release the pointer to the APP so we can be freed.
     m_APP = NULL;
@@ -245,6 +242,11 @@ CAnchoPassthruAPP::~CAnchoPassthruAPP()
 STDMETHODIMP CAnchoPassthruAPP::Continue(PROTOCOLDATA* data)
 {
   if (data->dwState >= ANCHO_SWITCH_BASE) {
+    if (data->dwState == ANCHO_SWITCH_REPORT_DATA && m_ProcessedReportData) {
+       // We already handled this;
+       return S_OK;
+    }
+
     CComPtr<CAnchoProtocolSink> pSink = GetSink();
     // Release the reference we added when calling Switch().
     pSink->InternalRelease();
@@ -280,30 +282,30 @@ STDMETHODIMP CAnchoPassthruAPP::Continue(PROTOCOLDATA* data)
       CComPtr<IWebBrowser2> browser;
       IF_FAILED_RET(getBrowserForHTMLDocument(m_Doc, &browser));
 
-      CComVariant var;
-      IF_FAILED_RET(browser->GetProperty(L"_anchoLoadingURL", &var));
-      if (VT_BSTR == var.vt) {
-        CComBSTR topLevelUrl = var.bstrVal;
-        // Check whether we have recorded a redirect for the top-level URL.
-        RedirectList::iterator it = m_Redirects.begin();
-        while(it != m_Redirects.end()) {
-          if (wcscmp(it->first.c_str(), topLevelUrl) == 0) {
-            topLevelUrl = it->second.c_str();
-          }
-          ++it;
+      CComBSTR topLevelUrl; // = var.bstrVal;
+      IF_FAILED_RET(browser->get_LocationURL(&topLevelUrl));
+      // Check whether we have recorded a redirect for the top-level URL.
+      RedirectList::iterator it = m_Redirects.begin();
+      while(it != m_Redirects.end()) {
+        if (wcscmp(it->first.c_str(), topLevelUrl) == 0) {
+          topLevelUrl = it->second.c_str();
         }
-        m_IsMainFrame = (topLevelUrl == bstrUrl);
+        ++it;
       }
+      // If we're refreshing then the sink won't know it is a frame, and the URL
+      // will match the one already loaded into the browser.
+      m_IsRefreshingMainFrame = !(pSink->IsFrame()) && (topLevelUrl == bstrUrl);
 
       // We only want to handle the top-level request and any frames, not subordinate
       // requests like images. Usually the desired requests will have a bind context,
       // but in the case of a page refresh, the top-level request annoyingly doesn't,
       // so we check if the URL of the request matches the URL of the browser to handle
       // that case.
-      if (!(pSink->IsFrame()) && !m_IsMainFrame) {
+      if (!(pSink->IsFrame()) && !m_IsRefreshingMainFrame) {
         return S_OK;
       }
 
+      CComVariant var;
       IF_FAILED_RET(browser->GetProperty(L"_anchoBrowserEvents", &var));
 
       m_BrowserEvents = var.pdispVal;
@@ -324,15 +326,17 @@ STDMETHODIMP CAnchoPassthruAPP::Continue(PROTOCOLDATA* data)
     m_Redirects.clear();
 
     if (data->dwState == ANCHO_SWITCH_REPORT_DATA) {
-      IF_FAILED_RET(m_BrowserEvents->OnFrameStart(bstrUrl, m_IsMainFrame ? VARIANT_TRUE : VARIANT_FALSE));
+      m_ProcessedReportData = true;
+
+      IF_FAILED_RET(m_BrowserEvents->OnFrameStart(bstrUrl, m_IsRefreshingMainFrame ? VARIANT_TRUE : VARIANT_FALSE));
 
       CComBSTR readyState;
       m_Doc->get_readyState(&readyState);
       if (wcscmp(readyState, L"complete") == 0) {
-        IF_FAILED_RET(m_BrowserEvents->OnFrameEnd(bstrUrl, m_IsMainFrame ? VARIANT_TRUE : VARIANT_FALSE));
+        IF_FAILED_RET(m_BrowserEvents->OnFrameEnd(bstrUrl, m_IsRefreshingMainFrame ? VARIANT_TRUE : VARIANT_FALSE));
       }
       else {
-        m_DocSink = new DocumentSink(this, m_Doc, m_BrowserEvents, bstrUrl);
+        m_DocSink = new DocumentSink(this, m_Doc, m_BrowserEvents, bstrUrl, m_IsRefreshingMainFrame);
         m_DocSink->DispEventAdvise(m_Doc);
       }
     }

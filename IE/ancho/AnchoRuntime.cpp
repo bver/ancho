@@ -7,8 +7,6 @@
 #include "stdafx.h"
 #include <map>
 
-#include "ProtocolCF.h"
-
 #include "AnchoRuntime.h"
 #include "AnchoAddon.h"
 #include "AnchoBrowserEvents.h"
@@ -19,11 +17,6 @@
 
 #include <Iepmapi.h>
 #pragma comment(lib, "Iepmapi.lib")
-
-extern class CanchoModule _AtlModule;
-
-typedef PassthroughAPP::CMetaFactory<PassthroughAPP::CComClassFactoryProtocol,
-  CAnchoPassthruAPP> MetaFactory;
 
 /*============================================================================
  * class CAnchoRuntime
@@ -152,13 +145,16 @@ STDMETHODIMP_(void) CAnchoRuntime::OnBrowserBeforeNavigate2(LPDISPATCH pDisp, VA
   ATLASSERT(pURL->vt == VT_BSTR && pURL->bstrVal != NULL);
   CComQIPtr<IWebBrowser2> pWebBrowser(pDisp);
   ATLASSERT(pWebBrowser != NULL);
+  VARIANT_BOOL isTop;
+  if (SUCCEEDED(pWebBrowser->get_TopLevelContainer(&isTop))) {
+    if (isTop) {
+      // Loading the main frame so reset the frame list.
+      m_Frames.clear();
+    }
+  }
   CComBSTR bstrUrl;
   removeUrlFragment(pURL->bstrVal, &bstrUrl);
   m_Frames[(BSTR) bstrUrl] = pWebBrowser;
-
-  // Store the URL being loaded (used by the protocol sink).
-  HRESULT hr = m_pWebBrowser->PutProperty(L"_anchoLoadingURL", *pURL);
-  ATLASSERT(SUCCEEDED(hr));
 
   // Check if this is a new tab we are creating programmatically.
   // If so redirect it to the correct URL.
@@ -220,10 +216,10 @@ STDMETHODIMP CAnchoRuntime::OnFrameRedirect(BSTR bstrOldUrl, BSTR bstrNewUrl)
 
 //----------------------------------------------------------------------------
 //  InitializeContentScripting
-HRESULT CAnchoRuntime::InitializeContentScripting(BSTR bstrUrl, VARIANT_BOOL bIsMainFrame, documentLoadPhase aPhase)
+HRESULT CAnchoRuntime::InitializeContentScripting(BSTR bstrUrl, VARIANT_BOOL isRefreshingMainFrame, documentLoadPhase aPhase)
 {
   CComPtr<IWebBrowser2> webBrowser;
-  if (bIsMainFrame) {
+  if (isRefreshingMainFrame) {
     webBrowser = m_pWebBrowser;
   }
   else {
@@ -237,9 +233,9 @@ HRESULT CAnchoRuntime::InitializeContentScripting(BSTR bstrUrl, VARIANT_BOOL bIs
     }
     webBrowser = it->second;
   }
-  // We have to check whether we are the main web browser since the event source can't
-  // always tell us if we are the main frame.
-  if ((bIsMainFrame || webBrowser == m_pWebBrowser) && (documentLoadStart == aPhase)) {
+  // Normally the frame map is cleared in the BeforeNavigate2 handler, but it isn't triggered when the
+  // page is refreshed, so we need this workaround as well.
+  if (isRefreshingMainFrame && (documentLoadStart == aPhase)) {
     m_Frames.clear();
   }
   AddonMap::iterator it = m_Addons.begin();
@@ -255,15 +251,6 @@ HRESULT CAnchoRuntime::InitializeContentScripting(BSTR bstrUrl, VARIANT_BOOL bIs
 //  SetSite
 STDMETHODIMP CAnchoRuntime::SetSite(IUnknown *pUnkSite)
 {
-  CComPtr<IInternetSession> pInternetSession;
-  IF_FAILED_RET(CoInternetGetSession(0, &pInternetSession, 0));
-
-  IF_FAILED_RET(MetaFactory::CreateInstance(CLSID_HttpProtocol, &m_CFHTTP));
-  IF_FAILED_RET(pInternetSession->RegisterNameSpace(m_CFHTTP, CLSID_NULL, L"http", 0, 0, 0));
-
-  IF_FAILED_RET(MetaFactory::CreateInstance(CLSID_HttpSProtocol, &m_CFHTTPS));
-  IF_FAILED_RET(pInternetSession->RegisterNameSpace(m_CFHTTPS, CLSID_NULL, L"https", 0, 0, 0));
-
   HRESULT hr = IObjectWithSiteImpl<CAnchoRuntime>::SetSite(pUnkSite);
   IF_FAILED_RET(hr);
   if (pUnkSite)

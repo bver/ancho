@@ -105,7 +105,7 @@ private:
   void DestroyAddons();
   HRESULT Init();
   HRESULT Cleanup();
-  HRESULT InitializeContentScripting(BSTR bstrUrl, VARIANT_BOOL bIsMainFrame, documentLoadPhase aPhase);
+  HRESULT InitializeContentScripting(BSTR bstrUrl, VARIANT_BOOL bIsRefreshingMainFrame, documentLoadPhase aPhase);
 
   HWND getTabWindow();
   HWND getFrameTabWindow()
@@ -126,8 +126,6 @@ private:
   CComPtr<DAnchoBrowserEvents>            m_pBrowserEventSource;
   DWORD                                   m_WebBrowserEventsCookie;
   DWORD                                   m_AnchoBrowserEventsCookie;
-  CComPtr<IClassFactory>                  m_CFHTTP;
-  CComPtr<IClassFactory>                  m_CFHTTPS;
   FrameMap                                m_Frames;
 };
 

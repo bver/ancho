@@ -130,6 +130,17 @@ var ValidatorManager = function() {
 
   //---------------------------------------
   //  Initialize manager by basic validators
+  this.addValidator('any', function() {
+    this.validate = function(aArg) {
+      if (aArg === null || aArg === undefined) {
+        var e = "Specified object is not \'null\'";
+        return createValidationReportError(e, validationError.INVALID_VALUE);
+      } else {
+        return createValidationReportSuccess();
+      }
+    }
+  });
+  
   this.addValidator('number', function() {
     this.validate = function(aArg) {
       return simpleTypeValidation('number', aArg);
