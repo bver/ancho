@@ -216,9 +216,8 @@ STDMETHODIMP CAnchoAddon::InitializeContentScripting(IWebBrowser2* pBrowser, BST
   IF_FAILED_RET(addJSArrayToVariantVector(jsObj.pdispVal, scripts));
 
   // scripts array is in reverse order here!
-   for(VariantVector::reverse_iterator it = scripts.rbegin(); it != scripts.rend(); it++) {
+  for(VariantVector::reverse_iterator it = scripts.rbegin(); it != scripts.rend(); it++) {
     if( it->vt == VT_BSTR ) {
-      const wchar_t * pp = it->bstrVal;
       m_Magpie->ExecuteGlobal(it->bstrVal);
     }
   }

@@ -111,7 +111,7 @@ private:
    * class HTMLWindowInterfaces
    *  Keeps track of all known IHTMLWindowN interfaces to get the original
    * DISPIDs of the wrapped window. We need this class, because the "window"
-   * object we optain from the webbrowser seems to be kind of a wrapper
+   * object we obtain from the webbrowser seems to be kind of a wrapper
    * itself - it has all the default properties wrapped up as expando
    * properties.
    * It's only purpose is to ask all known interfaces for a certain DISPID.
