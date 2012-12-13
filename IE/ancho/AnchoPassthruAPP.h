@@ -141,7 +141,7 @@ private:
     // Methods
     STDMETHOD_(void, OnReadyStateChange)(IHTMLEventObj* ev);
 
-  protected:
+  private:
     // -------------------------------------------------------------------------
     // Data members
     CComPtr<IHTMLDocument2> m_Doc;
@@ -162,7 +162,7 @@ public:
   CAnchoPassthruAPP() : m_DocSink(NULL), m_IsRefreshingMainFrame(false), m_ProcessedReportData(false) {}
   virtual ~CAnchoPassthruAPP();
 
-protected:
+private:
   // -------------------------------------------------------------------------
   // Data members
   CComQIPtr<DAnchoBrowserEvents> m_BrowserEvents;
