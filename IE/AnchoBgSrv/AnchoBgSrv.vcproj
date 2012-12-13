@@ -354,6 +354,10 @@
 				RelativePath=".\targetver.h"
 				>
 			</File>
+			<File
+				RelativePath=".\XmlHttpRequest.h"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Resource Files"

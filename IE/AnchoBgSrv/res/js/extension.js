@@ -266,6 +266,12 @@ var Extension = function(instanceID) {
   //============================================================================
   // main initialization
 
+
+  this.testFunction = function() {
+    return serviceAPI.testFunction();
+  }
+
+
 }
 
 exports.createAPI = function(instanceID) {

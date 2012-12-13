@@ -485,7 +485,7 @@ STDMETHODIMP CAnchoAddonService::createPopupWindow(BSTR aUrl, INT aX, INT aY, LP
   IDispatch* api;
   IF_FAILED_RET((injectedData.Get<IDispatch*, VT_DISPATCH>((LPOLESTR)s_AnchoBackgroundPageAPIName, api)));
   injectedDataMap[s_AnchoBackgroundPageAPIName] = api;
-  
+
   IDispatch* console;
   IF_FAILED_RET((injectedData.Get<IDispatch*, VT_DISPATCH>((LPOLESTR)s_AnchoBackgroundConsoleObjectName, console)));
   injectedDataMap[s_AnchoBackgroundConsoleObjectName] = console;

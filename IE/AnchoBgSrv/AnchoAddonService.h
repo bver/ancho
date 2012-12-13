@@ -12,7 +12,7 @@
 #include "AnchoBgSrvModule.h"
 #include "IECookieManager.h"
 #include "CommandQueue.h"
-
+#include "XmlHttpRequest.h"
 
 #if defined(_WIN32_WCE) && !defined(_CE_DCOM) && !defined(_CE_ALLOW_SINGLE_THREADED_OBJECTS_IN_MTA)
 #error "Single-threaded COM objects are not properly supported on Windows CE platform, such as the Windows Mobile platforms that do not include full DCOM support. Define _CE_ALLOW_SINGLE_THREADED_OBJECTS_IN_MTA to force ATL to support creating single-thread COM object's and allow use of it's single-threaded COM object implementations. The threading model in your rgs file was set to 'Free' as that is the only threading model supported in non DCOM Windows CE platforms."
@@ -104,9 +104,45 @@ public:
   STDMETHOD(addBrowserActionInfo)(LPDISPATCH aBrowserActionInfo);
   STDMETHOD(setBrowserActionUpdateCallback)(LPDISPATCH aBrowserActionUpdateCallback);
   STDMETHOD(browserActionNotification)();
-  STDMETHOD(testFunction())
+
+  HRESULT AddCustomInternetSecurity(CComPtr<IXMLHttpRequest> pRequest)
   {
-    ATLTRACE(L"TEST FUNCTION -----------------\n");
+    CComObject<CCustomInternetSecurityImpl>* pSecurityImpl = NULL;
+    CComPtr<IUnknown> pUnkSecurity;
+    CComPtr<IObjectWithSite> pObjWithSite;
+
+    IF_FAILED_RET(CComObject<CCustomInternetSecurityImpl>::CreateInstance(&pSecurityImpl));
+    IF_FAILED_RET(pSecurityImpl->QueryInterface(&pUnkSecurity));
+    IF_FAILED_RET(pRequest->QueryInterface(&pObjWithSite));
+    IF_FAILED_RET(pObjWithSite->SetSite(pUnkSecurity));
+
+    return S_OK;
+  }
+  STDMETHOD(testFunction(IDispatch** ppVal))
+  {
+    //ATLTRACE(L"TEST FUNCTION -----------------\n");
+    ENSURE_RETVAL(ppVal);
+
+    HRESULT hr;
+    CComPtr<IXMLHttpRequest> pRequest;
+    CAnchoXmlHttpRequestComObject *request;
+    CAnchoXmlHttpRequestComObject::CreateInstance(&request);
+    //IF_FAILED_RET(request->QueryInterface(IID_IDispatch, (void**) ppVal));
+    //IF_FAILED_RET(request->QueryInterface(IID_IXMLHttpRequest, (void**)pRequest.p));
+    pRequest = request;
+    //hr = pRequest.CoCreateInstance(__uuidof(XMLHTTPRequest));
+    if (pRequest) {
+      hr = pRequest->QueryInterface(IID_IDispatch, (void**) ppVal);
+    } else {
+      return E_FAIL;
+    }
+    if (SUCCEEDED(hr)) {
+      hr = AddCustomInternetSecurity(pRequest);
+      if (FAILED(hr)) {
+        // Succeeded even if we fail to add the custom security object.
+        hr = S_FALSE;
+      }
+    }
     return S_OK;
   }
   // -------------------------------------------------------------------------

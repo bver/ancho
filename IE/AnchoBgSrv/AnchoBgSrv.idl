@@ -7,6 +7,7 @@
 import "oaidl.idl";
 import "ocidl.idl";
 
+
 // forwards
 interface IAnchoAddonBackground;
 interface IAnchoRuntime;
@@ -65,6 +66,31 @@ interface IAnchoAddonBackground : IUnknown
 ]
 library AnchoBgSrvLib
 {
+  //importlib("mshtml.tlb");
+  [
+    object,
+    uuid(6A0B8BBD-48C4-41fc-BE68-E9A1ECB0F83B),
+    dual,
+    nonextensible,
+    pointer_default(unique)
+  ]
+  interface IAnchoXmlHttpRequest : IXMLHttpRequest
+  {
+    [propget]
+    HRESULT withCredentials([out, retval] VARIANT* aRet);
+  };
+
+  [
+    odl,
+    oleautomation,
+    dual,
+    uuid("3A8B9A19-45C0-49A1-A1E0-4BD15FD90842")
+  ]
+  interface IAnchoXMLHttpRequestFactory: IDispatch
+  {
+    HRESULT create([retval, out] IXMLHttpRequest** );
+  };
+
 	importlib("stdole2.tlb");
   [
 	  object,
@@ -120,7 +146,7 @@ library AnchoBgSrvLib
     HRESULT setBrowserActionUpdateCallback([in] LPDISPATCH aBrowserActionUpdateCallback);
     HRESULT browserActionNotification();
 
-    HRESULT testFunction();
+    HRESULT testFunction([out, retval] IDispatch** ppVal);
   };
 
   /*==========================================================================*/
