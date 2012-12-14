@@ -105,44 +105,10 @@ public:
   STDMETHOD(setBrowserActionUpdateCallback)(LPDISPATCH aBrowserActionUpdateCallback);
   STDMETHOD(browserActionNotification)();
 
-  HRESULT AddCustomInternetSecurity(CComPtr<IXMLHttpRequest> pRequest)
-  {
-    CComObject<CCustomInternetSecurityImpl>* pSecurityImpl = NULL;
-    CComPtr<IUnknown> pUnkSecurity;
-    CComPtr<IObjectWithSite> pObjWithSite;
-
-    IF_FAILED_RET(CComObject<CCustomInternetSecurityImpl>::CreateInstance(&pSecurityImpl));
-    IF_FAILED_RET(pSecurityImpl->QueryInterface(&pUnkSecurity));
-    IF_FAILED_RET(pRequest->QueryInterface(&pObjWithSite));
-    IF_FAILED_RET(pObjWithSite->SetSite(pUnkSecurity));
-
-    return S_OK;
-  }
   STDMETHOD(testFunction(IDispatch** ppVal))
   {
     //ATLTRACE(L"TEST FUNCTION -----------------\n");
-    ENSURE_RETVAL(ppVal);
 
-    HRESULT hr;
-    CComPtr<IXMLHttpRequest> pRequest;
-    CAnchoXmlHttpRequestComObject *request;
-    CAnchoXmlHttpRequestComObject::CreateInstance(&request);
-    //IF_FAILED_RET(request->QueryInterface(IID_IDispatch, (void**) ppVal));
-    //IF_FAILED_RET(request->QueryInterface(IID_IXMLHttpRequest, (void**)pRequest.p));
-    pRequest = request;
-    //hr = pRequest.CoCreateInstance(__uuidof(XMLHTTPRequest));
-    if (pRequest) {
-      hr = pRequest->QueryInterface(IID_IDispatch, (void**) ppVal);
-    } else {
-      return E_FAIL;
-    }
-    if (SUCCEEDED(hr)) {
-      hr = AddCustomInternetSecurity(pRequest);
-      if (FAILED(hr)) {
-        // Succeeded even if we fail to add the custom security object.
-        hr = S_FALSE;
-      }
-    }
     return S_OK;
   }
   // -------------------------------------------------------------------------

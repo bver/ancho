@@ -288,6 +288,10 @@
 					/>
 				</FileConfiguration>
 			</File>
+			<File
+				RelativePath=".\XmlHttpRequest.cpp"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"

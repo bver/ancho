@@ -220,7 +220,7 @@ var Extension = function(instanceID) {
     var callback = undefined;
     var ret = undefined;
     if (args.responseCallback) {
-      callbackWrapper = new CallbackWrapper(args.responseCallback);
+      var callbackWrapper = new CallbackWrapper(args.responseCallback);
       callback = callbackWrapper.callback;
     }
     if (args.extensionId && args.extensionId != addonAPI.id) {
@@ -236,6 +236,10 @@ var Extension = function(instanceID) {
             true, //we are skipping _instanceID
             [args.message, sender, callback]
             );
+    }
+
+    if (callbackWrapper === undefined) {
+      return;
     }
 
     //if responseCallaback not yet called, check if some of the listeners

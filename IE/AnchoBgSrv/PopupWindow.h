@@ -26,6 +26,8 @@ public:
 
   BEGIN_SINK_MAP(CPopupWindow)
     SINK_ENTRY_EX(1, DIID_DWebBrowserEvents2, DISPID_DOCUMENTCOMPLETE, OnDocumentComplete)
+    SINK_ENTRY_EX(1, DIID_DWebBrowserEvents2, DISPID_NAVIGATECOMPLETE2, OnNavigateComplete)
+    //SINK_ENTRY_EX(1, DIID_DWebBrowserEvents2, DISPID_DOWNLOADCOMPLETE, OnDownloadComplete)
   END_SINK_MAP()
 
   BEGIN_MSG_MAP(CPopupWindow)
@@ -44,6 +46,8 @@ public:
   LRESULT OnActivate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
 
   STDMETHOD_(void, OnDocumentComplete)(LPDISPATCH aDispatch, VARIANT *aURL);
+  STDMETHOD_(void, OnNavigateComplete)(LPDISPATCH aDispatch, VARIANT *aURL);
+  //STDMETHOD_(void, OnDownloadComplete)();
 
 private:
   CComQIPtr<IWebBrowser2>   m_pWebBrowser;     // Embedded WebBrowserControl

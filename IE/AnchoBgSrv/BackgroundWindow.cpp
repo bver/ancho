@@ -1,6 +1,5 @@
 #include "StdAfx.h"
 #include "BackgroundWindow.h"
-#include "XmlHttpRequest.h"
 
 HRESULT CBackgroundWindow::FinalConstruct()
 {
@@ -37,25 +36,17 @@ LRESULT CBackgroundWindow::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*l
   for (DispatchMap::iterator it = m_InjectedObjects.begin(); it != m_InjectedObjects.end(); ++it) {
     script.SetProperty((LPOLESTR)(it->first.c_str()), CComVariant(it->second));
   }
+  //Replacing XMLHttpRequest by wrapper
+  CComPtr<IDispatchEx> pRequest;
+  IF_FAILED_RET(pRequest.CoCreateInstance(__uuidof(AnchoXmlHttpRequest)));
+  IF_FAILED_RET(script.SetProperty((LPOLESTR)L"XMLHttpRequest", CComVariant(pRequest.p)));
+
   CIDispatchHelper window;
   script.Get<CIDispatchHelper, VT_DISPATCH, IDispatch*>(L"window", window);
   if (window) {
-    CAnchoXmlHttpRequestComObject *requestFactory;
-    IF_FAILED_RET(CAnchoXmlHttpRequestComObject::CreateInstance(&requestFactory));
-    IDispatchEx *dispEx = NULL;
-    requestFactory->QueryInterface<IDispatchEx>(&dispEx);
-    CIDispatchHelper requestConstructor = dispEx;
-    IF_FAILED_RET(window.SetProperty((LPOLESTR)L"XMLHttpRequest", CComVariant(requestConstructor.p)));
-
-    /*CAnchoXmlHttpRequestFactoryComObject *requestFactory;
-    IF_FAILED_RET(CAnchoXmlHttpRequestFactoryComObject::CreateInstance(&requestFactory));
-    CIDispatchHelper requestConstructor = requestFactory;
-    IF_FAILED_RET(window.SetProperty((LPOLESTR)L"XMLHttpRequest", CComVariant(requestConstructor.p)));*/
-//    IF_FAILED_RET(window.SetProperty((LPOLESTR)L"ActiveXObject", CComVariant(requestConstructor.p)));
-    //script.Get<CIDispatchHelper, VT_DISPATCH, IDispatch*>(L"XMLHttpRequest", requestConstructor);
+    IF_FAILED_RET(window.SetProperty((LPOLESTR)L"XMLHttpRequest", CComVariant(pRequest.p)));
+    IF_FAILED_RET(window.SetProperty((LPOLESTR)L"ActiveXObject", CComVariant()));
   }
-
-
 
   // This AddRef call is paired with the Release call in OnFinalMessage
   // to keep the object alive as long as the window exists.

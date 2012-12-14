@@ -276,7 +276,7 @@ var Tabs = function(instanceID) {
     callback = undefined;
     ret = undefined;
     if (responseCallback) {
-      callbackWrapper = new CallbackWrapper(args['responseCallback']);
+      var callbackWrapper = new CallbackWrapper(args['responseCallback']);
       callback = callbackWrapper.callback;
     }
     ret = addonAPI.invokeEventObject(
@@ -285,7 +285,9 @@ var Tabs = function(instanceID) {
             false, //we are selecting tab with tabId
             [message, sender, callback]
             ); //TODO: fill MessageSender
-
+    if (callbackWrapper === undefined) {
+      return;
+    }
 
     //if responseCallback not yet called, check if some of the listeners
     //requests asynchronous responseCallback, otherwise disable responseCallback

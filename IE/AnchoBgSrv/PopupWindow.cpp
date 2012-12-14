@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "PopupWindow.h"
-
+#include "AnchoBgSrv_i.h"
 
 HRESULT CPopupWindow::FinalConstruct()
 {
@@ -42,6 +42,20 @@ LRESULT CPopupWindow::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
   for (DispatchMap::iterator it = m_InjectedObjects.begin(); it != m_InjectedObjects.end(); ++it) {
     ATLTRACE(L"INJECTING OBJECT %s\n", it->first.c_str());
     script.SetProperty((LPOLESTR)(it->first.c_str()), CComVariant(it->second));
+  }
+
+  //Replacing XMLHttpRequest by wrapper
+  CComPtr<IDispatchEx> pRequest;
+  IF_FAILED_RET(pRequest.CoCreateInstance(__uuidof(AnchoXmlHttpRequest)));
+  IF_FAILED_RET(script.SetProperty((LPOLESTR)L"XMLHttpRequest", CComVariant(pRequest.p)));
+
+  CIDispatchHelper window;
+  script.Get<CIDispatchHelper, VT_DISPATCH, IDispatch*>(L"window", window);
+  if (window) {
+    IF_FAILED_RET(window.SetProperty((LPOLESTR)L"XMLHttpRequest", CComVariant(pRequest.p)));
+    /*IF_FAILED_RET(window.SetProperty((LPOLESTR)L"ActiveXObject", CComVariant(pRequest.p)));
+    CIDispatchHelper activeXObject;
+    window.Get<CIDispatchHelper, VT_DISPATCH, IDispatch*>(L"ActiveXObject", activeXObject);*/
   }
 
   // This AddRef call is paired with the Release call in OnFinalMessage
@@ -88,6 +102,47 @@ STDMETHODIMP_(void) CPopupWindow::OnDocumentComplete(LPDISPATCH aDispatch, VARIA
   }
   ATLTRACE(L"DOCUMENT QUERY SUCCESS\n");
   //TODO - autoresize
+}
+
+//STDMETHODIMP_(void) CPopupWindow::OnDownloadComplete()
+STDMETHODIMP_(void) CPopupWindow::OnNavigateComplete(LPDISPATCH aDispatch, VARIANT *aURL)
+{
+  //ATLTRACE(L"NAVIGATE COMPLETE: %s\n", aURL->bstrVal);
+  //CComQIPtr<IWebBrowser2> webBrowser(aDispatch);
+
+  //if (webBrowser != m_pWebBrowser) {
+  //  return;
+  //}
+
+  IDispatch *doc = NULL;
+  m_pWebBrowser->get_Document(&doc);
+
+  CComQIPtr<IHTMLDocument2> htmlDocument2 = doc;
+  CComQIPtr<IHTMLDocument3> htmlDocument3 = doc;
+  if (!htmlDocument2 || !htmlDocument3) {
+    return;
+  }
+
+  CComBSTR code(L"alert('A');console.log('This is injected code');");
+
+  //CComBSTR tagName(L"DIV");
+  CComBSTR tagName(L"SCRIPT");
+  CComBSTR scriptType(L"text/javascript");
+  CComPtr<IHTMLElement> scriptTag;
+  htmlDocument2->createElement(tagName, &scriptTag);
+  scriptTag->put_innerText(code);
+
+  CComPtr<IHTMLElementCollection> headCollection;
+  //htmlDocument3->getElementsByTagName(CComBSTR(L"BODY"), &headCollection);
+  htmlDocument3->getElementsByTagName(CComBSTR(L"HEAD"), &headCollection);
+
+  CComPtr<IDispatch> headItem;
+  headCollection->item(CComVariant((int)0), CComVariant((int)0), &headItem);
+  CComQIPtr<IHTMLDOMNode> headNode = headItem;
+
+  CComPtr<IHTMLDOMNode> retNode;
+  CComQIPtr<IHTMLDOMNode> insertedNode = scriptTag;
+  headNode->appendChild(insertedNode, &retNode);
 }
 
 HRESULT CPopupWindow::CreatePopupWindow(HWND aParent, const DispatchMap &aInjectedObjects, LPCWSTR aURL, int aX, int aY, CIDispatchHelper aCloseCallback)
