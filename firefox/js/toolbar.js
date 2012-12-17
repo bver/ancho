@@ -107,6 +107,7 @@
     }
   };
 
-  module.exports = ToolbarAPI;
+  exports.ToolbarAPI = ToolbarAPI;
+  exports.Toolbar = Toolbar;
 
 }).call(this);

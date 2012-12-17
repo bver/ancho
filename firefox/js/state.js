@@ -61,7 +61,7 @@
     _globalIds: {},
 
     registerUnloader: function(win, unloader) {
-      var windowId = Utils.getWindowId(win);
+      var windowId = getWindowId(win);
       if (!(windowId in this._unloaders)) {
         this._unloaders[windowId] = [];
       }
@@ -70,7 +70,7 @@
     },
 
     unloadWindow: function(win) {
-      var windowId = Utils.getWindowId(win);
+      var windowId = getWindowId(win);
       if (windowId in this._unloaders) {
         this._unloadWindowId(windowId);
       }
