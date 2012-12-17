@@ -213,13 +213,12 @@ STDMETHODIMP CAnchoAddon::InitializeContentScripting(IWebBrowser2* pBrowser, BST
   CIDispatchHelper script = CIDispatchHelper::GetScriptDispatch(m_pWebBrowser);
   CIDispatchHelper window;
   script.Get<CIDispatchHelper, VT_DISPATCH, IDispatch*>(L"window", window);
-  //if (window) {
+  if (window) {
     CComPtr<IDispatchEx> pRequest;
     IF_FAILED_RET(pRequest.CoCreateInstance(__uuidof(AnchoXmlHttpRequest)));
-    //IF_FAILED_RET(window.SetProperty((LPOLESTR)L"XMLHttpRequest", CComVariant(pRequest.p)));
-  //}
-  m_Magpie->AddNamedItem(L"MyXMLHttpRequest", pRequest, SCRIPTITEM_ISVISIBLE|SCRIPTITEM_CODEONLY);
-  m_Magpie->AddNamedItem(L"XMLHttpRequest", pRequest, SCRIPTITEM_ISVISIBLE|SCRIPTITEM_CODEONLY);
+    IF_FAILED_RET(window.SetProperty((LPOLESTR)L"XMLHttpRequest", CComVariant(pRequest.p)));
+    m_Magpie->AddNamedItem(L"XMLHttpRequest", pRequest, SCRIPTITEM_ISVISIBLE|SCRIPTITEM_CODEONLY);
+  }
 
   CIDispatchHelper contentInfo(m_pContentInfo);
   CComVariant jsObj;
