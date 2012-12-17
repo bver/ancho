@@ -90,7 +90,7 @@ HRESULT CAnchoAddonService::getActiveWebBrowser(LPUNKNOWN* pUnkWebBrowser)
 HRESULT CAnchoAddonService::createTab(LPDISPATCH aProperties, LPDISPATCH aCreator, LPDISPATCH aCallback)
 {
   try {
-    m_WebBrowserPostInitTasks.addCommnad(ACommand::Ptr(new CreateTabCommand(*this, aProperties, aCreator, aCallback)));
+    m_WebBrowserPostInitTasks.addCommand(ACommand::Ptr(new CreateTabCommand(*this, aProperties, aCreator, aCallback)));
   } catch (std::runtime_error &e) {
     ATLTRACE("Error: %s\n", e.what());
     return E_FAIL;

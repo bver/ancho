@@ -61,7 +61,7 @@ public:
   CommandQueue(bool aAutoExec = false): mAutoExec(aAutoExec)
   {}
 
-  void addCommnad(ACommand::Ptr aCommand)
+  void addCommand(ACommand::Ptr aCommand)
   {
     if (!aCommand) {
       throw std::runtime_error("Invalid pointer to command");
