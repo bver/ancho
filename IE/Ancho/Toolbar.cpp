@@ -12,21 +12,27 @@ HRESULT CToolbar::InternalSetSite()
 {
   IF_FAILED_RET(BaseClass::InternalSetSite());
 
+  HWND frameTab = findParentWindowByClass(L"Frame Tab");
+  if (!frameTab) {
+    ATLTRACE(L"TOOLBAR: Failed to obtain 'Frame Tab' window handle.");
+    return E_FAIL;
+  }
   // create addon service object
   IF_FAILED_RET(mAnchoService.CoCreateInstance(CLSID_AnchoAddonService));
   CComBSTR url;
-  mAnchoService->registerBrowserActionToolbar(&url);
+  mAnchoService->registerBrowserActionToolbar((INT)frameTab, &url, &mTabId);
   mUrl = std::wstring(url);
 
   CComPtr<IDispatch> dispatchObject;
   mAnchoService->getDispatchObject(&dispatchObject);
   mContentWindow->setExternalObject(dispatchObject);
+  mContentWindow->setTabId(mTabId);
   return RunToolbarPage();
 }
 
 HRESULT CToolbar::InternalReleaseSite()
 {
-  //mContentWindow->m_External.Release();
+  mAnchoService->unregisterBrowserActionToolbar(mTabId);
   return BaseClass::InternalReleaseSite();
 }
 
@@ -64,7 +70,7 @@ HRESULT CToolbar::RunToolbarPage()
   {
     return E_FAIL;
   }
-  mHWNDParent = mContentWindow->operator HWND();
+  //mHWNDParent = mContentWindow->operator HWND();
 
   return mContentWindow->m_pWebBrowser->Navigate(CComBSTR(mUrl.c_str()), NULL, NULL, NULL, NULL);
 }

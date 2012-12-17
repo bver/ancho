@@ -117,7 +117,7 @@ HRESULT CAnchoRuntime::Init()
   IF_FAILED_RET(m_pAnchoService.CoCreateInstance(CLSID_AnchoAddonService));
 
   // Registering tab in service - obtains tab id and assigns it to the tab as property
-  IF_FAILED_RET(m_pAnchoService->registerRuntime(this, &m_TabID));
+  IF_FAILED_RET(m_pAnchoService->registerRuntime((INT)getFrameTabWindow(), this, &m_TabID));
   HWND hwnd;
   m_pWebBrowser->get_HWND((long*)&hwnd);
   ::SetProp(hwnd, s_AnchoTabIDPropertyName, (HANDLE)m_TabID);

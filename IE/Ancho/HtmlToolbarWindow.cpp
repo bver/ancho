@@ -18,7 +18,7 @@ LRESULT CHtmlToolbarWindow::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPAR
   return fnOldWndProc(hwnd, uMsg, wParam, lParam);
 }
 
-CHtmlToolbarWindow::CHtmlToolbarWindow() : m_toolbarCallback(NULL)
+CHtmlToolbarWindow::CHtmlToolbarWindow() : m_toolbarCallback(NULL), mTabId(0)
 {
 }
 
@@ -93,6 +93,8 @@ void CHtmlToolbarWindow::OnBrowserNavigateComplete(IDispatch *pDisp, VARIANT *UR
   {
     m_toolbarCallback->ToolbarWindowNavigateComplete(pDisp, URL);
   }
+  CIDispatchHelper script = CIDispatchHelper::GetScriptDispatch(m_pWebBrowser);
+  script.SetProperty((LPOLESTR)L"browserTabID", CComVariant(mTabId));
 }
 
 void CHtmlToolbarWindow::OnBrowserSetFocus()

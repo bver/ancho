@@ -160,3 +160,20 @@ HRESULT CBasicToolbar<TImplementation, TContentWindow, tClsid>::InternalReleaseS
   }
   return S_OK;
 }
+
+template<typename TImplementation, typename TContentWindow, const CLSID* tClsid>
+HWND CBasicToolbar<TImplementation, TContentWindow, tClsid>::findParentWindowByClass(std::wstring aClassName)
+{
+  HWND window = mHWNDParent;
+  wchar_t className[256];
+  while (window) {
+    if (!GetClassName(window, className, 256)) {
+      return NULL;
+    }
+    if (aClassName == className) {
+      return window;
+    }
+    window = GetParent(window);
+  }
+  return NULL;
+}

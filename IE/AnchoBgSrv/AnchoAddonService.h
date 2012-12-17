@@ -102,7 +102,7 @@ public:
   //STDMETHOD(get_browserActionInfos)(VARIANT* aBrowserActionInfos);
   STDMETHOD(getBrowserActions)(VARIANT* aBrowserActionsArray);
   STDMETHOD(addBrowserActionInfo)(LPDISPATCH aBrowserActionInfo);
-  STDMETHOD(setBrowserActionUpdateCallback)(LPDISPATCH aBrowserActionUpdateCallback);
+  STDMETHOD(setBrowserActionUpdateCallback)(INT aTabId, LPDISPATCH aBrowserActionUpdateCallback);
   STDMETHOD(browserActionNotification)();
 
   STDMETHOD(testFunction(IDispatch** ppVal))
@@ -115,7 +115,7 @@ public:
   // IAnchoAddonService methods. See .idl for description.
   STDMETHOD(GetAddonBackground)(BSTR bsID, IAnchoAddonBackground ** ppRet);
   STDMETHOD(GetModulePath)(BSTR * pbsPath);
-  STDMETHOD(registerRuntime)(IAnchoRuntime * aRuntime, INT *aTabID);
+  STDMETHOD(registerRuntime)(INT aFrameTab, IAnchoRuntime * aRuntime, INT *aTabID);
   STDMETHOD(unregisterRuntime)(INT aTabID);
   STDMETHOD(createTabNotification)(INT aTabID, INT aRequestID);
   STDMETHOD(invokeEventObjectInAllExtensions)(BSTR aEventName, LPDISPATCH aArgs);
@@ -123,9 +123,12 @@ public:
 
   STDMETHOD(webBrowserReady)();
 
-  STDMETHOD(registerBrowserActionToolbar)(BSTR * aUrl);
+  STDMETHOD(registerBrowserActionToolbar)(INT aFrameTab, BSTR * aUrl, INT*aTabId);
+  STDMETHOD(unregisterBrowserActionToolbar)(INT aTabId);
   STDMETHOD(getDispatchObject)(IDispatch **aRet);
 private:
+  int getFrameTabID(int aFrameTab);
+
   void fillWindowInfo(HWND aWndHandle, CIDispatchHelper &aInfo);
   HWND getCurrentWindowHWND();
   bool isIEWindow(HWND);
@@ -183,6 +186,8 @@ private:
   // -------------------------------------------------------------------------
   // Private members.
 
+  typedef std::map<int, int> FrameTabToTabIDMap;
+
   // a map containing all addon background objects - one per addon
   typedef std::map<std::wstring, CAnchoAddonBackgroundComObject*> BackgroundObjectsMap;
   BackgroundObjectsMap  m_BackgroundObjects;
@@ -200,10 +205,11 @@ private:
 
   CommandQueue m_WebBrowserPostInitTasks;
 
-  typedef std::vector<CIDispatchHelper> CallbackVector;
-  //CComPtr<IDispatch> mBrowserActionInfos;
+  FrameTabToTabIDMap m_FrameTabIds;
+
+  typedef std::map<int, CIDispatchHelper> BrowserActionCallbackMap;
   VariantVector m_BrowserActionInfos;
-  CallbackVector m_BrowserActionCallbacks;
+  BrowserActionCallbackMap m_BrowserActionCallbacks;
 };
 
 OBJECT_ENTRY_AUTO(__uuidof(AnchoAddonService), CAnchoAddonService)

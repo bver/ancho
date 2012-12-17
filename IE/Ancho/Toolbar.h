@@ -58,10 +58,7 @@ public:
   STDMETHOD(ShowDW)(BOOL fShow);
 
 public:
-  // IInputObject
-  //STDMETHOD(HasFocusIO)(void);
-  //STDMETHOD(TranslateAcceleratorIO)(LPMSG lpMsg);
-  //STDMETHOD(UIActivateIO)(BOOL fActivate, LPMSG lpMsg);
+  HWND findParentWindowByClass(std::wstring aClassName);
 
 protected:
   virtual HRESULT InternalSetSite();
@@ -88,7 +85,7 @@ public:
   typedef CBasicToolbar<CToolbar, CHtmlToolbarWindow, &CLSID_IEToolbar> BaseClass;
   DECLARE_REGISTRY_RESOURCEID(IDR_ANCHOTOOLBAR)
 
-  CToolbar()
+  CToolbar(): mTabId(0)
   {
   }
   /**
@@ -134,6 +131,7 @@ private:
   HRESULT RunToolbarPage();
   std::wstring mUrl;
   CComPtr<IAnchoAddonService> mAnchoService;
+  int mTabId;
 
 };
 

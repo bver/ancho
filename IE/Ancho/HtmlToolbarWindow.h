@@ -29,6 +29,10 @@ public:
     return S_OK;
   }
 
+  void setTabId(int aTabId) {
+    mTabId = aTabId;
+  }
+
 protected:
   static LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
@@ -38,4 +42,6 @@ protected:
   virtual void OnBrowserNavigateComplete(IDispatch *pDisp, VARIANT *URL);
   virtual void OnBrowserSetFocus();
   virtual void OnBrowserKillFocus();
+
+  int mTabId;
 };

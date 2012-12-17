@@ -260,30 +260,23 @@ STDMETHODIMP CAnchoAddonService::getBrowserActions(VARIANT* aBrowserActionsArray
 
   return constructSafeArrayFromVector(m_BrowserActionInfos, *aBrowserActionsArray);
 }
-
-STDMETHODIMP CAnchoAddonService::setBrowserActionUpdateCallback(LPDISPATCH aBrowserActionUpdateCallback)
+//----------------------------------------------------------------------------
+//
+STDMETHODIMP CAnchoAddonService::setBrowserActionUpdateCallback(INT aTabId, LPDISPATCH aBrowserActionUpdateCallback)
 {
-  m_BrowserActionCallbacks.push_back(CIDispatchHelper(aBrowserActionUpdateCallback));
+  m_BrowserActionCallbacks[aTabId] = CIDispatchHelper(aBrowserActionUpdateCallback);
   return S_OK;
 }
-
+//----------------------------------------------------------------------------
+//
 STDMETHODIMP CAnchoAddonService::browserActionNotification()
 {
-  for (size_t i = 0; i < m_BrowserActionCallbacks.size(); ++i) {
-    m_BrowserActionCallbacks[i].Invoke0(DISPID(0));
+  for (BrowserActionCallbackMap::iterator it = m_BrowserActionCallbacks.begin(); it != m_BrowserActionCallbacks.end(); ++it) {
+    it->second.Invoke0(DISPID(0));
   }
   return S_OK;
 }
-/*HRESULT CAnchoAddonService::get_browserActionInfos(VARIANT* aBrowserActionInfos)
-{
-  ENSURE_RETVAL(aBrowserActionInfos);
-  if (!mBrowserActionInfos) {
-    aBrowserActionInfos->vt = VT_EMPTY;
-    return S_OK;
-  }
-  aBrowserActionInfos->vt = VT_DISPATCH;
-  return mBrowserActionInfos.QueryInterface<IDispatch>(&(aBrowserActionInfos->pdispVal));
-}*/
+
 //----------------------------------------------------------------------------
 //
 HRESULT CAnchoAddonService::addBrowserActionInfo(LPDISPATCH aBrowserActionInfo)
@@ -307,7 +300,17 @@ HRESULT CAnchoAddonService::executeScriptInTab(BSTR aExtensionID, INT aTabID, BS
 }
 //----------------------------------------------------------------------------
 //
-
+int CAnchoAddonService::getFrameTabID(int aFrameTab)
+{
+  FrameTabToTabIDMap::iterator it = m_FrameTabIds.find(aFrameTab);
+  if (it != m_FrameTabIds.end()) {
+    return it->second;
+  }
+  m_FrameTabIds[aFrameTab] = m_NextTabID++;
+  return m_FrameTabIds[aFrameTab];
+}
+//----------------------------------------------------------------------------
+//
 void CAnchoAddonService::fillWindowInfo(HWND aWndHandle, CIDispatchHelper &aInfo)
 {
   //BOOL isVisible = IsWindowVisible(aWndHandle);
@@ -621,11 +624,14 @@ STDMETHODIMP CAnchoAddonService::GetModulePath(BSTR * pbsPath)
 }
 //----------------------------------------------------------------------------
 //
-STDMETHODIMP CAnchoAddonService::registerRuntime(IAnchoRuntime * aRuntime, INT *aTabID)
+STDMETHODIMP CAnchoAddonService::registerRuntime(INT aFrameTab, IAnchoRuntime * aRuntime, INT *aTabID)
 {
+  if (aFrameTab == 0) {
+    return E_FAIL;
+  }
   ENSURE_RETVAL(aTabID);
-  //Assigning tab id
-  *aTabID = m_NextTabID++;
+
+  *aTabID = getFrameTabID(aFrameTab);
 
   m_Runtimes[*aTabID] = RuntimeRecord(aRuntime);
   ATLTRACE(L"ADDON SERVICE - registering tab: %d\n", *aTabID);
@@ -694,16 +700,25 @@ STDMETHODIMP CAnchoAddonService::webBrowserReady()
 
 //----------------------------------------------------------------------------
 //
-STDMETHODIMP CAnchoAddonService::registerBrowserActionToolbar(BSTR * aUrl)
+STDMETHODIMP CAnchoAddonService::registerBrowserActionToolbar(INT aFrameTab, BSTR * aUrl, INT*aTabId)
 {
   ENSURE_RETVAL(aUrl);
+
+  *aTabId = getFrameTabID(aFrameTab);
 
   WCHAR   dllPath[MAX_PATH] = {0};
   GetModuleFileNameW((HINSTANCE)&__ImageBase, dllPath, _countof(dllPath));
 
   CString url;
-  url.Format(L"res://%s/BROWSER_ACTION_TOOLBAR.HTML", dllPath);// (L"H:\\programming\\git\\ancho\\IE\\test-toolbar.html");
+  url.Format(L"res://%s/BROWSER_ACTION_TOOLBAR.HTML", dllPath);
   *aUrl = url.AllocSysString();
+  return S_OK;
+}
+//----------------------------------------------------------------------------
+//
+STDMETHODIMP CAnchoAddonService::unregisterBrowserActionToolbar(INT aTabId)
+{
+  m_BrowserActionCallbacks.erase(aTabId);
   return S_OK;
 }
 //----------------------------------------------------------------------------

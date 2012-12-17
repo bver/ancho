@@ -27,14 +27,15 @@ interface IAnchoAddonService : IUnknown
   HRESULT GetAddonBackground([in] BSTR bsID, [out, retval] IAnchoAddonBackground ** ppRet);
   HRESULT GetModulePath([out, retval] BSTR * pbsPath);
 
-  HRESULT registerRuntime([in] IAnchoRuntime * aRuntime, [out, retval] INT *aTabID);
+  HRESULT registerRuntime([in] INT aFrameTab, [in] IAnchoRuntime * aRuntime, [out, retval] INT *aTabID);
   HRESULT unregisterRuntime([in] INT aTabID);
   HRESULT createTabNotification([in] INT aTabID, [in] INT aRequestID);
   HRESULT invokeEventObjectInAllExtensions([in] BSTR aEventName, [in] LPDISPATCH aArgs);
 
   HRESULT webBrowserReady();
 
-  HRESULT registerBrowserActionToolbar([out, retval] BSTR * aUrl);
+  HRESULT registerBrowserActionToolbar([in] INT aFrameTab, [out] BSTR * aUrl, [out] INT*aTabId);
+  HRESULT unregisterBrowserActionToolbar([in] INT aTabId);
   HRESULT getDispatchObject([out, retval] IDispatch **aRet);
 };
 
@@ -131,7 +132,7 @@ library AnchoBgSrvLib
 
     HRESULT getBrowserActions([out, retval] VARIANT* aBrowserActionsArray);
     HRESULT addBrowserActionInfo([in] LPDISPATCH aBrowserActionInfo);
-    HRESULT setBrowserActionUpdateCallback([in] LPDISPATCH aBrowserActionUpdateCallback);
+    HRESULT setBrowserActionUpdateCallback([in] INT aTabId, [in] LPDISPATCH aBrowserActionUpdateCallback);
     HRESULT browserActionNotification();
 
     HRESULT testFunction([out, retval] IDispatch** ppVal);
