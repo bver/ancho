@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "PopupWindow.h"
-
+#include "AnchoBgSrv_i.h"
 
 HRESULT CPopupWindow::FinalConstruct()
 {
@@ -42,6 +42,17 @@ LRESULT CPopupWindow::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
   for (DispatchMap::iterator it = m_InjectedObjects.begin(); it != m_InjectedObjects.end(); ++it) {
     ATLTRACE(L"INJECTING OBJECT %s\n", it->first.c_str());
     script.SetProperty((LPOLESTR)(it->first.c_str()), CComVariant(it->second));
+  }
+
+  //Replacing XMLHttpRequest by wrapper
+  CComPtr<IDispatchEx> pRequest;
+  IF_FAILED_RET(pRequest.CoCreateInstance(__uuidof(AnchoXmlHttpRequest)));
+  IF_FAILED_RET(script.SetProperty((LPOLESTR)L"XMLHttpRequest", CComVariant(pRequest.p)));
+
+  CIDispatchHelper window;
+  script.Get<CIDispatchHelper, VT_DISPATCH, IDispatch*>(L"window", window);
+  if (window) {
+    IF_FAILED_RET(window.SetProperty((LPOLESTR)L"XMLHttpRequest", CComVariant(pRequest.p)));
   }
 
   // This AddRef call is paired with the Release call in OnFinalMessage
@@ -88,6 +99,22 @@ STDMETHODIMP_(void) CPopupWindow::OnDocumentComplete(LPDISPATCH aDispatch, VARIA
   }
   ATLTRACE(L"DOCUMENT QUERY SUCCESS\n");
   //TODO - autoresize
+}
+
+STDMETHODIMP_(void) CPopupWindow::OnNavigateComplete(LPDISPATCH aDispatch, VARIANT *aURL)
+{
+  //ATLTRACE(L"NAVIGATE COMPLETE: %s\n", aURL->bstrVal);
+}
+
+STDMETHODIMP_(void) CPopupWindow::OnBrowserProgressChange(LONG Progress, LONG ProgressMax)
+{
+  //Workaround to rid of the ActiveXObject
+  //?? still some scripts are started earlier ??
+  //also executed multiple times
+  CIDispatchHelper script = CIDispatchHelper::GetScriptDispatch(m_pWebBrowser);
+  CIDispatchHelper window;
+  script.Get<CIDispatchHelper, VT_DISPATCH, IDispatch*>(L"window", window);
+  window.SetProperty((LPOLESTR)L"ActiveXObject", CComVariant());
 }
 
 HRESULT CPopupWindow::CreatePopupWindow(HWND aParent, const DispatchMap &aInjectedObjects, LPCWSTR aURL, int aX, int aY, CIDispatchHelper aCloseCallback)

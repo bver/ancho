@@ -7,6 +7,7 @@
 import "oaidl.idl";
 import "ocidl.idl";
 
+
 // forwards
 interface IAnchoAddonBackground;
 interface IAnchoRuntime;
@@ -65,6 +66,19 @@ interface IAnchoAddonBackground : IUnknown
 ]
 library AnchoBgSrvLib
 {
+  [
+    object,
+    uuid(6A0B8BBD-48C4-41fc-BE68-E9A1ECB0F83B),
+    dual,
+    nonextensible,
+    pointer_default(unique)
+  ]
+  interface IAnchoXmlHttpRequest : IXMLHttpRequest
+  {
+    [propget]
+    HRESULT withCredentials([out, retval] VARIANT* aRet);
+  };
+
 	importlib("stdole2.tlb");
   [
 	  object,
@@ -120,7 +134,7 @@ library AnchoBgSrvLib
     HRESULT setBrowserActionUpdateCallback([in] LPDISPATCH aBrowserActionUpdateCallback);
     HRESULT browserActionNotification();
 
-    HRESULT testFunction();
+    HRESULT testFunction([out, retval] IDispatch** ppVal);
   };
 
   /*==========================================================================*/
@@ -280,4 +294,11 @@ library AnchoBgSrvLib
     [default] interface IIECookieManager;
   };
 
+  [
+    uuid("495DFDA2-D1CC-4577-9AA1-7623823EF791")
+  ]
+  coclass AnchoXmlHttpRequest
+  {
+    [default] interface IAnchoXmlHttpRequest;
+  };
 };

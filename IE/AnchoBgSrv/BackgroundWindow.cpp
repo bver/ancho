@@ -1,6 +1,5 @@
 #include "StdAfx.h"
 #include "BackgroundWindow.h"
-//#include "AnchoBgSrvModule.h"
 
 HRESULT CBackgroundWindow::FinalConstruct()
 {
@@ -33,9 +32,22 @@ LRESULT CBackgroundWindow::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*l
   {
     return -1;
   }
+
+  AtlAdvise(m_pWebBrowser, (IUnknown *)(BackgroundWindowWebBrowserEvents *) this, DIID_DWebBrowserEvents2, &m_WebBrowserEventsCookie);
+
   CIDispatchHelper script = CIDispatchHelper::GetScriptDispatch(m_pWebBrowser);
   for (DispatchMap::iterator it = m_InjectedObjects.begin(); it != m_InjectedObjects.end(); ++it) {
     script.SetProperty((LPOLESTR)(it->first.c_str()), CComVariant(it->second));
+  }
+  //Replacing XMLHttpRequest by wrapper
+  CComPtr<IDispatchEx> pRequest;
+  IF_FAILED_RET(pRequest.CoCreateInstance(__uuidof(AnchoXmlHttpRequest)));
+  IF_FAILED_RET(script.SetProperty((LPOLESTR)L"XMLHttpRequest", CComVariant(pRequest.p)));
+
+  CIDispatchHelper window;
+  script.Get<CIDispatchHelper, VT_DISPATCH, IDispatch*>(L"window", window);
+  if (window) {
+    IF_FAILED_RET(window.SetProperty((LPOLESTR)L"XMLHttpRequest", CComVariant(pRequest.p)));
   }
 
   // This AddRef call is paired with the Release call in OnFinalMessage
@@ -47,9 +59,21 @@ LRESULT CBackgroundWindow::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*l
 LRESULT CBackgroundWindow::OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
 {
   bHandled = FALSE;
+  AtlUnadvise(m_pWebBrowser, DIID_DWebBrowserEvents2, m_WebBrowserEventsCookie);
   m_pWebBrowser.Release();
 //  m_pDispApiJS.Release();
   return 1;
+}
+
+STDMETHODIMP_(void) CBackgroundWindow::OnBrowserProgressChange(LONG Progress, LONG ProgressMax)
+{
+  //Workaround to rid of the ActiveXObject
+  //?? still some scripts are started earlier ??
+  //also executed multiple times
+  CIDispatchHelper script = CIDispatchHelper::GetScriptDispatch(m_pWebBrowser);
+  CIDispatchHelper window;
+  script.Get<CIDispatchHelper, VT_DISPATCH, IDispatch*>(L"window", window);
+  window.SetProperty((LPOLESTR)L"ActiveXObject", CComVariant());
 }
 
 HRESULT CBackgroundWindow::CreateBackgroundWindow(const DispatchMap &aInjectedObjects, LPCWSTR lpszURL, CBackgroundWindowComObject ** ppRet)
