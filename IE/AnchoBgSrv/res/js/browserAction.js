@@ -45,7 +45,7 @@ var BrowserAction = function(instanceID) {
   function getBrowserActionProperty(aTabId, aPropertyName) {
     if (aTabId
       && browserActionInfo.tabSpecificInfo[aTabId]
-      && browserActionInfo.tabSpecificInfo[aTabId][aPropertyName]) 
+      && browserActionInfo.tabSpecificInfo[aTabId][aPropertyName] != undefined)
     {
       return browserActionInfo.tabSpecificInfo[aTabId][aPropertyName];
     } else {
