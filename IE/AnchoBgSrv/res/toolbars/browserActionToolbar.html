@@ -33,6 +33,10 @@
     }
   </style>
   <script>
+    //--------------------------------------
+    //browserTabID is injected into the page
+
+
   function buttonOnMouseOver(aElement) {
     aElement.style.border = '#CCCCCC solid 1px';
   }
@@ -43,26 +47,43 @@
     aElement.style.border = '#000000 solid 1px';
 	}
 
-	var mouseEventsString = 'onclick="browserActions[this.id].onClick(event.screenX, event.screenY+15)" onmousedown="buttonOnMouseDown(this)" onmouseup="buttonOnMouseOver(this)" onmouseover="buttonOnMouseOver(this)" onmouseout="buttonOnMouseOut(this)" ';
+	var mouseEventsString = 'onclick="browserActions[this.id].onClick(event.screenX, event.screenY+15, browserTabID)" onmousedown="buttonOnMouseDown(this)" onmouseup="buttonOnMouseOver(this)" onmouseover="buttonOnMouseOver(this)" onmouseout="buttonOnMouseOut(this)" ';
 
-  function getButtonCode(aId) {
-		var str = '<div class="baButton" id=\"' + aId  + '\" ' ;
-		if (browserActions[aId].title) {
-			str += 'title=' + '\"' + browserActions[aId].title + '\"';
+  //if possible use tab specific properties
+	function mergeTabSpecifics(aGlobal, aTabSpecific) {
+	  var info = {};
+	  for (var attrname in aGlobal) {
+	    info[attrname] = aGlobal[attrname];
 	  }
-	  if (browserActions[aId].enabled) {
+	  if (aTabSpecific) {
+	    for (var attrname in aTabSpecific) {
+	      info[attrname] = aTabSpecific[attrname];
+	    }
+	  }
+	  return info;
+	}
+
+
+	function getButtonCode(aId) {
+	  var info = mergeTabSpecifics(browserActions[aId].globalInfo, browserActions[aId].tabSpecificInfo[browserTabID]);	
+
+		var str = '<div class="baButton" id=\"' + aId  + '\" ' ;
+		if (info.title) {
+		  str += 'title=' + '\"' + info.title + '\"';
+	  }
+	  if (info.enabled) {
 	    str += mouseEventsString;
 	  }
-		if (browserActions[aId].icon) {
-		  str += 'style="background-image: url(' + browserActions[aId].icon + ')" ';
+	  if (info.icon) {
+	    str += 'style="background-image: url(' + info.icon + ')" ';
 		}
 		str += '>';
-    if (browserActions[aId].badge) {
+		if (info.badge) {
       str += '<div class="baBadge"'
-      if (browserActions[aId].badgeBackgroundColor) {
-        str += 'style="background-color:"' + browserActions[aId].badgeBackgroundColor + '" ';
+      if (info.badgeBackgroundColor) {
+        str += 'style="background-color:"' + info.badgeBackgroundColor + '" ';
       }
-      str += '>' + browserActions[aId].badge + '</div>';
+      str += '>' + info.badge + '</div>';
     }
     str += '</div>';
 
@@ -92,8 +113,8 @@
 		browserActions = actions;
     updateBrowserActions();
   }
-	var callbackID = external.setBrowserActionUpdateCallback(initBrowserActions);
-	
+  var callbackID = external.setBrowserActionUpdateCallback(browserTabID, initBrowserActions);
+
 	window.onload = initBrowserActions;
   </script>
 </head>

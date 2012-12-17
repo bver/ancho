@@ -29,7 +29,29 @@ var BrowserAction = function(instanceID) {
   //============================================================================
   // private variables
 
+  var _instanceID = instanceID;
 
+  function setBrowserActionProperty(aTabId, aPropertyName, aValue) {
+    if (aTabId) {
+      if (!browserActionInfo.tabSpecificInfo[aTabId]) {
+        browserActionInfo.tabSpecificInfo[aTabId] = {};
+      }
+      browserActionInfo.tabSpecificInfo[aTabId][aPropertyName] = aValue;
+    } else {
+      browserActionInfo.globalInfo[aPropertyName] = aValue;
+    }
+  }
+
+  function getBrowserActionProperty(aTabId, aPropertyName) {
+    if (aTabId
+      && browserActionInfo.tabSpecificInfo[aTabId]
+      && browserActionInfo.tabSpecificInfo[aTabId][aPropertyName] != undefined)
+    {
+      return browserActionInfo.tabSpecificInfo[aTabId][aPropertyName];
+    } else {
+      return browserActionInfo.globalInfo[aPropertyName];
+    }
+  }
   //============================================================================
   // public methods
 
@@ -40,7 +62,7 @@ var BrowserAction = function(instanceID) {
     if (!browserActionInfo) {
       throw new Error('This extension has no action specified.');
     }
-    args.callback(browserActionInfo.badgeBackgroundColor);
+    args.callback(getBrowserActionProperty(args.details.tabId, 'badgeBackgroundColor'));
   };
 
   //----------------------------------------------------------------------------
@@ -50,7 +72,7 @@ var BrowserAction = function(instanceID) {
     if (!browserActionInfo) {
       throw new Error('This extension has no action specified.');
     }
-    args.callback(browserActionInfo.badge);
+    args.callback(getBrowserActionProperty(args.details.tabId, 'badge'));
   };
 
   //----------------------------------------------------------------------------
@@ -60,7 +82,7 @@ var BrowserAction = function(instanceID) {
     if (!browserActionInfo) {
       throw new Error('This extension has no action specified.');
     }
-    args.callback(browserActionInfo.popup);
+    args.callback(getBrowserActionProperty(args.details.tabId, 'popup'));
   };
 
   //----------------------------------------------------------------------------
@@ -70,7 +92,7 @@ var BrowserAction = function(instanceID) {
     if (!browserActionInfo) {
       throw new Error('This extension has no action specified.');
     }
-    args.callback(browserActionInfo.title);
+    args.callback(getBrowserActionProperty(args.details.tabId, 'title'));
   };
 
   //----------------------------------------------------------------------------
@@ -80,7 +102,7 @@ var BrowserAction = function(instanceID) {
     if (!browserActionInfo) {
       throw new Error('This extension has no action specified.');
     }
-    browserActionInfo.badgeBackgroundColor = utils.stringColorRepresentation(args.details.color);
+    setBrowserActionProperty(args.details.tabId, 'badgeBackgroundColor', utils.stringColorRepresentation(args.details.color));
     serviceAPI.browserActionNotification();
   };
 
@@ -91,7 +113,7 @@ var BrowserAction = function(instanceID) {
     if (!browserActionInfo) {
       throw new Error('This extension has no action specified.');
     }
-    browserActionInfo.badge = args.details.text;
+    setBrowserActionProperty(args.details.tabId, 'badge', args.details.text);
     serviceAPI.browserActionNotification();
   };
 
@@ -103,7 +125,7 @@ var BrowserAction = function(instanceID) {
       throw new Error('This extension has no action specified.');
     }
     //TODO - handle other possible icon specifications
-    browserActionInfo.icon = args.details.path;
+    setBrowserActionProperty(args.details.tabId, 'icon', args.details.path);
     serviceAPI.browserActionNotification();
   };
 
@@ -114,7 +136,7 @@ var BrowserAction = function(instanceID) {
     if (!browserActionInfo) {
       throw new Error('This extension has no action specified.');
     }
-    browserActionInfo.popup = args.details.popup;
+    setBrowserActionProperty(args.details.tabId, 'popup', args.details.popup);
     serviceAPI.browserActionNotification();
   };
 
@@ -125,7 +147,7 @@ var BrowserAction = function(instanceID) {
     if (!browserActionInfo) {
       throw new Error('This extension has no action specified.');
     }
-    browserActionInfo.title = args.details.title;
+    setBrowserActionProperty(args.details.tabId, 'title', args.details.title);
     serviceAPI.browserActionNotification();
   };
 
@@ -136,7 +158,7 @@ var BrowserAction = function(instanceID) {
     if (!browserActionInfo) {
       throw new Error('This extension has no action specified.');
     }
-    browserActionInfo.enabled = true;
+    setBrowserActionProperty(args.details.tabId, 'enabled', true);
     serviceAPI.browserActionNotification();
   };
 
@@ -147,7 +169,7 @@ var BrowserAction = function(instanceID) {
     if (!browserActionInfo) {
       throw new Error('This extension has no action specified.');
     }
-    browserActionInfo.enabled = false;
+    setBrowserActionProperty(args.details.tabId, 'enabled', false);
     serviceAPI.browserActionNotification();
   };
   //============================================================================
@@ -166,10 +188,14 @@ exports.createAPI = function(instanceID) {
 }
 
 exports.releaseAPI = function(instanceID) {
-  EventFactory.releaseEvents(instanceID, API_NAME, EVENT_LIST); ;
+  if (browserActionInfo && browserActionInfo.tabSpecificInfo[instanceID]) {
+    delete browserActionInfo.tabSpecificInfo[instanceID];
+  }
+
+  EventFactory.releaseEvents(instanceID, API_NAME, EVENT_LIST);
 }
 
-function createPopup(aX, aY) {
+function createPopup(aX, aY, aPopup) {
   var api = require("api.js");
   var apiId = api.reserveFullAPIInstanceID();
   var data = {
@@ -181,7 +207,7 @@ function createPopup(aX, aY) {
     api.releaseFullAPI(apiId);
   }
   console.debug("Creating popup window");
-  serviceAPI.createPopupWindow(browserActionInfo.popup, aX, aY, data, cleanUpProcedure);
+  serviceAPI.createPopupWindow(aPopup, aX, aY, data, cleanUpProcedure);
 }
 
 
@@ -192,9 +218,11 @@ exports.initBrowserAction = function(browserActionData) {
   if (browserActionData) {
     browserActionInfo = {
       id: addonAPI.id,
-      onClick: function(aX, aY) {
-        if (browserActionInfo.popup) {
-          createPopup(aX, aY);
+      onClick: function(aX, aY, aTabId) {
+        var popup = browserActionInfo.tabSpecificInfo[aTabId] ? browserActionInfo.tabSpecificInfo[aTabId].popup : undefined;
+        popup = popup || browserActionInfo.globalInfo.popup;
+        if (popup) {
+          createPopup(aX, aY, popup);
         }
         serviceAPI.invokeExternalEventObject(
               addonAPI.id,
@@ -202,31 +230,34 @@ exports.initBrowserAction = function(browserActionData) {
               [{}]//TODO - send tab info
               );
       },
-      enabled: true,
-      badgeBackgroundColor: '#FFFFFF',
-      badge: '',
-      title: undefined,
-      popup: undefined
+      globalInfo: {
+        enabled: true,
+        badgeBackgroundColor: '#FFFFFF',
+        badge: '',
+        title: undefined,
+        popup: undefined
+      },
+      tabSpecificInfo: {}
     };
 
     if (browserActionData.default_icon) {
-      browserActionInfo.icon = 'chrome-extension://' + addonAPI.id + '/' + browserActionData.default_icon;
+      browserActionInfo.globalInfo.icon = 'chrome-extension://' + addonAPI.id + '/' + browserActionData.default_icon;
       debugString = debugString + " icon: " + browserActionData.default_icon + ";";
     }
     if (browserActionData.default_title) {
-      browserActionInfo.title = browserActionData.default_title;
+      browserActionInfo.globalInfo.title = browserActionData.default_title;
       debugString = debugString + " title: " + browserActionData.default_title + ";";
     }
     if (browserActionData.default_popup) {
-      browserActionInfo.popup = addonRootURL + browserActionData.default_popup;
+      browserActionInfo.globalInfo.popup = addonRootURL + browserActionData.default_popup;
       debugString = debugString + " popup: " + browserActionData.default_popup + ";";
     }
     if (browserActionData.default_badge) {
-      browserActionInfo.badge = browserActionData.default_badge;
+      browserActionInfo.globalInfo.badge = browserActionData.default_badge;
       debugString = debugString + " popup: " + browserActionData.default_badge + ";";
     }
     if (browserActionData.default_badgeBackgroundColor) {
-      browserActionInfo.badgeBackgroundColor = utils.stringColorRepresentation(browserActionData.default_badgeBackgroundColor);
+      browserActionInfo.globalInfo.badgeBackgroundColor = utils.stringColorRepresentation(browserActionData.default_badgeBackgroundColor);
       debugString = debugString + " badgeBackgroundColor: " + browserActionData.default_badgeBackgroundColor + ";";
     }
     serviceAPI.addBrowserActionInfo(browserActionInfo);
