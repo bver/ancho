@@ -4,13 +4,17 @@
 
 #include "AnchoBgSrv_i.h"
 
+#include <exdispid.h>
+
 class CBackgroundWindow;
 typedef CComObject<CBackgroundWindow>  CBackgroundWindowComObject;
+typedef IDispEventImpl<1, CBackgroundWindow, &DIID_DWebBrowserEvents2, &LIBID_SHDocVw, 1, 0> BackgroundWindowWebBrowserEvents;
 
 class CBackgroundWindow :
   public CComObjectRootEx<CComSingleThreadModel>,
   public CWindowImpl<CBackgroundWindow, CAxWindow>,
-  public IUnknown
+  public IUnknown,
+  public BackgroundWindowWebBrowserEvents
 {
 public:
   DECLARE_FRAME_WND_CLASS(NULL, IDR_MAINFRAME)
@@ -28,6 +32,10 @@ public:
     MESSAGE_HANDLER(WM_DESTROY, OnDestroy)
   END_MSG_MAP()
 
+  BEGIN_SINK_MAP(CBackgroundWindow)
+    SINK_ENTRY_EX(1, DIID_DWebBrowserEvents2, DISPID_PROGRESSCHANGE, OnBrowserProgressChange)
+  END_SINK_MAP()
+
   HRESULT FinalConstruct();
   void FinalRelease();
 
@@ -36,8 +44,10 @@ public:
   LRESULT OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
   LRESULT OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled);
 
+  STDMETHOD_(void, OnBrowserProgressChange)(LONG Progress, LONG ProgressMax);
 private:
   CComQIPtr<IWebBrowser2>   m_pWebBrowser;     // Embedded WebBrowserControl
   DispatchMap m_InjectedObjects;
+  DWORD       m_WebBrowserEventsCookie;
   CStringW    m_sURL;
 };

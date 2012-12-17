@@ -53,9 +53,6 @@ LRESULT CPopupWindow::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
   script.Get<CIDispatchHelper, VT_DISPATCH, IDispatch*>(L"window", window);
   if (window) {
     IF_FAILED_RET(window.SetProperty((LPOLESTR)L"XMLHttpRequest", CComVariant(pRequest.p)));
-    /*IF_FAILED_RET(window.SetProperty((LPOLESTR)L"ActiveXObject", CComVariant(pRequest.p)));
-    CIDispatchHelper activeXObject;
-    window.Get<CIDispatchHelper, VT_DISPATCH, IDispatch*>(L"ActiveXObject", activeXObject);*/
   }
 
   // This AddRef call is paired with the Release call in OnFinalMessage
@@ -104,45 +101,20 @@ STDMETHODIMP_(void) CPopupWindow::OnDocumentComplete(LPDISPATCH aDispatch, VARIA
   //TODO - autoresize
 }
 
-//STDMETHODIMP_(void) CPopupWindow::OnDownloadComplete()
 STDMETHODIMP_(void) CPopupWindow::OnNavigateComplete(LPDISPATCH aDispatch, VARIANT *aURL)
 {
   //ATLTRACE(L"NAVIGATE COMPLETE: %s\n", aURL->bstrVal);
-  //CComQIPtr<IWebBrowser2> webBrowser(aDispatch);
+}
 
-  //if (webBrowser != m_pWebBrowser) {
-  //  return;
-  //}
-
-  IDispatch *doc = NULL;
-  m_pWebBrowser->get_Document(&doc);
-
-  CComQIPtr<IHTMLDocument2> htmlDocument2 = doc;
-  CComQIPtr<IHTMLDocument3> htmlDocument3 = doc;
-  if (!htmlDocument2 || !htmlDocument3) {
-    return;
-  }
-
-  CComBSTR code(L"alert('A');console.log('This is injected code');");
-
-  //CComBSTR tagName(L"DIV");
-  CComBSTR tagName(L"SCRIPT");
-  CComBSTR scriptType(L"text/javascript");
-  CComPtr<IHTMLElement> scriptTag;
-  htmlDocument2->createElement(tagName, &scriptTag);
-  scriptTag->put_innerText(code);
-
-  CComPtr<IHTMLElementCollection> headCollection;
-  //htmlDocument3->getElementsByTagName(CComBSTR(L"BODY"), &headCollection);
-  htmlDocument3->getElementsByTagName(CComBSTR(L"HEAD"), &headCollection);
-
-  CComPtr<IDispatch> headItem;
-  headCollection->item(CComVariant((int)0), CComVariant((int)0), &headItem);
-  CComQIPtr<IHTMLDOMNode> headNode = headItem;
-
-  CComPtr<IHTMLDOMNode> retNode;
-  CComQIPtr<IHTMLDOMNode> insertedNode = scriptTag;
-  headNode->appendChild(insertedNode, &retNode);
+STDMETHODIMP_(void) CPopupWindow::OnBrowserProgressChange(LONG Progress, LONG ProgressMax)
+{
+  //Workaround to rid of the ActiveXObject
+  //?? still some scripts are started earlier ??
+  //also executed multiple times
+  CIDispatchHelper script = CIDispatchHelper::GetScriptDispatch(m_pWebBrowser);
+  CIDispatchHelper window;
+  script.Get<CIDispatchHelper, VT_DISPATCH, IDispatch*>(L"window", window);
+  window.SetProperty((LPOLESTR)L"ActiveXObject", CComVariant());
 }
 
 HRESULT CPopupWindow::CreatePopupWindow(HWND aParent, const DispatchMap &aInjectedObjects, LPCWSTR aURL, int aX, int aY, CIDispatchHelper aCloseCallback)

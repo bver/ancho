@@ -118,7 +118,7 @@ public:
   HRESULT STDMETHODCALLTYPE get_status(long *plStatus)
   {
     HRESULT hr = mRequest->get_status(plStatus);
-    if (hr == S_OK && *plStatus == 0) { //Workaround -local file request returns 0
+    if (hr == S_OK && *plStatus == 0) { //Workaround - local file request returns 0
       *plStatus = 200;
     }
     return hr;

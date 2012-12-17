@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "XmlHttpRequest.h"
 
+//TODO: Implementation copied from aji - needs cleanup
 class ATL_NO_VTABLE CCustomInternetSecurityImpl :
   public CComObjectRootEx<CComSingleThreadModel>,
   public IDispatchImpl<IDispatch, &IID_IDispatch, NULL, /*wMajor =*/ 1, /*wMinor =*/ 0>,
@@ -35,39 +36,29 @@ public:
   { }
 
 public:
-  STDMETHOD(SetSecuritySite)(
-    /* [unique][in] */ __RPC__in_opt IInternetSecurityMgrSite *pSite)
+  STDMETHOD(SetSecuritySite)(IInternetSecurityMgrSite *pSite)
   { return INET_E_DEFAULT_ACTION; }
 
-  STDMETHOD(GetSecuritySite)(
-    /* [out] */ __RPC__deref_out_opt IInternetSecurityMgrSite **ppSite)
+  STDMETHOD(GetSecuritySite)(IInternetSecurityMgrSite **ppSite)
   { return INET_E_DEFAULT_ACTION; }
 
-  STDMETHOD(MapUrlToZone)(
-    /* [in] */ __RPC__in LPCWSTR pwszUrl,
-    /* [out] */ __RPC__out DWORD *pdwZone,
-    /* [in] */ DWORD dwFlags)
+  STDMETHOD(MapUrlToZone)(LPCWSTR pwszUrl, DWORD *pdwZone, DWORD dwFlags)
   {
     *pdwZone = URLZONE_TRUSTED;
     return S_OK;
   }
 
-  STDMETHOD(GetSecurityId)(
-    /* [in] */ __RPC__in LPCWSTR pwszUrl,
-    /* [size_is][out] */ __RPC__out_ecount_full(*pcbSecurityId) BYTE *pbSecurityId,
-    /* [out][in] */ __RPC__inout DWORD *pcbSecurityId,
-    /* [in] */ DWORD_PTR dwReserved)
+  STDMETHOD(GetSecurityId)(LPCWSTR pwszUrl, BYTE *pbSecurityId, DWORD *pcbSecurityId, DWORD_PTR dwReserved)
   { return INET_E_DEFAULT_ACTION; }
 
-  STDMETHOD(ProcessUrlAction)(
-    /* [in] */ __RPC__in LPCWSTR pwszUrl,
-    /* [in] */ DWORD dwAction,
-    /* [size_is][out] */ __RPC__out_ecount_full(cbPolicy) BYTE *pPolicy,
-    /* [in] */ DWORD cbPolicy,
-    /* [in] */ __RPC__in BYTE *pContext,
-    /* [in] */ DWORD cbContext,
-    /* [in] */ DWORD dwFlags,
-    /* [in] */ DWORD dwReserved)
+  STDMETHOD(ProcessUrlAction)(LPCWSTR pwszUrl,
+                              DWORD dwAction,
+                              BYTE *pPolicy,
+                              DWORD cbPolicy,
+                              BYTE *pContext,
+                              DWORD cbContext,
+                              DWORD dwFlags,
+                              DWORD dwReserved)
   {
     if(pPolicy != NULL)
     {
@@ -83,43 +74,27 @@ public:
     return INET_E_DEFAULT_ACTION;
   }
 
-  STDMETHOD(QueryCustomPolicy)(
-    /* [in] */ __RPC__in LPCWSTR pwszUrl,
-    /* [in] */ __RPC__in REFGUID guidKey,
-    /* [size_is][size_is][out] */ __RPC__deref_out_ecount_full_opt(*pcbPolicy) BYTE **ppPolicy,
-    /* [out] */ __RPC__out DWORD *pcbPolicy,
-    /* [in] */ __RPC__in BYTE *pContext,
-    /* [in] */ DWORD cbContext,
-    /* [in] */ DWORD dwReserved)
+  STDMETHOD(QueryCustomPolicy)(LPCWSTR pwszUrl,
+                               REFGUID guidKey,
+                               BYTE **ppPolicy,
+                               DWORD *pcbPolicy,
+                               BYTE *pContext,
+                               DWORD cbContext,
+                               DWORD dwReserved)
   { return INET_E_DEFAULT_ACTION; }
 
-  STDMETHOD(SetZoneMapping)(
-    /* [in] */ DWORD dwZone,
-    /* [in] */ __RPC__in LPCWSTR lpszPattern,
-    /* [in] */ DWORD dwFlags)
+  STDMETHOD(SetZoneMapping)(DWORD dwZone, LPCWSTR lpszPattern, DWORD dwFlags)
   { return INET_E_DEFAULT_ACTION; }
 
-  STDMETHOD(GetZoneMappings)(
-    /* [in] */ DWORD dwZone,
-    /* [out] */ __RPC__deref_out_opt IEnumString **ppenumString,
-    /* [in] */ DWORD dwFlags)
+  STDMETHOD(GetZoneMappings)(DWORD dwZone, IEnumString **ppenumString, DWORD dwFlags)
   { return INET_E_DEFAULT_ACTION; }
 
   // IOleCommandTarget
 public:
-  STDMETHOD (QueryStatus)(
-    /* [unique][in] */ const GUID *pguidCmdGroup,
-    /* [in] */ ULONG cCmds,
-    /* [out][in][size_is] */ OLECMD prgCmds[  ],
-    /* [unique][out][in] */ OLECMDTEXT *pCmdText)
+  STDMETHOD (QueryStatus)(const GUID *pguidCmdGroup, ULONG cCmds, OLECMD prgCmds[], OLECMDTEXT *pCmdText)
   { return E_NOTIMPL; }
 
-  STDMETHOD(Exec)(
-    /*[in]*/ const GUID *pguidCmdGroup,
-    /*[in]*/ DWORD nCmdID,
-    /*[in]*/ DWORD nCmdExecOpt,
-    /*[in]*/ VARIANTARG *pvaIn,
-    /*[in,out]*/ VARIANTARG *pvaOut)
+  STDMETHOD(Exec)(const GUID *pguidCmdGroup, DWORD nCmdID, DWORD nCmdExecOpt, VARIANTARG *pvaIn, VARIANTARG *pvaOut)
   {
     HRESULT hr = S_OK;
     if(pguidCmdGroup && IsEqualGUID(*pguidCmdGroup, CGID_DocHostCommandHandler))
@@ -141,44 +116,25 @@ public:
   STDMETHODIMP SaveObject()
   { return E_NOTIMPL; }
 
-  STDMETHODIMP GetMoniker(
-    /* [in] */ DWORD dwAssign,
-    /* [in] */ DWORD dwWhichMoniker,
-    /* [out] */ IMoniker **ppmk)
+  STDMETHODIMP GetMoniker(DWORD dwAssign, DWORD dwWhichMoniker, IMoniker **ppmk)
   { return E_NOTIMPL; }
 
-  STDMETHODIMP GetContainer(/* [out] */ IOleContainer **ppContainer)
+  STDMETHODIMP GetContainer(IOleContainer **ppContainer)
   { return E_NOTIMPL; }
 
   STDMETHODIMP ShowObject()
   { return S_OK; }
 
-  STDMETHODIMP OnShowWindow(/* [in] */ BOOL fShow)
+  STDMETHODIMP OnShowWindow(BOOL fShow)
   { return S_OK; }
 
   STDMETHODIMP RequestNewObjectLayout()
   { return E_NOTIMPL; }
 
-  /*STDMETHODIMP QueryInterface(REFIID riid, void** ppv)
-  {
-    if(IsEqualGUID(IID_IInternetSecurityManager, riid)){
-      *ppv=(IInternetSecurityManager*) this;
-    }
-    else if(IsEqualGUID(IID_IUnknown, riid)){
-      *ppv=(IUnknown*)((IOleClientSite*) this);
-    }
-    else if(IsEqualGUID(IID_IOleClientSite, riid)){
-      *ppv=(IOleClientSite*) this;
-    }
-    else{
-      *ppv=NULL;
-      return E_NOINTERFACE;
-    }
-
-    return S_OK;
-  }*/
 };
 
+//----------------------------------------------------------------------------
+//
 STDMETHODIMP CAnchoXmlHttpRequest::GetDispID(BSTR bstrName, DWORD grfdex, DISPID *pid)
 {
   ENSURE_RETVAL(pid);
@@ -186,15 +142,11 @@ STDMETHODIMP CAnchoXmlHttpRequest::GetDispID(BSTR bstrName, DWORD grfdex, DISPID
     *pid = DISPID_PROTOTYPE;
     return S_OK;
   } else {
-    /*LPOLESTR names[] = {(LPOLESTR)bstrName};
-    DISPID dispId[1];
-    GetIDsOfNames(IID_NULL, names, 1, LANG_NEUTRAL, dispId);
-    *pid = dispId[0];
-    return S_OK;*/
     return GetIDsOfNames(IID_NULL, (LPOLESTR*)&bstrName, 1, LANG_NEUTRAL, pid);
   }
 }
-
+//----------------------------------------------------------------------------
+//
 STDMETHODIMP CAnchoXmlHttpRequest::InvokeEx(
                           DISPID id,
                           LCID lcid,
@@ -209,40 +161,15 @@ STDMETHODIMP CAnchoXmlHttpRequest::InvokeEx(
     vt.Detach(pvarRes);
     return S_OK;
   }
-  if (id == 0/* && (wFlags & DISPATCH_CONSTRUCT)*/) {
+  if (id == 0 && (wFlags & DISPATCH_CONSTRUCT || wFlags == 0)) { //sometimes constructor called with zero flags !?
     return create(pvarRes);
   }
   //Fallback to IDipatch Invoke
   return Invoke(id, IID_NULL, lcid, wFlags, pdp, pvarRes, pei, NULL);
-
-  /*switch(wFlags) {
-  case DISPATCH_PROPERTYPUT:
-  case DISPATCH_PROPERTYPUTREF:
-  case DISPATCH_PROPERTYPUT|DISPATCH_PROPERTYPUTREF:
-  case DISPATCH_METHOD:
-    return Invoke(id, IID_NULL, lcid, wFlags, pdp, pvarRes, pei, NULL);
-    break;
-  case DISPATCH_PROPERTYGET:
-  case DISPATCH_METHOD|DISPATCH_PROPERTYGET:
-    {
-      if (id == DISPID_PROTOTYPE) {
-        CComVariant vt(static_cast<IDispatchEx*>(this));
-        vt.Detach(pvarRes);
-      } else {
-        return Invoke(id, IID_NULL, lcid, wFlags, pdp, pvarRes, pei, NULL);
-      }
-      break;
-    }
-  case DISPATCH_CONSTRUCT:
-    IF_FAILED_RET(create(pvarRes));
-    break;
-  default:
-    return E_INVALIDARG;
-  }
-  return S_OK;*/
 }
 
-
+//----------------------------------------------------------------------------
+//
 STDMETHODIMP CAnchoXmlHttpRequest::create(VARIANT *aRequest)
 {
   ENSURE_RETVAL(aRequest);
@@ -251,10 +178,7 @@ STDMETHODIMP CAnchoXmlHttpRequest::create(VARIANT *aRequest)
   CComPtr<IXMLHttpRequest> pRequest;
   CAnchoXmlHttpRequestComObject *request;
   CAnchoXmlHttpRequestComObject::CreateInstance(&request);
-  //IF_FAILED_RET(request->QueryInterface(IID_IDispatch, (void**) ppVal));
-  //IF_FAILED_RET(request->QueryInterface(IID_IXMLHttpRequest, (void**)pRequest.p));
   pRequest = request;
-  //hr = pRequest.CoCreateInstance(__uuidof(XMLHTTPRequest));
   if (pRequest) {
     aRequest->vt = VT_DISPATCH;
     hr = pRequest->QueryInterface(IID_IAnchoXmlHttpRequest, (void**) &(aRequest->pdispVal));
