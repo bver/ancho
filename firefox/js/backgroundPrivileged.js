@@ -11,7 +11,7 @@ var ExtensionState = require('./state');
 var applyContentScripts = require('./scripting').applyContentScripts;
 var loadHtml = require('./scripting').loadHtml;
 var BrowserEvents = require('./browserEvents');
-var Toolbar = require('./toolbar');
+var Toolbar = require('./toolbar').Toolbar;
 var Config = require('./config');
 
 function createWindowUnloader(win) {
