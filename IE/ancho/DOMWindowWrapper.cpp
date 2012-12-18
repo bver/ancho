@@ -326,14 +326,22 @@ STDMETHODIMP DOMWindowWrapper::InvokeEx(DISPID id, LCID lcid, WORD wFlags,
           handled);
       break;
     case DISPATCH_PROPERTYGET:
+      hrRet = dispatchPropertyGet(wFlags, id, IID_NULL, lcid, pdp, pvarRes,
+          pei, pspCaller, handled);
+      break;
     case DISPATCH_METHOD|DISPATCH_PROPERTYGET:
       // http://msdn.microsoft.com/en-us/library/windows/desktop/ms221486%28v=vs.85%29.aspx :
       // "Some languages cannot distinguish between retrieving a property and
       // calling a method. In this case, you should set the flags
       // DISPATCH_PROPERTYGET and DISPATCH_METHOD".
-      // This means, we have to handle both cases as dispatchPropertyGet.
-      hrRet = dispatchPropertyGet(wFlags, id, IID_NULL, lcid, pdp, pvarRes,
-          pei, pspCaller, handled);
+      // This means, we have to handle both cases depending on the actual type.
+      // If it is callable call it, otherwise return the property
+      hrRet = dispatchMethod(id, IID_NULL, lcid, pdp, pvarRes, pei, pspCaller,
+          handled);
+      if (DISP_E_TYPEMISMATCH == hrRet) {
+        hrRet = dispatchPropertyGet(wFlags, id, IID_NULL, lcid, pdp, pvarRes,
+            pei, pspCaller, handled);
+      }
       break;
     case DISPATCH_PROPERTYPUT:
     case DISPATCH_PROPERTYPUTREF:
