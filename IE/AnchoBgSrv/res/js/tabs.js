@@ -49,7 +49,11 @@ var removeCallbackWrapper = function(aTabs, aCallback) {
 var Tabs = function(instanceID) {
   //============================================================================
   // private variables
-  _instanceID = instanceID;
+  var _instanceID = instanceID;
+  var _currentWindowID = 0;
+  if (instanceID < 0) {
+    _currentWindowID = serviceAPI.getCurrentWindowId();
+  }
   //============================================================================
   // public properties
 
@@ -219,7 +223,7 @@ var Tabs = function(instanceID) {
       if (aQueryInfo.windowId) {
         var winId = aQueryInfo.windowId;
         if (windows.WINDOW_ID_CURRENT == winId) {
-          winId = serviceAPI.getCurrentWindowId();
+          winId = _currentWindowID || serviceAPI.getCurrentWindowId();
         }
         retVal = retVal && (aTab.windowId == winId);
       }

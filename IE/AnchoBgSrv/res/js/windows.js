@@ -28,8 +28,11 @@ exports.WINDOW_ID_CURRENT = -2;
 var Windows = function(instanceID) {
   //============================================================================
   // private variables
-
-
+  var _instanceID = instanceID;
+  var _currentWindowID = 0;
+  if (instanceID < 0) {
+    _currentWindowID = serviceAPI.getCurrentWindowId();
+  }
   //============================================================================
   // public properties
 
@@ -52,7 +55,7 @@ var Windows = function(instanceID) {
     var args = preprocessArguments('chrome.windows.get', arguments);
     var winId = args['windowId'];
     if (winId === this.WINDOW_ID_CURRENT) {
-      winId = serviceAPI.getCurrentWindowId();
+      winId = _currentWindowID || serviceAPI.getCurrentWindowId();
     }
     var win = serviceAPI.getWindow(winId, Object, (args['getInfo'] && args['getInfo'].populate));
     args['callback'](win);
