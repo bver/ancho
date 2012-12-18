@@ -14,7 +14,7 @@
   var DebuggerAPI = require('./debugger');
 
   // Ancho APIs
-  var ToolbarAPI = require('./toolbar').ToolbarAPI;
+  var ToolbarAPI = require('./toolbar');
   var ClipboardAPI = require('./clipboard');
 
   // System APIs
