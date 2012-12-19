@@ -25,7 +25,7 @@ exports.EventFactory = {
 };
 
 
-//Type checking utilities - instanceof and typeof are not working well when used 
+//Type checking utilities - instanceof and typeof are not working well when used
 //on objects from different script dispach instances
 exports.isArray = function(aArg) {
   return Object.prototype.toString.call(aArg) === '[object Array]';
@@ -87,7 +87,7 @@ exports.stringColorRepresentation = function(aColor) {
     }
   } else if (exports.isArray(aColor)){
     if (aColor.length === 3) {
-      var str = '#'; 
+      var str = '#';
       for (var i = 0; i < 3; ++i) {
         var tmp = Math.max(0, Math.min(aColor[i], 255))
         str += tmp.toString(16);

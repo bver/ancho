@@ -10,7 +10,7 @@
 //#include "AnchoBackgroundConsole.h"
 
 #include <algorithm>
-
+#include <fstream>
 
 /*============================================================================
  * class CAnchoBackgroundAPI
@@ -77,22 +77,13 @@ HRESULT CAnchoBackgroundAPI::Init(LPCTSTR lpszThisPath, LPCTSTR lpszRootURL, BST
   // load manifest
   CString sManifestFilename;
   sManifestFilename.Format(_T("%smanifest.json"), sPath);
-  CAtlFile f;
-  IF_FAILED_RET(f.Create(sManifestFilename, GENERIC_READ, FILE_SHARE_READ, OPEN_EXISTING));
-  ULONGLONG nLen = 0;
-  IF_FAILED_RET(f.GetSize(nLen));
-  // limit to 4gb
-  if (nLen > 0x00000000ffffffff)
-  {
-    return E_OUTOFMEMORY;
-  }
-  DWORD dwLen = (DWORD)nLen;
-  CStringA sManifest("exports.manifest = ");
-  DWORD strLen = (DWORD)sManifest.GetLength();
-  IF_FAILED_RET(f.Read(sManifest.GetBuffer(dwLen + strLen) + strLen, dwLen));
-  sManifest.ReleaseBuffer(dwLen + strLen);
-  sManifest += _T(';');
-  IF_FAILED_RET(m_Magpie->RunScript(L"manifest", (LPWSTR)(LPCWSTR)CA2W(sManifest)));
+  CString code;
+  IF_FAILED_RET(appendJSONFileToVariableAssignment(sManifestFilename, L"exports.manifest", code));
+  IF_FAILED_RET(m_Magpie->RunScript(L"manifest", (LPWSTR)(LPCWSTR)code));
+
+  CString localesRootDir;
+  localesRootDir.Format(L"%s_locales\\", sPath);
+  loadAddonLocales(localesRootDir);
 
   // set ourselfs in magpie as a global accessible object
   IF_FAILED_RET(m_Magpie->AddExtension((LPWSTR)s_AnchoGlobalAPIObjectName, (IAnchoBackgroundAPI*)this));
@@ -231,6 +222,63 @@ HRESULT CAnchoBackgroundAPI::GetMainModuleExportsScript(CIDispatchHelper & scrip
   IF_FAILED_RET(mainModule->GetExportsObject(&mainModuleExports));
 
   script = mainModuleExports;
+  return S_OK;
+}
+
+//----------------------------------------------------------------------------
+//
+HRESULT CAnchoBackgroundAPI::loadAddonLocales(CString aPath)
+{
+  std::vector<std::wstring> dirs;
+
+  CString searchPath = aPath;
+  searchPath.Append(L"*");
+  WIN32_FIND_DATA searchInfo;
+  HANDLE searchHandle = FindFirstFile(searchPath, &searchInfo);
+  if (searchHandle!=INVALID_HANDLE_VALUE) {
+    bool searching(true);
+    while (searching) {
+      if (searchInfo.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
+        std::wstring dirName(searchInfo.cFileName);
+        if (dirName != L"." && dirName != L"..") {
+          dirs.push_back(dirName);
+        }
+      }
+      searching = FALSE != FindNextFile(searchHandle, &searchInfo);
+    }
+  }
+  CString code = L"exports.locales = {};";
+  for (size_t i = 0; i < dirs.size(); ++i) {
+    CString fileName = aPath + dirs[i].c_str() + L"\\messages.json";
+    CString variableName;
+    variableName.Format(L"exports.locales['%s']", dirs[i].c_str());
+    appendJSONFileToVariableAssignment(fileName, variableName, code);
+  }
+  IF_FAILED_RET(m_Magpie->RunScript(L"locales", (LPWSTR)(LPCWSTR)code));
+  return S_OK;
+}
+//----------------------------------------------------------------------------
+//
+HRESULT CAnchoBackgroundAPI::appendJSONFileToVariableAssignment(CString aFileName, CString aVariableName, CString &aCode)
+{
+  std::ifstream f((char*)CW2A(aFileName), std::ios_base::in);
+  if (!f.is_open()) {
+    return E_FAIL;
+  }
+  std::string loadedCode;
+  f.seekg(0, std::ios::end);
+  if (f.tellg() > 0x00000000ffffffff) { //limit to 4gb
+    return E_OUTOFMEMORY;
+  }
+  loadedCode.reserve(f.tellg());
+  f.seekg(0, std::ios::beg);
+  loadedCode.assign((std::istreambuf_iterator<char>(f)),
+                     std::istreambuf_iterator<char>());
+
+  CString code;
+  code.Format(L"%s = %s;", aVariableName, CA2W(loadedCode.c_str()));
+
+  aCode += code;
   return S_OK;
 }
 

@@ -4,10 +4,19 @@
  * Implements chrome.i18n
  * Copyright 2012 Salsita software (http://www.salsitasoft.com).
  ******************************************************************************/
+var manifest = require("manifest").manifest;
+var locales = require("locales").locales;
+
+//TODO : proper setup
+var currentLocale = manifest.default_locale || 'en';
+
+require("i18n_spec.js");
+var preprocessArguments = require("typeChecking.js").preprocessArguments;
+var notImplemented = require("typeChecking.js").notImplemented;
 
 //******************************************************************************
 //* main closure
-(function(me){
+(function(me) {
   //============================================================================
   // private variables
 
@@ -18,14 +27,26 @@
   //----------------------------------------------------------------------------
   // chrome.i18n.getAcceptLanguages
   me.getAcceptLanguages = function(callback) {
-    console.debug("i18n.getAcceptLanguages(..) called");
+    var args = notImplemented('chrome.i18n.getAcceptLanguages', arguments);
   };
 
   //----------------------------------------------------------------------------
   // chrome.i18n.getMessage
   //   returns   string
   me.getMessage = function(messageName, substitutions) {
-    console.debug("i18n.getMessage(..) called");
+    try {
+      var args = preprocessArguments('chrome.i18n.getMessage', arguments);
+    } catch (e) {
+      return undefined; //According to documentation call format failures are reported by returning undefined
+    }
+    if (locales[currentLocale]) {
+      var info = locales[currentLocale][args.messageName];
+      if (info && info.message) {
+        //TODO - substitutions
+        return info.message;
+      }
+    }
+    return "";
   };
 
 

@@ -139,6 +139,8 @@ private:
 
   HRESULT GetMainModuleExportsScript(CIDispatchHelper & script);
 
+  HRESULT loadAddonLocales(CString aPath);
+  HRESULT appendJSONFileToVariableAssignment(CString aFileName, CString aVariableName, CString &aCode);
 private:
   // -------------------------------------------------------------------------
   // Private variables
