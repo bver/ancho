@@ -11,6 +11,7 @@ class ATL_NO_VTABLE CAnchoXmlHttpRequest :
   public CComCoClass<CAnchoXmlHttpRequest, &CLSID_AnchoXmlHttpRequest>,
   public IObjectWithSite,
 	public IDispatchImpl<IAnchoXmlHttpRequest, &IID_IAnchoXmlHttpRequest, &LIBID_AnchoBgSrvLib, 0xffff, 0xffff>,
+	public IDispatchImpl<IXMLHttpRequest, &IID_IXMLHttpRequest, &LIBID_MSXML, 0xffff, 0xffff>,
   public IDispatchEx
 {
 public:
