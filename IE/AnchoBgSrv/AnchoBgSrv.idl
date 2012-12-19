@@ -74,7 +74,7 @@ library AnchoBgSrvLib
     nonextensible,
     pointer_default(unique)
   ]
-  interface IAnchoXmlHttpRequest : IXMLHttpRequest
+  interface IAnchoXmlHttpRequest : IDispatch
   {
     [propget]
     HRESULT withCredentials([out, retval] VARIANT* aRet);
