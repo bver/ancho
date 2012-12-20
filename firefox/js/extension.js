@@ -10,6 +10,17 @@
   var Event = require('./event');
   var Config = require('./config');
 
+  function sendHelper(self, tabId, request, callback, event) {
+    // tabId is optional
+    if ('number' !== typeof(tabId)) {
+      callback = request;
+      request = tabId;
+      tabId = null;
+    }
+    var sender = Utils.getSender(self._state['id'], self._tab);
+    event.fire([ request, sender, callback ], tabId);
+  }
+
   function ExtensionAPI(state, window) {
     this._state = state;
     this._tab = Utils.getWindowId(window);
@@ -21,14 +32,11 @@
   ExtensionAPI.prototype = {
 
     sendRequest: function(tabId, request, callback) {
-      // tabId is optional
-      if ('number' !== typeof(tabId)) {
-        callback = request;
-        request = tabId;
-        tabId = null;
-      }
-      var sender = Utils.getSender(this._state['id'], this._tab);
-      this.onRequest.fire([ request, sender, callback ], tabId);
+      sendHelper(this, tabId, request, callback, this.onRequest);
+    },
+
+    sendMessage: function(tabId, request, callback) {
+      sendHelper(this, tabId, request, callback, this.onMessage);
     },
 
     getURL: function(path) {
