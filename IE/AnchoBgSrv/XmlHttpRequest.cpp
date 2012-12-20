@@ -175,7 +175,7 @@ STDMETHODIMP CAnchoXmlHttpRequest::create(VARIANT *aRequest)
   ENSURE_RETVAL(aRequest);
 
   HRESULT hr;
-  CComPtr<IXMLHttpRequest> pRequest;
+  CComPtr<IAnchoXmlHttpRequest> pRequest;
   CAnchoXmlHttpRequestComObject *request;
   CAnchoXmlHttpRequestComObject::CreateInstance(&request);
   pRequest = request;
@@ -195,7 +195,7 @@ STDMETHODIMP CAnchoXmlHttpRequest::create(VARIANT *aRequest)
   return S_OK;
 }
 
-STDMETHODIMP CAnchoXmlHttpRequest::addCustomInternetSecurity(CComPtr<IXMLHttpRequest> pRequest)
+STDMETHODIMP CAnchoXmlHttpRequest::addCustomInternetSecurity(CComPtr<IAnchoXmlHttpRequest> pRequest)
 {
   CComObject<CCustomInternetSecurityImpl>* pSecurityImpl = NULL;
   CComPtr<IUnknown> pUnkSecurity;
