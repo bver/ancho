@@ -181,14 +181,14 @@ HRESULT DOMWindowWrapper::dispatchPropertyGet(WORD wFlags, DISPID dispIdMember,
     it = mDOMEventProperties.find(dispIdMember);
     propertyFound = (it != mDOMEventProperties.end());
   }
-  else if (dispIdMember < DISPID_DOMWINDOW_EX_FIRST) {
-    // no event and not an expando property: let original window handle it
-    return S_OK;
-  }
   else {
-    // it IS an expando property
     it = mDOMWindowProperties.find(dispIdMember);
     propertyFound = (it != mDOMWindowProperties.end());
+
+    if (!propertyFound && dispIdMember < DISPID_DOMWINDOW_EX_FIRST) {
+      // no event, stored property or an expando property: let original window handle it
+      return S_OK;
+    }
   }
 
   aHandled = TRUE;
