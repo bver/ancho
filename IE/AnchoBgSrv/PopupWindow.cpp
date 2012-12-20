@@ -80,32 +80,6 @@ LRESULT CPopupWindow::OnActivate(UINT /*uMsg*/, WPARAM wParam, LPARAM /*lParam*/
   return 1;
 }
 
-STDMETHODIMP_(void) CPopupWindow::OnDocumentComplete(LPDISPATCH aDispatch, VARIANT *aURL)
-{
-  ATLTRACE(L"DOCUMENT COMPLETE: %s\n", aURL->bstrVal);
-  CComQIPtr<IWebBrowser2> webBrowser(aDispatch);
-  ATLASSERT(webBrowser);
-
-  if (webBrowser != m_pWebBrowser) {
-    return;
-  }
-
-  IDispatch *doc = NULL;
-  webBrowser->get_Document(&doc);
-
-  CComQIPtr<IHTMLDocument2> htmlDocument = doc;
-  if (!htmlDocument) {
-    return;
-  }
-  ATLTRACE(L"DOCUMENT QUERY SUCCESS\n");
-  //TODO - autoresize
-}
-
-STDMETHODIMP_(void) CPopupWindow::OnNavigateComplete(LPDISPATCH aDispatch, VARIANT *aURL)
-{
-  //ATLTRACE(L"NAVIGATE COMPLETE: %s\n", aURL->bstrVal);
-}
-
 STDMETHODIMP_(void) CPopupWindow::OnBrowserProgressChange(LONG Progress, LONG ProgressMax)
 {
   //Workaround to rid of the ActiveXObject
@@ -115,6 +89,38 @@ STDMETHODIMP_(void) CPopupWindow::OnBrowserProgressChange(LONG Progress, LONG Pr
   CIDispatchHelper window;
   script.Get<CIDispatchHelper, VT_DISPATCH, IDispatch*>(L"window", window);
   window.SetProperty((LPOLESTR)L"ActiveXObject", CComVariant());
+
+  //Autoresize
+  IDispatch *doc = NULL;
+  if (FAILED(m_pWebBrowser->get_Document(&doc)) || !doc) {
+    return;
+  }
+  CComQIPtr<IHTMLDocument2> htmlDocument2 = doc;
+  if (!htmlDocument2) {
+    return;
+  }
+  CComPtr<IHTMLElement> element;
+  if (FAILED(htmlDocument2->get_body(&element)) || !element ) {
+    return;
+  }
+
+  CComQIPtr<IHTMLElement2> element2 = element;
+  long contentHeight, contentWidth;
+  if (FAILED(element->get_offsetHeight(&contentHeight)) ||
+    FAILED(element->get_offsetWidth(&contentWidth)))
+  {
+    return;
+  }
+  if (contentHeight > 0 && contentWidth > 0) {
+    WINDOWINFO winInfo;
+    winInfo.cbSize = sizeof(WINDOWINFO);
+    BOOL res = GetWindowInfo(this->operator HWND(), &winInfo);
+    int width = winInfo.rcWindow.right - winInfo.rcWindow.left;
+    int height = winInfo.rcWindow.bottom - winInfo.rcWindow.top;
+    if (res && (height != contentHeight || width != contentWidth)) {
+      ::MoveWindow(this->operator HWND(), winInfo.rcWindow.left, winInfo.rcWindow.top, width, contentHeight, TRUE);
+    }
+  }
 }
 
 HRESULT CPopupWindow::CreatePopupWindow(HWND aParent, const DispatchMap &aInjectedObjects, LPCWSTR aURL, int aX, int aY, CIDispatchHelper aCloseCallback)
