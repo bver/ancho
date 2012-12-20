@@ -16,6 +16,7 @@
   // Ancho APIs
   var ToolbarAPI = require('./toolbar');
   var ClipboardAPI = require('./clipboard');
+  var ExternalAPI = require('./external');
 
   // System APIs
   var ConsoleAPI = require('./console');
@@ -36,7 +37,8 @@
 
     this.ancho = {
       toolbar: new ToolbarAPI(extensionState, contentWindow),
-      clipboard: new ClipboardAPI(extensionState, contentWindow)
+      clipboard: new ClipboardAPI(extensionState, contentWindow),
+      external: new ExternalAPI(extensionState, contentWindow)
     };
 
     this.console = new ConsoleAPI(extensionState, contentWindow);
