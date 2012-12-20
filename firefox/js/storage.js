@@ -25,6 +25,8 @@
           for (var key in keys) {
             myKeys.push(key);
           }
+        } else {
+          throw new Error("Invocation of get doesn't match definition get(optional string or array or object keys, function callback)");
         }
 
         var key, result = {};
@@ -51,9 +53,11 @@
         if (typeof callback === 'function') {
           callback();
         }
+      } else {
+        throw new Error("Invocation of set doesn't match definition set(object items, optional function callback)");
       }
     }
-  }
+  };
 
   module.exports = StorageAPI;
 
