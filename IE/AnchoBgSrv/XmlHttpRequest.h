@@ -11,7 +11,6 @@ class ATL_NO_VTABLE CAnchoXmlHttpRequest :
   public CComCoClass<CAnchoXmlHttpRequest, &CLSID_AnchoXmlHttpRequest>,
   public IObjectWithSite,
 	public IDispatchImpl<IAnchoXmlHttpRequest, &IID_IAnchoXmlHttpRequest, &LIBID_AnchoBgSrvLib, 0xffff, 0xffff>,
-	public IDispatchImpl<IXMLHttpRequest, &IID_IXMLHttpRequest, &LIBID_MSXML, 0xffff, 0xffff>,
   public IDispatchEx
 {
 public:
@@ -30,7 +29,6 @@ public:
 	  COM_INTERFACE_ENTRY(IAnchoXmlHttpRequest)
 	  COM_INTERFACE_ENTRY2(IDispatch, IAnchoXmlHttpRequest)
     COM_INTERFACE_ENTRY(IObjectWithSite)
-    COM_INTERFACE_ENTRY(IXMLHttpRequest)
     COM_INTERFACE_ENTRY(IDispatchEx)
   END_COM_MAP()
 
@@ -188,7 +186,7 @@ public:
 protected:
   STDMETHOD(create)(VARIANT *aRequest);
 
-  STDMETHOD(addCustomInternetSecurity)(CComPtr<IXMLHttpRequest> pRequest);
+  STDMETHOD(addCustomInternetSecurity)(CComPtr<IAnchoXmlHttpRequest> pRequest);
 
   CComPtr<IXMLHttpRequest> mRequest;
 };

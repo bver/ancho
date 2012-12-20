@@ -76,6 +76,43 @@ library AnchoBgSrvLib
   ]
   interface IAnchoXmlHttpRequest : IDispatch
   {
+    [id(0x00000001), helpstring("Open HTTP connection")]
+    HRESULT open(
+                    [in] BSTR bstrMethod, 
+                    [in] BSTR bstrUrl, 
+                    [in, optional] VARIANT varAsync, 
+                    [in, optional] VARIANT bstrUser, 
+                    [in, optional] VARIANT bstrPassword);
+    [id(0x00000002), helpstring("Add HTTP request header")]
+    HRESULT setRequestHeader(
+                    [in] BSTR bstrHeader, 
+                    [in] BSTR bstrValue);
+    [id(0x00000003), helpstring("Get HTTP response header")]
+    HRESULT getResponseHeader(
+                    [in] BSTR bstrHeader, 
+                    [out, retval] BSTR* pbstrValue);
+    [id(0x00000004), helpstring("Get all HTTP response headers")]
+    HRESULT getAllResponseHeaders([out, retval] BSTR* pbstrHeaders);
+    [id(0x00000005), helpstring("Send HTTP request")]
+    HRESULT send([in, optional] VARIANT varBody);
+    [id(0x00000006), helpstring("Abort HTTP request")]
+    HRESULT abort();
+    [id(0x00000007), propget, helpstring("Get HTTP status code")]
+    HRESULT status([out, retval] long* plStatus);
+    [id(0x00000008), propget, helpstring("Get HTTP status text")]
+    HRESULT statusText([out, retval] BSTR* pbstrStatus);
+    [id(0x00000009), propget, helpstring("Get response body")]
+    HRESULT responseXML([out, retval] IDispatch** ppBody);
+    [id(0x0000000a), propget, helpstring("Get response body")]
+    HRESULT responseText([out, retval] BSTR* pbstrBody);
+    [id(0x0000000b), propget, helpstring("Get response body")]
+    HRESULT responseBody([out, retval] VARIANT* pvarBody);
+    [id(0x0000000c), propget, helpstring("Get response body")]
+    HRESULT responseStream([out, retval] VARIANT* pvarBody);
+    [id(0x0000000d), propget, helpstring("Get ready state")]
+    HRESULT readyState([out, retval] long* plState);
+    [id(0x0000000e), propput, helpstring("Register a complete event handler")]
+    HRESULT onreadystatechange([in] IDispatch* rhs);
     [propget]
     HRESULT withCredentials([out, retval] VARIANT* aRet);
   };
