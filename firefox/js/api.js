@@ -12,7 +12,6 @@
   var CookiesAPI = require('./cookies');
   var HistoryAPI = require('./history');
   var DebuggerAPI = require('./debugger');
-  var StorageAPI = require('./storage');
 
   // Ancho APIs
   var ToolbarAPI = require('./toolbar');
@@ -32,12 +31,7 @@
       // browserAction: new BrowserActionAPI(extensionState, contentWindow),
       cookies: new CookiesAPI(extensionState, contentWindow),
       history: new HistoryAPI(extensionState, contentWindow),
-      debugger: new DebuggerAPI(extensionState, contentWindow),
-      storage: {
-        // FIXME TODO: conflicting prefix when more Ancho extensions are installed
-        local: new StorageAPI(extensionState, contentWindow, 'extensions.ancho.storage.local.'),
-        sync: new StorageAPI(extensionState, contentWindow, 'extensions.ancho.storage.sync.')
-      }
+      debugger: new DebuggerAPI(extensionState, contentWindow)
     };
 
     this.ancho = {
