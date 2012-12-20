@@ -217,9 +217,7 @@ STDMETHODIMP CAnchoAddon::InitializeContentScripting(IWebBrowser2* pBrowser, BST
   m_Magpie->AddNamedItem(L"chrome", jsObj.pdispVal, SCRIPTITEM_ISVISIBLE|SCRIPTITEM_CODEONLY);
   m_Magpie->AddNamedItem(L"window", m_wrappedWindow, SCRIPTITEM_ISVISIBLE|SCRIPTITEM_GLOBALMEMBERS);
 
-  //CIDispatchHelper script = CIDispatchHelper::GetScriptDispatch(m_pWebBrowser);
   CIDispatchHelper window = m_wrappedWindow;
-  //script.Get<CIDispatchHelper, VT_DISPATCH, IDispatch*>(L"window", window);
   CComPtr<IDispatchEx> pRequest;
   IF_FAILED_RET(pRequest.CoCreateInstance(__uuidof(AnchoXmlHttpRequest)));
 
