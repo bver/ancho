@@ -16,6 +16,10 @@
     // http://stackoverflow.com/questions/3379292/is-an-index-needed-for-a-primary-key-in-sqlite
   };
 
+  function dbError(err) {
+    throw new Error('Storage error: ' + err.message);
+  }
+
   StorageAPI.prototype = {
 
     get: function(keys, callback) {
@@ -28,9 +32,9 @@
         } else if (typeof keys == 'string') {
           myKeys = [keys];
         } else if (typeof keys == 'object') {
-          results = keys;
           for (var key in keys) {
             myKeys.push(key);
+            results[key] = keys[key]; // preparing defaults
           }
         } else {
           throw new Error("Invocation of get doesn't match definition get(optional string or array or object keys, function callback)");
@@ -59,9 +63,7 @@
             }
           },
 
-          handleError: function(err) {
-            throw new Error('Storage error: ' + err.message);
-          }
+          handleError: dbError
         });
       }
     },
@@ -86,13 +88,11 @@
                 callback();
               }
             } else {
-              throw new Error('Storage error: replace statement not finished');
+              dbError({ message: 'replace statement not finished' });
             }
           },
 
-          handleError: function(err) {
-            throw new Error('Storage error: ' + err.message);
-          }
+          handleError: dbError
         });
 
       } else {
