@@ -280,14 +280,14 @@ var Tabs = function(instanceID) {
     callback = undefined;
     ret = undefined;
     if (responseCallback) {
-      var callbackWrapper = new CallbackWrapper(args['responseCallback']);
+      var callbackWrapper = new CallbackWrapper(args.responseCallback);
       callback = callbackWrapper.callback;
     }
     ret = addonAPI.invokeEventObject(
             'extension.onMessage',
-            args['tabId'],
+            args.tabId,
             false, //we are selecting tab with tabId
-            [message, sender, callback]
+            [args.message, sender, callback]
             ); //TODO: fill MessageSender
     if (callbackWrapper === undefined) {
       return;
