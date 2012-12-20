@@ -25,6 +25,8 @@ public:
   END_COM_MAP()
 
   BEGIN_SINK_MAP(CPopupWindow)
+    //SINK_ENTRY_EX(1, DIID_DWebBrowserEvents2, DISPID_DOCUMENTCOMPLETE, OnDocumentComplete)
+    //SINK_ENTRY_EX(1, DIID_DWebBrowserEvents2, DISPID_NAVIGATECOMPLETE2, OnNavigateComplete)
     SINK_ENTRY_EX(1, DIID_DWebBrowserEvents2, DISPID_PROGRESSCHANGE, OnBrowserProgressChange)
   END_SINK_MAP()
 
@@ -43,6 +45,8 @@ public:
   LRESULT OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled);
   LRESULT OnActivate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
 
+  STDMETHOD_(void, OnDocumentComplete)(LPDISPATCH aDispatch, VARIANT *aURL);
+  STDMETHOD_(void, OnNavigateComplete)(LPDISPATCH aDispatch, VARIANT *aURL);
   STDMETHOD_(void, OnBrowserProgressChange)(LONG Progress, LONG ProgressMax);
 
 private:

@@ -2,6 +2,7 @@ const { classes: Cc, interfaces: Ci, utils: Cu } = Components;
 
 Cu.import('resource://gre/modules/Services.jsm');
 Cu.import('resource://ancho/modules/Require.jsm');
+Cu.import('resource://ancho/modules/External.jsm');
 
 var sandbox = Cu.Sandbox(window);
 var baseURI = Services.io.newURI('resource://ancho/js/', '', null);
@@ -98,11 +99,13 @@ window.addEventListener('load', function(event) {
       script.src = Config.hostExtensionRoot + Config.backgroundScripts[i];
       targetWindow.document.head.appendChild(script);
     }
+    AnchoExternal.__set(targetWindow.ancho.external);
   });
 }, false);
 
 window.addEventListener('unload', function(event) {
   window.removeEventListener('unload', arguments.callee, false);
+  AnchoExternal.__set(null);
   releaseWindowWatcher();
   ExtensionState.unloadAll();
 }, false);
