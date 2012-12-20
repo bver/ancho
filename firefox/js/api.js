@@ -35,8 +35,8 @@
       debugger: new DebuggerAPI(extensionState, contentWindow),
       storage: {
         // FIXME TODO: conflicting prefix when more Ancho extensions are installed
-        local: new StorageAPI(extensionState, contentWindow, 'extensions.ancho.storage.local.'),
-        sync: new StorageAPI(extensionState, contentWindow, 'extensions.ancho.storage.sync.')
+        local: new StorageAPI(extensionState, contentWindow, 'local'),
+        sync: new StorageAPI(extensionState, contentWindow, 'sync')
       }
     };
 
