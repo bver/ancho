@@ -52,7 +52,7 @@ exports.invokeEventWithIDispatch = function(aEventName, aIDispatchData) {
   var cookie = createCookieCopy(aIDispatchData);
   var changeInfo = {
     cause: 'explicit',
-    removed: 'false',
+    removed: false,
     cookie: cookie
   };
   addonAPI.invokeEventObject(
