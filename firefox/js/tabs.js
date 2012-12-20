@@ -15,6 +15,11 @@
     this._state = state;
     this._tab = Utils.getWindowId(window);
 
+    // Register Tab ID for later tabs.query call
+    state.registerTab(this._tab);
+    // TODO: unregister tab
+    // TODO: detect "real tabs" only
+
     // Event handlers
     this.onCreated = new Event(window, this._tab, this._state, 'tab.created');
     this.onActivated = new Event(window, this._tab, this._state, 'tab.activated');
@@ -31,6 +36,24 @@
       var sender = Utils.getSender(this._state['id'], this._tab);
       this._state.eventDispatcher.notifyListeners('extension.request', tabId,
         [ request, sender, callback ]);
+    },
+
+    sendMessage: function(tabId, request, callback) {
+      var sender = Utils.getSender(this._state['id'], this._tab);
+      this._state.eventDispatcher.notifyListeners('extension.message', tabId,
+        [ request, sender, callback ]);
+    },
+
+    query: function(queryInfo, callback) {
+      // TODO: selecting by the queryInfo parameter
+      if (typeof callback === 'function') {
+        var tabs = [];
+        var ids = this._state.tabIds();
+        while (ids.length) {
+          tabs.push({ id: ids.shift() });
+        }
+        callback(tabs);
+      }
     },
 
     create: function(createProperties, callback) {

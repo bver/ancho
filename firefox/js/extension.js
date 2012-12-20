@@ -15,6 +15,7 @@
     this._tab = Utils.getWindowId(window);
     // Event handlers
     this.onRequest = new Event(window, this._tab, this._state, 'extension.request');
+    this.onMessage = new Event(window, this._tab, this._state, 'extension.message');
   }
 
   ExtensionAPI.prototype = {
