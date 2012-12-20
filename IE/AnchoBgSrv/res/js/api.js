@@ -122,6 +122,7 @@ var contentInstances = {};
 // be part of the content API.
 function contentAPI(instanceID) {
   this.extension = require("extension.js").createAPI(instanceID);
+  this.i18n = require("i18n.js").createAPI(instanceID);
   this.console = console;// TODO: remove
   console.debug("Content API created: [" + instanceID + "]");
 }
@@ -154,7 +155,8 @@ exports.getContentAPI = function(instanceID) {
 exports.releaseContentAPI = function(instanceID) {
   console.debug("Content API release requested for [" + instanceID + "]");
   if (contentInstances[instanceID]) {
-    require("extension.js").releaseAPI(instanceID)
+    require("extension.js").releaseAPI(instanceID);
+    require("i18n.js").releaseAPI(instanceID);
     delete contentInstances[instanceID];
     console.debug("Content API FOUND and released: [" + instanceID + "]");
   }
