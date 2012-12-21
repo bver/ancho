@@ -227,8 +227,7 @@ HRESULT CAnchoRuntime::InitializeContentScripting(BSTR bstrUrl, VARIANT_BOOL isR
     removeUrlFragment(bstrUrl, &url);
     FrameMap::iterator it = m_Frames.find((BSTR) url);
     if (it == m_Frames.end()) {
-      ATLASSERT(documentLoadEnd == aPhase);
-      // Assume we have removed this frame while waiting for the document to complete.
+      // Either this frame has already been removed, or the request isn't for a frame after all (e.g. an htc).
       return S_FALSE;
     }
     webBrowser = it->second;
