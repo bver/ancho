@@ -43,7 +43,7 @@ var notImplemented = require("typeChecking.js").notImplemented;
       var info = locales[currentLocale][args.messageName];
       if (info && info.message) {
         //TODO - substitutions
-        return info.message.replace('$$', '$');
+        return info.message.replace(/\$\$/g, '$');
       }
     }
     return "";
