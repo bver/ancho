@@ -195,10 +195,6 @@ STDMETHODIMP CAnchoAddon::InitializeContentScripting(IWebBrowser2* pBrowser, BST
     return S_OK;
   }
 
-  if (!m_pContentInfo) {
-    return S_OK;
-  }
-
   // (re)initialize magpie for this page
   CleanupContentScripting();
 
