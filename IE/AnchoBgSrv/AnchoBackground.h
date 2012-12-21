@@ -87,6 +87,7 @@ public:
   STDMETHOD(AdviseInstance)(ULONG * pulInstanceID);
   STDMETHOD(UnadviseInstance)(ULONG ulInstanceID);
   STDMETHOD(GetContentAPI)(ULONG ulInstanceID, LPDISPATCH* ppDisp);
+  STDMETHOD(ReleaseContentAPI)(ULONG ulInstanceID);
   STDMETHOD(GetManifest)(LPDISPATCH* ppDisp);
 
   // -------------------------------------------------------------------------

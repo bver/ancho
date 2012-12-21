@@ -109,7 +109,6 @@ STDMETHODIMP CAnchoAddon::Shutdown()
 {
   // this method must be safe to be called multiple times
   CleanupContentScripting();
-  m_pContentInfo.Release();
   m_pBackgroundConsole.Release();
   m_Magpie.Release();
 
@@ -155,6 +154,13 @@ void CAnchoAddon::CleanupContentScripting()
     m_wrappedWindow->cleanup();
   }
   m_wrappedWindow.Release();
+
+  if (m_pAddonBackground && m_InstanceID) {
+    m_pAddonBackground->ReleaseContentAPI(m_InstanceID);
+  }
+  if (m_pContentInfo) {
+    m_pContentInfo.Release();
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -169,15 +175,12 @@ STDMETHODIMP CAnchoAddon::InitializeContentScripting(IWebBrowser2* pBrowser, BST
     m_pBackgroundConsole = m_pAddonBackground;
     ATLASSERT(m_pBackgroundConsole);
   }
-  if(!m_pContentInfo) {
+  if(!m_InstanceID) {
     // tell background we are there and get instance id
     m_pAddonBackground->AdviseInstance(&m_InstanceID);
 
      //TODO - should be executed as soon as possible
     m_pAnchoService->webBrowserReady();
-
-    // get content our API
-    m_pAddonBackground->GetContentAPI(m_InstanceID, &m_pContentInfo);
   }
 
   // content script handling happens here
@@ -198,6 +201,9 @@ STDMETHODIMP CAnchoAddon::InitializeContentScripting(IWebBrowser2* pBrowser, BST
 
   // (re)initialize magpie for this page
   CleanupContentScripting();
+
+  // get content our API
+  IF_FAILED_RET(m_pAddonBackground->GetContentAPI(m_InstanceID, &m_pContentInfo));
 
   CString s;
   s.Format(_T("Ancho content [%s] [%i]"), m_sExtensionName, m_InstanceID);
