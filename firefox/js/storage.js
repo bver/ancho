@@ -8,9 +8,9 @@
   Cu.import("resource://gre/modules/FileUtils.jsm");
 
   var StorageAPI = function(extensionState, contentWindow, storageSpace) {
-    var dbFile = FileUtils.getFile("ProfD", ["ancho_storage.sqlite3"]);
+    var dbFile = FileUtils.getFile('ProfD', ['ancho_storage.sqlite3']);
     this.connection = Services.storage.openDatabase(dbFile); // create the file if it does not exist
-    this.tableName = storageSpace; // assuming there is no sanitization necessary
+    this.tableName = extensionState.id.replace(/[^A-Za-z]/g, '_') + '_' + storageSpace; // no sanitization necessary
     this.connection.executeSimpleSQL('CREATE TABLE IF NOT EXISTS '+this.tableName+' ( key TEXT PRIMARY KEY, value TEXT )');
     // A separate CREATE INDEX command for keys not needed:
     // http://stackoverflow.com/questions/3379292/is-an-index-needed-for-a-primary-key-in-sqlite
@@ -40,31 +40,47 @@
           throw new Error("Invocation of get doesn't match definition get(optional string or array or object keys, function callback)");
         }
 
-        var statement = this.connection.createStatement('SELECT key, value FROM '+this.tableName+' WHERE key IN (:key)');
-        var par, params = statement.newBindingParamsArray();
-        for (var i=0; i<myKeys.length; i++) {
-          par = params.newBindingParams();
-          par.bindByName('key', myKeys[i]);
-          params.addParams(par);
+        if (myKeys.length) {
+          var statement = this.connection.createStatement('SELECT key, value FROM '+this.tableName+' WHERE key IN (:key)');
+          var par, params = statement.newBindingParamsArray();
+          for (var i=0; i<myKeys.length; i++) {
+            par = params.newBindingParams();
+            par.bindByName('key', myKeys[i]);
+            params.addParams(par);
+          }
+          statement.bindParameters(params);
+
+          statement.executeAsync({
+            handleResult: function(resultRows) {
+              var key, row = resultRows.getNextRow();
+              while (row) {
+                key = row.getResultByName('key');
+                results[key] = JSON.parse(row.getResultByName('value'));
+                row = resultRows.getNextRow();
+              }
+
+              if (typeof callback === 'function') {
+                callback(results);
+              }
+            },
+
+            // handleCompletion is not necessary for selects, this is a workaround for
+            // https://bugzilla.mozilla.org/show_bug.cgi?id=555260
+            handleCompletion: function(reason) {
+              if (reason != Ci.mozIStorageStatementCallback.REASON_FINISHED) {
+                dbError({ message: 'select statement not finished' });
+              }
+            },
+
+            handleError: dbError
+          });
+        } else {
+          // Empty myKeys has to be handled separately otherwise statement.bindParameters fails.
+          // Note that get([]) and get({}) work in Chrome without errors.
+          if (typeof callback === 'function') {
+            callback({});
+          }
         }
-        statement.bindParameters(params);
-
-        statement.executeAsync({
-          handleResult: function(resultRows) {
-            var key, row = resultRows.getNextRow();
-            while (row) {
-              key = row.getResultByName('key');
-              results[key] = JSON.parse(row.getResultByName('value'));
-              row = resultRows.getNextRow();
-            }
-
-            if (typeof callback === 'function') {
-              callback(results);
-            }
-          },
-
-          handleError: dbError
-        });
       }
     },
 
