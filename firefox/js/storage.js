@@ -27,6 +27,14 @@
         var myKeys = [];
         var results = {};
 
+        var callCallback = true;
+        var myCallback = function(results) {
+          if (callCallback && typeof callback === 'function') {
+            callCallback = false;
+            callback(results);
+          }
+        };
+
         if (Array.isArray(keys)) {
           myKeys = keys;
         } else if (typeof keys == 'string') {
@@ -58,16 +66,15 @@
                 results[key] = JSON.parse(row.getResultByName('value'));
                 row = resultRows.getNextRow();
               }
-
-              if (typeof callback === 'function') {
-                callback(results);
-              }
+              myCallback(results);
             },
 
-            // handleCompletion is not necessary for selects, this is a workaround for
-            // https://bugzilla.mozilla.org/show_bug.cgi?id=555260
+            // handleResult is not called with the empty resultRows
+            // so we have to call back in this case
             handleCompletion: function(reason) {
-              if (reason != Ci.mozIStorageStatementCallback.REASON_FINISHED) {
+              if (reason == Ci.mozIStorageStatementCallback.REASON_FINISHED) {
+                myCallback(results);
+              } else {
                 dbError({ message: 'select statement not finished' });
               }
             },
@@ -77,9 +84,7 @@
         } else {
           // Empty myKeys has to be handled separately otherwise statement.bindParameters fails.
           // Note that get([]) and get({}) work in Chrome without errors.
-          if (typeof callback === 'function') {
-            callback({});
-          }
+          myCallback({});
         }
       }
     },
