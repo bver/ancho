@@ -24,7 +24,7 @@
 
     _toString: function() {
       var s = '';
-      for (i = 0; i < arguments.length; i++) {
+      for (var i = 0; i < arguments.length; i++) {
         if ('object' === typeof(arguments[i])) {
           s += JSON.stringify(arguments[i], null, 2);
         } else {

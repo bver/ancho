@@ -12,6 +12,7 @@
   var CookiesAPI = require('./cookies');
   var HistoryAPI = require('./history');
   var DebuggerAPI = require('./debugger');
+  var StorageAPI = require('./storage');
 
   // Ancho APIs
   var ToolbarAPI = require('./toolbar');
