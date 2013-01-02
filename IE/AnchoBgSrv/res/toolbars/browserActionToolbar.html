@@ -65,7 +65,7 @@
 
 
 	function getButtonCode(aId) {
-	  var info = mergeTabSpecifics(browserActions[aId].globalInfo, browserActions[aId].tabSpecificInfo[browserTabID]);	
+	  var info = mergeTabSpecifics(browserActions[aId].globalInfo, browserActions[aId].tabSpecificInfo[browserTabID]);
 
 		var str = '<div class="baButton" id=\"' + aId  + '\" ' ;
 		if (info.title) {
