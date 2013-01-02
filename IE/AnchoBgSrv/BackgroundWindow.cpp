@@ -25,15 +25,13 @@ LRESULT CBackgroundWindow::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*l
   IF_FAILED_RET2(QueryHost(__uuidof(IAxWinHostWindow), (void**)&spHost), -1);
 
   CComPtr<IUnknown>  p;
-  IF_FAILED_RET2(spHost->CreateControlEx(m_sURL, *this, NULL, &p, /*DIID_DWebBrowserEvents2, GetEventUnk()*/ IID_NULL, NULL), -1);
+  IF_FAILED_RET2(spHost->CreateControlEx(m_sURL, *this, NULL, &p, DIID_DWebBrowserEvents2, (IUnknown *)(BackgroundWindowWebBrowserEvents *) this), -1);
 
   m_pWebBrowser = p;
   if (!m_pWebBrowser)
   {
     return -1;
   }
-
-  AtlAdvise(m_pWebBrowser, (IUnknown *)(BackgroundWindowWebBrowserEvents *) this, DIID_DWebBrowserEvents2, &m_WebBrowserEventsCookie);
 
   CIDispatchHelper script = CIDispatchHelper::GetScriptDispatch(m_pWebBrowser);
   for (DispatchMap::iterator it = m_InjectedObjects.begin(); it != m_InjectedObjects.end(); ++it) {
@@ -59,7 +57,6 @@ LRESULT CBackgroundWindow::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*l
 LRESULT CBackgroundWindow::OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& bHandled)
 {
   bHandled = FALSE;
-  AtlUnadvise(m_pWebBrowser, DIID_DWebBrowserEvents2, m_WebBrowserEventsCookie);
   m_pWebBrowser.Release();
 //  m_pDispApiJS.Release();
   return 1;
