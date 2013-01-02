@@ -48,6 +48,5 @@ public:
 private:
   CComQIPtr<IWebBrowser2>   m_pWebBrowser;     // Embedded WebBrowserControl
   DispatchMap m_InjectedObjects;
-  DWORD       m_WebBrowserEventsCookie;
   CStringW    m_sURL;
 };

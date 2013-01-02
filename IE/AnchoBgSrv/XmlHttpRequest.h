@@ -7,27 +7,27 @@ class CAnchoXmlHttpRequest;
 typedef CComObject<CAnchoXmlHttpRequest> CAnchoXmlHttpRequestComObject;
 
 class ATL_NO_VTABLE CAnchoXmlHttpRequest :
-	public CComObjectRootEx<CComSingleThreadModel>,
+  public CComObjectRootEx<CComSingleThreadModel>,
   public CComCoClass<CAnchoXmlHttpRequest, &CLSID_AnchoXmlHttpRequest>,
   public IObjectWithSite,
-	public IDispatchImpl<IAnchoXmlHttpRequest, &IID_IAnchoXmlHttpRequest, &LIBID_AnchoBgSrvLib, 0xffff, 0xffff>,
+  public IDispatchImpl<IAnchoXmlHttpRequest, &IID_IAnchoXmlHttpRequest, &LIBID_AnchoBgSrvLib, 0xffff, 0xffff>,
   public IDispatchEx
 {
 public:
-  typedef IDispatchImpl<IAnchoXmlHttpRequest, &IID_IAnchoXmlHttpRequest, &LIBID_AnchoBgSrvLib, 0xffff, 0xffff> IDispatchImlPredecessor;
+  typedef IDispatchImpl<IAnchoXmlHttpRequest, &IID_IAnchoXmlHttpRequest, &LIBID_AnchoBgSrvLib, 0xffff, 0xffff> IDispatchImplPredecessor;
 
   static const DISPID DISPID_PROTOTYPE = 8000;
   // -------------------------------------------------------------------------
   // COM standard stuff
   DECLARE_NO_REGISTRY();
-	DECLARE_PROTECT_FINAL_CONSTRUCT()
+  DECLARE_PROTECT_FINAL_CONSTRUCT()
 
 public:
   // -------------------------------------------------------------------------
   // COM interface map
   BEGIN_COM_MAP(CAnchoXmlHttpRequest)
-	  COM_INTERFACE_ENTRY(IAnchoXmlHttpRequest)
-	  COM_INTERFACE_ENTRY2(IDispatch, IAnchoXmlHttpRequest)
+    COM_INTERFACE_ENTRY(IAnchoXmlHttpRequest)
+    COM_INTERFACE_ENTRY2(IDispatch, IAnchoXmlHttpRequest)
     COM_INTERFACE_ENTRY(IObjectWithSite)
     COM_INTERFACE_ENTRY(IDispatchEx)
   END_COM_MAP()
@@ -41,7 +41,7 @@ public:
     return mRequest.CoCreateInstance(__uuidof(XMLHTTPRequest));
   }
 
-	void FinalRelease()
+  void FinalRelease()
   {}
 
   STDMETHOD(SetSite)(IUnknown *pUnkSite)
@@ -73,24 +73,24 @@ public:
   // IDispatch methods: simply forward
   STDMETHOD(GetTypeInfoCount)(UINT *pctinfo)
   {
-    return IDispatchImlPredecessor::GetTypeInfoCount(pctinfo);
+    return IDispatchImplPredecessor::GetTypeInfoCount(pctinfo);
   }
 
   STDMETHOD(GetTypeInfo)(UINT iTInfo, LCID lcid, ITypeInfo **ppTInfo)
   {
-    return IDispatchImlPredecessor::GetTypeInfo(iTInfo, lcid, ppTInfo);
+    return IDispatchImplPredecessor::GetTypeInfo(iTInfo, lcid, ppTInfo);
   }
 
   STDMETHOD(GetIDsOfNames)(REFIID riid, LPOLESTR *rgszNames, UINT cNames, LCID lcid, DISPID *rgDispId)
   {
-    return IDispatchImlPredecessor::GetIDsOfNames(riid, rgszNames, cNames, lcid, rgDispId);
+    return IDispatchImplPredecessor::GetIDsOfNames(riid, rgszNames, cNames, lcid, rgDispId);
   }
 
   STDMETHOD(Invoke)(DISPID dispIdMember, REFIID riid, LCID lcid, WORD wFlags,
                                   DISPPARAMS *pDispParams, VARIANT *pVarResult,
                                   EXCEPINFO *pExcepInfo, UINT *puArgErr)
   {
-    return IDispatchImlPredecessor::Invoke(dispIdMember, riid, lcid, wFlags,
+    return IDispatchImplPredecessor::Invoke(dispIdMember, riid, lcid, wFlags,
                                   pDispParams, pVarResult, pExcepInfo, puArgErr);
   }
 
