@@ -14,7 +14,7 @@ HRESULT CToolbar::InternalSetSite()
 
   HWND frameTab = findParentWindowByClass(L"Frame Tab");
   if (!frameTab) {
-    ATLTRACE(L"TOOLBAR: Failed to obtain 'Frame Tab' window handle.");
+    ATLASSERT(0 && "TOOLBAR: Failed to obtain 'Frame Tab' window handle.");
     return E_FAIL;
   }
   // create addon service object

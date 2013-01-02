@@ -47,7 +47,6 @@ LRESULT CPopupWindow::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam
   //Replacing XMLHttpRequest by wrapper
   CComPtr<IDispatchEx> pRequest;
   IF_FAILED_RET(pRequest.CoCreateInstance(__uuidof(AnchoXmlHttpRequest)));
-  IF_FAILED_RET(script.SetProperty((LPOLESTR)L"browserTabID", CComVariant(1000)));
 
   CIDispatchHelper window;
   script.Get<CIDispatchHelper, VT_DISPATCH, IDispatch*>(L"window", window);

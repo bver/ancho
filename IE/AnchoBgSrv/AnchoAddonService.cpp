@@ -12,8 +12,6 @@
 
 #include "PopupWindow.h"
 
-EXTERN_C IMAGE_DOS_HEADER __ImageBase;
-
 struct CookieNotificationCallback: public ACookieCallbackFunctor
 {
   CookieNotificationCallback(CAnchoAddonService &aService): service(aService)
@@ -706,11 +704,11 @@ STDMETHODIMP CAnchoAddonService::registerBrowserActionToolbar(INT aFrameTab, BST
 
   *aTabId = getFrameTabID(aFrameTab);
 
-  WCHAR   dllPath[MAX_PATH] = {0};
-  GetModuleFileNameW((HINSTANCE)&__ImageBase, dllPath, _countof(dllPath));
+  WCHAR   appPath[MAX_PATH] = {0};
+  GetModuleFileNameW(NULL, appPath, _countof(appPath));
 
   CString url;
-  url.Format(L"res://%s/BROWSER_ACTION_TOOLBAR.HTML", dllPath);
+  url.Format(L"res://%s/BROWSER_ACTION_TOOLBAR.HTML", appPath);
   *aUrl = url.AllocSysString();
   return S_OK;
 }
