@@ -93,9 +93,8 @@ HRESULT CAnchoAddonService::createTab(LPDISPATCH aProperties, LPDISPATCH aCreato
 {
   try {
     m_WebBrowserPostInitTasks.addCommand(AQueuedCommand::Ptr(new CreateTabCommand(*this, aProperties, aCreator, aCallback)));
-  } catch (std::exception &e) {
-    ATLTRACE("Error: %s\n", e.what());
-    return E_FAIL;
+  } catch (std::exception &) {
+    return exceptionToHRESULT();
   }
   return S_OK;
 }
@@ -692,7 +691,7 @@ STDMETHODIMP CAnchoAddonService::invokeEventObjectInAllExtensionsWithIDispatchAr
 //
 STDMETHODIMP CAnchoAddonService::webBrowserReady()
 {
-  m_WebBrowserPostInitTasks.setAutoExec(true);
+  m_WebBrowserPostInitTasks.autoExecuteAll();
   return S_OK;
 }
 

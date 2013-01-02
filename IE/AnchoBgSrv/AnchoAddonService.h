@@ -143,7 +143,12 @@ private:
   class ATabCreatedCallback: public ACommand
   {
   public:
-    typedef CComPtr<ATabCreatedCallback> Ptr;
+#if _HAS_CPP0X
+  typedef std::shared_ptr<ATabCreatedCallback> Ptr;
+#else
+  typedef std::tr1::shared_ptr<ATabCreatedCallback> Ptr;
+#endif
+
     void operator()(INT aTabID)
     { execute(aTabID); }
     virtual void execute(INT aTabID) = 0;
