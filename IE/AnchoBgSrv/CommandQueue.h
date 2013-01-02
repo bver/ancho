@@ -1,54 +1,23 @@
 #pragma once
 
-#include <atlcomcli.h>
 #include <deque>
-#include <WinBase.h>
+#include "Exceptions.h"
 
 
 /*============================================================================
  * Abstract command
  */
-class ACommand: public IUnknown
+class ACommand
 {
 public:
-  typedef CComPtr<ACommand> Ptr;
+#if _HAS_CPP0X
+  typedef std::shared_ptr<ACommand> Ptr;
+#else
+  typedef std::tr1::shared_ptr<ACommand> Ptr;
+#endif
 
   virtual ~ACommand(){};
   virtual void execute() = 0;
-
-  
-  HRESULT STDMETHODCALLTYPE QueryInterface(REFIID   riid, LPVOID * ppvObj)
-  {
-    // Always set out parameter to NULL, validating it first.
-    if (!ppvObj) {
-      return E_INVALIDARG;
-    }
-    *ppvObj = NULL;
-    if (riid == IID_IUnknown) {
-      // Increment the reference count and return the pointer.
-      *ppvObj = (LPVOID)this;
-      AddRef();
-      return NOERROR;
-    }
-    return E_NOINTERFACE;
-  }
-
-  ULONG STDMETHODCALLTYPE AddRef()
-  {
-      InterlockedIncrement(&mRef);
-      return mRef;
-  }
-
-  ULONG STDMETHODCALLTYPE Release()
-  {
-      ULONG refCount = InterlockedDecrement(&mRef);
-      if (0 == mRef) {
-        delete this;
-      }
-      return refCount;
-  }
-protected:
-   volatile ULONG mRef;
 };
 
 
@@ -64,7 +33,7 @@ public:
   void addCommand(ACommand::Ptr aCommand)
   {
     if (!aCommand) {
-      throw std::runtime_error("Invalid pointer to command");
+      throw EInvalidPointer();
     }
     if (mAutoExec) {
       aCommand->execute();
@@ -72,6 +41,11 @@ public:
       mCommands.push_back(aCommand);
     }
 
+  }
+
+  void autoExecuteAll() {
+    setAutoExec(true);
+    executeAll();
   }
 
   void executeAll()
@@ -113,9 +87,6 @@ public:
   void setAutoExec(bool aAutoExec)
   {
     mAutoExec = aAutoExec;
-    if (mAutoExec) {
-      executeAll();
-    }
   }
 protected:
   typedef std::deque<ACommand::Ptr> Container;
