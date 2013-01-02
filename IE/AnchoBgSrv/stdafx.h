@@ -29,6 +29,7 @@
 #include <atlwin.h>
 #include <atlframe.h>
 #include <atlctrls.h>
+#include <atltypes.h>
 
 #include <Wininet.h>
 
