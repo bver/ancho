@@ -67,6 +67,7 @@ STDMETHODIMP_(void) CBackgroundWindow::OnBrowserProgressChange(LONG Progress, LO
   //Workaround to rid of the ActiveXObject
   //?? still some scripts are started earlier ??
   //also executed multiple times
+  if(!m_pWebBrowser) { return; } //Event is fired also before m_pWebBrowser is initialized
   CIDispatchHelper script = CIDispatchHelper::GetScriptDispatch(m_pWebBrowser);
   CIDispatchHelper window;
   script.Get<CIDispatchHelper, VT_DISPATCH, IDispatch*>(L"window", window);
