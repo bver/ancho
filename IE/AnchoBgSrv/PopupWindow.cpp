@@ -111,13 +111,11 @@ STDMETHODIMP_(void) CPopupWindow::OnBrowserProgressChange(LONG Progress, LONG Pr
     return;
   }
   if (contentHeight > 0 && contentWidth > 0) {
-    WINDOWINFO winInfo;
-    winInfo.cbSize = sizeof(WINDOWINFO);
-    BOOL res = GetWindowInfo(this->operator HWND(), &winInfo);
-    int width = winInfo.rcWindow.right - winInfo.rcWindow.left;
-    int height = winInfo.rcWindow.bottom - winInfo.rcWindow.top;
-    if (res && (height != contentHeight || width != contentWidth)) {
-      ::MoveWindow(this->operator HWND(), winInfo.rcWindow.left, winInfo.rcWindow.top, width, contentHeight, TRUE);
+    CRect rect;
+    BOOL res = this->GetWindowRect(rect);
+
+    if (res && (rect.Height() != contentHeight || rect.Width() != contentWidth)) {
+      this->MoveWindow(rect.left, rect.top, contentWidth, contentHeight, TRUE);
     }
   }
 }
