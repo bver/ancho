@@ -45,11 +45,16 @@ public:
 
   STDMETHOD_(void, OnBrowserProgressChange)(LONG Progress, LONG ProgressMax);
 
+  void checkResize();
 private:
+  CComPtr<IHTMLElement> getBodyElement();
+
   CComQIPtr<IWebBrowser2>   m_pWebBrowser;     // Embedded WebBrowserControl
   DispatchMap m_InjectedObjects;
   CStringW    m_sURL;
   DWORD       m_WebBrowserEventsCookie;
   CIDispatchHelper m_CloseCallback;
+
+  CComVariant mEventHandler;
 };
 

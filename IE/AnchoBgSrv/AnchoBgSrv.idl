@@ -79,18 +79,18 @@ library AnchoBgSrvLib
   {
     [id(0x00000001), helpstring("Open HTTP connection")]
     HRESULT open(
-                    [in] BSTR bstrMethod, 
-                    [in] BSTR bstrUrl, 
-                    [in, optional] VARIANT varAsync, 
-                    [in, optional] VARIANT bstrUser, 
+                    [in] BSTR bstrMethod,
+                    [in] BSTR bstrUrl,
+                    [in, optional] VARIANT varAsync,
+                    [in, optional] VARIANT bstrUser,
                     [in, optional] VARIANT bstrPassword);
     [id(0x00000002), helpstring("Add HTTP request header")]
     HRESULT setRequestHeader(
-                    [in] BSTR bstrHeader, 
+                    [in] BSTR bstrHeader,
                     [in] BSTR bstrValue);
     [id(0x00000003), helpstring("Get HTTP response header")]
     HRESULT getResponseHeader(
-                    [in] BSTR bstrHeader, 
+                    [in] BSTR bstrHeader,
                     [out, retval] BSTR* pbstrValue);
     [id(0x00000004), helpstring("Get all HTTP response headers")]
     HRESULT getAllResponseHeaders([out, retval] BSTR* pbstrHeaders);
@@ -116,6 +116,18 @@ library AnchoBgSrvLib
     HRESULT onreadystatechange([in] IDispatch* rhs);
     [propget]
     HRESULT withCredentials([out, retval] VARIANT* aRet);
+  };
+
+  [
+    object,
+    uuid("14293D7A-EEED-4DBE-A84C-BDBBFEA2882F"),
+    dual,
+    pointer_default(unique)
+  ]
+  interface IWebBrowserEventHandler : IDispatch
+  {
+    [id(DISPID_VALUE)]
+    HRESULT onFire();
   };
 
 	importlib("stdole2.tlb");
