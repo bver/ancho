@@ -14,6 +14,8 @@ class CPopupWindow :
   public PopupWebBrowserEvents
 {
 public:
+  static const unsigned defaultWidth = 2;
+  static const unsigned defaultHeight = 2;
   DECLARE_FRAME_WND_CLASS(NULL, IDR_MAINFRAME)
 
   virtual void OnFinalMessage(HWND);

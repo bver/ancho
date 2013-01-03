@@ -6,27 +6,27 @@ class CPopupResizeEventHandler;
 typedef CComObject<CPopupResizeEventHandler> CPopupResizeEventHandlerComObject;
 
 class ATL_NO_VTABLE CPopupResizeEventHandler :
-	public CComObjectRootEx<CComSingleThreadModel>,
-	public IDispatchImpl<IWebBrowserEventHandler, &IID_IWebBrowserEventHandler, &LIBID_AnchoBgSrvLib,
-                      /*wMajor =*/ 0xffff, /*wMinor =*/ 0xffff>
+    public CComObjectRootEx<CComSingleThreadModel>,
+    public IDispatchImpl<IWebBrowserEventHandler, &IID_IWebBrowserEventHandler, &LIBID_AnchoBgSrvLib,
+                /*wMajor =*/ 0xffff, /*wMinor =*/ 0xffff>
 {
 public:
   // -------------------------------------------------------------------------
   // COM standard stuff
   DECLARE_NO_REGISTRY();
   DECLARE_NOT_AGGREGATABLE(CPopupResizeEventHandler)
-	DECLARE_PROTECT_FINAL_CONSTRUCT()
+  DECLARE_PROTECT_FINAL_CONSTRUCT()
 
 public:
   // -------------------------------------------------------------------------
   // COM interface map
   BEGIN_COM_MAP(CPopupResizeEventHandler)
-	  COM_INTERFACE_ENTRY(IWebBrowserEventHandler)
-	  COM_INTERFACE_ENTRY(IDispatch)
+    COM_INTERFACE_ENTRY(IWebBrowserEventHandler)
+    COM_INTERFACE_ENTRY(IDispatch)
   END_COM_MAP()
 
 public:
-  CPopupResizeEventHandler():alreadyIn(false){}
+  CPopupResizeEventHandler(){}
   // -------------------------------------------------------------------------
   // static creator function
   static HRESULT createObject(CPopupWindow *aWin, CPopupResizeEventHandlerComObject *& pRet)
@@ -54,7 +54,6 @@ public:
 
 private:
   CPopupWindow *mWin;
-  bool alreadyIn;
 };
 
 // -------------------------------------------------------------------------
@@ -188,7 +187,7 @@ void CPopupWindow::checkResize()
 
 CComPtr<IHTMLElement> CPopupWindow::getBodyElement()
 {
-  IDispatch *doc = NULL;
+  CComPtr<IDispatch> doc;
   if (FAILED(m_pWebBrowser->get_Document(&doc)) || !doc) {
     return CComPtr<IHTMLElement>();
   }
@@ -211,7 +210,7 @@ HRESULT CPopupWindow::CreatePopupWindow(HWND aParent, const DispatchMap &aInject
   pNewWindow->m_sURL = aURL;
   pNewWindow->m_InjectedObjects = aInjectedObjects;
   pNewWindow->m_CloseCallback = aCloseCallback;
-  RECT r = {aX, aY, aX + 2, aY + 2};
+  RECT r = {aX, aY, aX + defaultWidth, aY + defaultHeight};
 
   if (!pNewWindow->Create(aParent, r, NULL, WS_POPUP))
   {
