@@ -46,7 +46,7 @@
   };
 
   function GlobalId() {
-    this._id = 0;
+    this._id = 1;
   }
 
   GlobalId.prototype.getNext = function() {

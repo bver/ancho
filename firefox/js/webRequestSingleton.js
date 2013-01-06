@@ -50,7 +50,7 @@
 
     var self = this;
     window.addEventListener('unload', function() {
-      window.removeEventListener('unload', parameters.callee, false);
+      window.removeEventListener('unload', arguments.callee, false);
       Services.obs.removeObserver(self, HTTP_ON_MODIFY_REQUEST);
       Services.obs.removeObserver(self, HTTP_ON_EXAMINE_RESPONSE);
       Services.obs.removeObserver(self, HTTP_ON_EXAMINE_CACHED_RESPONSE);
@@ -150,18 +150,23 @@
     if (loadFlags & Ci.nsIChannel.LOAD_DOCUMENT_URI) {
       if (0 === frameIds.me) {
         type = 'main_frame';
-        this._flagTab(tabId, requestId);
+        this._flagTab(tabId, {
+          requestId: requestId,
+          watching: false
+        });
       } else {
         type = 'sub_frame';
       }
     }
 
-    if ('' !== referrer && !this._flagTab(tabId)) {
+    var tabFlag = this._flagTab(tabId);
+
+    if (('' !== referrer) && !tabFlag) {
       type = 'xmlhttprequest';
     }
 
     // is it request for an image? there is no direct way, from debugging
-    // experience image requests usualy have loadFlags === 0 or contain
+    // experience image requests usually have loadFlags === 0 or contain
     // LOAD_INITIAL_DOCUMENT_URI flag. But sometimes it also contains other flags.
     // Therefore there is also check for Accept header, which should ensure
     // that browser wants an image.
@@ -229,6 +234,21 @@
     params.timeStamp = (new Date()).getTime();
     this.onSendHeaders.fire([ params ]);
 
+    if (win.document && ('complete' !== win.document.readyState) &&
+        tabFlag && !tabFlag.watching) {
+      var self = this;
+      self._flagTab(tabId, {
+        requestId: tabFlag.requestId,
+        watching: true
+      });
+      win.document.addEventListener('readystatechange', function() {
+        if ('complete' === win.document.readyState) {
+          win.document.removeEventListener('readystatechange', arguments.callee, false);
+          self._flagTab(tabId, null);
+        }
+      });
+    }
+
     // dispatching dedicated listening thread for in case the request
     // will be served completely from cache
     var mainThread = Cc["@mozilla.org/thread-manager;1"].getService().mainThread;
@@ -249,20 +269,6 @@
     if (!params) {
       // we are not monitoring this request
       return;
-    }
-
-    // TODO: FIXME: this is still not working:
-    // + document.readyState === 'complete'
-    // + DOMContentLoaded event never fired  (apparently, the document is 'complete')
-    var self = this;
-    if (params.requestId === this._flagTab(tabId)) {
-      // dump('\n\n\n\n\n!!!!! HERE !!!!!!\n\n');
-      // dump('win.document.readyState === ' + win.document.readyState + '\n\n\n\n\n');
-      win.addEventListener('DOMContentLoaded', function() {
-        dump('\n\n\n\n\n\n\n\n\n\n\n!!!!! HERE !!!!!!\n\n\n\n\n\n\n\n\n\n\n');
-        win.removeEventListener('DOMContentLoaded', parameters.callee, false);
-        self._flagTab(tabId, null);
-      });
     }
 
     var visitor = new HttpHeaderVisitor();
