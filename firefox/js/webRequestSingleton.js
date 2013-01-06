@@ -234,6 +234,8 @@
     params.timeStamp = (new Date()).getTime();
     this.onSendHeaders.fire([ params ]);
 
+    // watch the document being loaded. when complete, reset the tab flags, so
+    // subsequent HTTP requests are recognized as xmlhttprequests
     if (win.document && ('complete' !== win.document.readyState) &&
         tabFlag && !tabFlag.watching) {
       var self = this;
