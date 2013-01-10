@@ -12,7 +12,10 @@ set(${PROJECT_NAME}_SRC_DIR ${${PROJECT_NAME}_SOURCE_DIR})
 set(${PROJECT_NAME}_RC_DIR ${${PROJECT_NAME}_SOURCE_DIR})
 
 
-include_directories("${${PROJECT_NAME}_INC_DIR}")
+include_directories(
+  ${${PROJECT_NAME}_INC_DIR}
+  ${${PROJECT_NAME}_GENERATED_FILES_DIR}
+  )
 
 set(${PROJECT_NAME}_HEADERS
   "${${PROJECT_NAME}_INC_DIR}/AnchoAddonService.h"
