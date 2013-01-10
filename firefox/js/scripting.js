@@ -53,7 +53,11 @@
             var scriptUri = Services.io.newURI(Config.hostExtensionRoot
                   + scriptInfo.js[k], '', null);
             var script = readStringFromUrl(scriptUri);
-            Cu.evalInSandbox(script, sandbox);
+            try {
+              Cu.evalInSandbox(script, sandbox);
+            } catch(err) {
+              dump('Ancho: script "' + scriptInfo.js[k] + '" failed: "' + err.message + '"\n');
+            }
           }
           break;
         }
