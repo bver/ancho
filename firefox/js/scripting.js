@@ -56,7 +56,7 @@
             try {
               Cu.evalInSandbox(script, sandbox);
             } catch(err) {
-              dump("Ancho: script '" + scriptInfo.js[k] + "'failed: " + err.message + "\n");
+              dump('Ancho: script "' + scriptInfo.js[k] + '" failed: "' + err.message + '"\n');
             }
           }
           break;
