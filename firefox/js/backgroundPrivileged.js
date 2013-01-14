@@ -105,6 +105,7 @@ window.addEventListener('load', function(event) {
 
 window.addEventListener('unload', function(event) {
   window.removeEventListener('unload', arguments.callee, false);
+  ExtensionState.unloadTabs();
   AnchoExternal.__set(null);
   releaseWindowWatcher();
   ExtensionState.unloadAll();

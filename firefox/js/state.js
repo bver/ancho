@@ -59,7 +59,7 @@
     eventDispatcher: new EventDispatcher(),
     _unloaders: {},
     _globalIds: {},
-    _tabIds: [],
+    _tabs: {},
 
     registerUnloader: function(win, unloader) {
       var windowId = getWindowId(win);
@@ -103,12 +103,32 @@
       new WebRequestSingleton(this, window);
     },
 
-    registerTab: function(tabId) {
-      this._tabIds.push(tabId);
+    registerTab: function(tabId, removeCallback) {
+      this._tabs[String(tabId)] = removeCallback;
+    },
+
+    unregisterTab: function(tabId) {
+      delete this._tabs[String(tabId)];
+    },
+
+    unloadTabs: function() {
+      // Cannot iterate using 'for (var id in this.tabs)' because callbacks
+      // might want to unregister tabs and using this.tabs directly is not safe.
+      var ids = this.tabIds();
+      while (ids.length) {
+        var callback = this._tabs[String(ids.pop())];
+        if (callback) {
+          callback();
+        }
+      }
     },
 
     tabIds: function() {
-      return this._tabIds.slice(0);
+      var ids = [];
+      for (var id in this._tabs) {
+        ids.push(parseInt(id));
+      }
+      return ids;
     }
 
   };

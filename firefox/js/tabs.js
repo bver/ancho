@@ -15,15 +15,24 @@
     this._state = state;
     this._tab = Utils.getWindowId(window);
 
-    // Register Tab ID for later tabs.query call
-    state.registerTab(this._tab);
-    // TODO: unregister tab
-    // TODO: detect "real tabs" only
-
     // Event handlers
     this.onCreated = new Event(window, this._tab, this._state, 'tab.created');
     this.onActivated = new Event(window, this._tab, this._state, 'tab.activated');
     this.onRemoved = new Event(window, this._tab, this._state, 'tab.removed');
+
+    // Register tab with a proper unregistering mechanism
+    // TODO: detect "real tabs" only
+    var self = this;
+    state.registerTab(self._tab, function() {
+      // TODO: removeInfo is not implemented
+      state.eventDispatcher.notifyListeners('tab.removed', null, [ self._tab, {} ]);
+    });
+    self.onRemoved.addListener(function(tabId) {
+      if (self._tab === tabId) {
+        self.onRemoved.removeListener(arguments.calee);
+        state.unregisterTab(tabId);
+      }
+    });
   }
 
   TabsAPI.prototype = {
