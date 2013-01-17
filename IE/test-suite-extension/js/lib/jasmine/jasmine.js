@@ -1019,7 +1019,7 @@ jasmine.Block = function(env, func, spec) {
   this.spec = spec;
 };
 
-jasmine.Block.prototype.execute = function(onComplete) {  
+jasmine.Block.prototype.execute = function(onComplete) {
   try {
     this.func.apply(this.spec);
   } catch (e) {
@@ -1059,7 +1059,7 @@ jasmine.JsApiReporter.prototype.summarize_ = function(suiteOrSpec) {
     type: isSuite ? 'suite' : 'spec',
     children: []
   };
-  
+
   if (isSuite) {
     var children = suiteOrSpec.children();
     for (var i = 0; i < children.length; i++) {
@@ -1887,7 +1887,7 @@ jasmine.PrettyPrinter.prototype.format = function(value) {
 jasmine.PrettyPrinter.prototype.iterateObject = function(obj, fn) {
   for (var property in obj) {
     if (property == '__Jasmine_been_here_before__') continue;
-    fn(property, obj.__lookupGetter__ ? (obj.__lookupGetter__(property) !== jasmine.undefined && 
+    fn(property, obj.__lookupGetter__ ? (obj.__lookupGetter__(property) !== jasmine.undefined &&
                                          obj.__lookupGetter__(property) !== null) : false);
   }
 };
@@ -1990,7 +1990,7 @@ jasmine.Queue.prototype.next_ = function() {
 
   while (goAgain) {
     goAgain = false;
-    
+
     if (self.index < self.blocks.length && !this.abort) {
       var calledSynchronously = true;
       var completedSynchronously = false;
@@ -2011,9 +2011,12 @@ jasmine.Queue.prototype.next_ = function() {
         var now = new Date().getTime();
         if (self.env.updateInterval && now - self.env.lastUpdate > self.env.updateInterval) {
           self.env.lastUpdate = now;
-          self.env.setTimeout(function() {
-            self.next_();
-          }, 0);
+          // in IE content scripts this generates a 'Permission denied' error
+          // straight call to self.next_() seems to work
+          //self.env.setTimeout(function() {
+          //  self.next_();
+          //}, 0);
+          self.next_();
         } else {
           if (jasmine.Queue.LOOP_DONT_RECURSE && completedSynchronously) {
             goAgain = true;
@@ -2028,7 +2031,7 @@ jasmine.Queue.prototype.next_ = function() {
       if (completedSynchronously) {
         onComplete();
       }
-      
+
     } else {
       self.running = false;
       if (self.onComplete) {

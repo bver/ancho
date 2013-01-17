@@ -1,0 +1,43 @@
+<html>
+<head>
+  <title>Popup Test Runner</title>
+  <script src="../js/lib/require.js"></script>
+  <script src="../js/requireConfig.js"></script>
+  <script src="../js/lib/jquery.js"></script>
+  <script src="../js/lib/jasmine/jasmine.js"></script>
+  <script src="../js/lib/jasmine/jasmine-html.js"></script>
+  <script src="../js/popup.js"></script>
+	<style>
+		body, html {
+      font-family: Arial, sans-serif;
+      font-size: 9pt;
+      margin: 0px;
+      padding: 0px;
+      color: Gray;
+      background-color: white;
+		}
+    .section {
+      padding: 4px;
+    }
+    .link {
+      line-height: 22px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body >
+	<div id="testContainer" style="width: 300px; height: 300px" >
+    <div class="section">
+    Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+    </div>
+    <div class="section">
+      <a id="run-bg-test" class="link">Run background unit test</a><br/>
+      <a id="run-content-test" class="link">Run content unit test</a><br/>
+      <a href="http://www.seznam.cz" target="_blank" class="link">Open new page</a><br/>
+      <a id="run-badge-test" class="link">Run badge test</a><br/>
+    </div>
+	</div>
+</body>
+
+</html>

@@ -1,11 +1,11 @@
-﻿
-define(function() {
- 
-    
+﻿define(function() {
+
   describe('chrome.events API', function() {
     var event;
     var listener = function(){};
     beforeEach(function() {
+      console.log('events: ' + chrome.events);
+
       event = new chrome.events.Event('test.event', undefined);
     });
 
@@ -40,7 +40,7 @@ define(function() {
       expect(event.hasListener(listener2)).toBe(true);
       expect(event.hasListeners()).toBe(true);
     });
-    
+
     it('invoke listeners when event is fired', function() {
       var spyListener1 = jasmine.createSpy('listener1');
       var spyListener2 = jasmine.createSpy('listener2');
@@ -56,5 +56,3 @@ define(function() {
 
 
 });
-
-
