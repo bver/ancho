@@ -180,15 +180,14 @@ STDMETHODIMP_(void) CAnchoRuntime::OnBrowserBeforeNavigate2(LPDISPATCH pDisp, VA
   m_pAnchoService->createTabNotification(m_TabID, requestID);
 }
 
-STDMETHODIMP_(void) CAnchoRuntime::OnNewWindow3(IDispatch *pDisp, VARIANT_BOOL Cancel, DWORD dwFlags,	BSTR bstrUrlContext, BSTR bstrUrl)
-{
-  ATLTRACE(L"OnNewWindow3-------------------\n");
-}
-
 //----------------------------------------------------------------------------
 //  OnFrameStart
 STDMETHODIMP CAnchoRuntime::OnFrameStart(BSTR bstrUrl, VARIANT_BOOL bIsMainFrame)
 {
+  //For extension pages we don't execute content scripts
+  if (isExtensionPage(std::wstring(bstrUrl))) {
+    return S_OK;
+  }
   return InitializeContentScripting(bstrUrl, bIsMainFrame, documentLoadStart);
 }
 
@@ -196,6 +195,10 @@ STDMETHODIMP CAnchoRuntime::OnFrameStart(BSTR bstrUrl, VARIANT_BOOL bIsMainFrame
 //  OnFrameEnd
 STDMETHODIMP CAnchoRuntime::OnFrameEnd(BSTR bstrUrl, VARIANT_BOOL bIsMainFrame)
 {
+  //For extension pages we don't execute content scripts
+  if (isExtensionPage(std::wstring(bstrUrl))) {
+    return S_OK;
+  }
   return InitializeContentScripting(bstrUrl, bIsMainFrame, documentLoadEnd);
 }
 
@@ -244,6 +247,38 @@ HRESULT CAnchoRuntime::InitializeContentScripting(BSTR bstrUrl, VARIANT_BOOL isR
   }
 
   return S_OK;
+}
+//----------------------------------------------------------------------------
+//
+HRESULT CAnchoRuntime::InitializeExtensionScripting(BSTR bstrUrl)
+{
+  std::wstring domain = getDomainName(bstrUrl);
+  AddonMap::iterator it = m_Addons.find(domain);
+  if (it != m_Addons.end()) {
+    return it->second->InitializeExtensionScripting(bstrUrl);
+  }
+  return S_OK;
+}
+//----------------------------------------------------------------------------
+//
+bool CAnchoRuntime::isExtensionPage(const std::wstring &aUrl)
+{
+  return std::wstring::npos != aUrl.find(s_AnchoProtocolHandlerPrefix);
+}
+//----------------------------------------------------------------------------
+//
+std::wstring CAnchoRuntime::getDomainName(const std::wstring &aUrl)
+{
+  static const std::wstring protocolDelimiter = L"://";
+  size_t prefix = aUrl.find(protocolDelimiter);
+  if (prefix == std::wstring::npos) {
+    throw std::runtime_error("Wrong URL format");
+  }
+  size_t domainStart = prefix + protocolDelimiter.size();
+
+  size_t domainEnd = aUrl.find_first_of(L'/', domainStart);
+
+  return aUrl.substr(domainStart, domainEnd-domainStart);
 }
 
 //----------------------------------------------------------------------------

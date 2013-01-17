@@ -52,19 +52,49 @@ var API_NAMES = ["bookmarks",
     "webstore",
     "windows"];
 
-// create and initialize the background API
-function getFullAPI(chrome, aInstance) {
-  for (var i = 0; i < API_NAMES.length; ++i) {
-    console.debug("Creating chrome." + API_NAMES[i] + " API instance n. " + aInstance);
-    chrome[API_NAMES[i]] = require(API_NAMES[i] + ".js").createAPI(aInstance);
+var CONTENT_API_NAMES = [
+    "extension",
+    "i18n"];
+
+
+function getChromeAPISubset(chrome, aInstanceID, aAPINames) {
+  for (var i = 0; i < aAPINames.length; ++i) {
+    console.debug("Creating chrome." + aAPINames[i] + " API instance n. " + aInstanceID);
+    chrome[aAPINames[i]] = require(aAPINames[i] + ".js").createAPI(aInstanceID);
   }
 }
 
-function releaseFullAPIInstance(aInstance) {
-  for (var i = 0; i < API_NAMES.length; ++i) {
-    console.debug("Releasing chrome." + API_NAMES[i] + " API instance n. " + aInstance);
-    require(API_NAMES[i] + ".js").releaseAPI(aInstance);
+function releaseAPISubsetByName(aInstanceID, aAPINames) {
+  for (var i = 0; i < aAPINames.length; ++i) {
+    console.debug("Releasing chrome." + aAPINames[i] + " API instance n. " + aInstanceID);
+    require(aAPINames[i] + ".js").releaseAPI(aInstanceID);
   }
+}
+
+function releaseAPISubset(aInstanceID, aAPIInstance) {
+  for (var i in aAPIInstance) {
+    try {
+      console.debug("Releasing chrome." + i + " API instance n. " + aInstanceID);
+      require(i + ".js").releaseAPI(aInstanceID);
+    } catch (e) {
+      console.error("Releasing of chrome." + i + " API instance n. " + aInstanceID + " failed! " + e.description);
+    }
+  }
+}
+
+// create and initialize the background API
+function getFullAPI(chrome, aInstanceID) {
+  getChromeAPISubset(chrome, aInstanceID, API_NAMES);
+}
+
+function releaseFullAPIInstance(aInstanceID) {
+  releaseAPISubsetByName(aInstanceID, API_NAMES);
+}
+
+function fullAPI(aInstanceID) {
+  getChromeAPISubset(this, aInstanceID, API_NAMES); 
+  this.console = console;// TODO: remove
+  console.debug("Full API created: [" + aInstanceID + "]");
 }
 
 // exports.chrome will be available to background pages as 'chrome'.
@@ -120,25 +150,34 @@ var contentInstances = {};
 // Content API constructor
 // the content API gets composed here. Decide which methods and objects should
 // be part of the content API.
-function contentAPI(instanceID) {
-  this.extension = require("extension.js").createAPI(instanceID);
-  this.i18n = require("i18n.js").createAPI(instanceID);
+function restrictedAPI(aInstanceID) {
+  getChromeAPISubset(this, aInstanceID, CONTENT_API_NAMES); 
   this.console = console;// TODO: remove
-  console.debug("Content API created: [" + instanceID + "]");
+  console.debug("Restricted API created: [" + aInstanceID + "]");
 }
 
 //------------------------------------------------------------------------------
 // INTERNAL API
 //------------------------------------------------------------------------------
 
+function isExtensionPage(aUrl) {
+  return typeof (aUrl) == 'string' && aUrl.match('chrome-extension://');  
+}
+
 // Creates a new instance of the content API for a certain tab.
 // The name of this method must match the one defined in anchocommons/strings.cpp
 // Called from the addon when a new browser window or tab opens
-exports.getContentAPI = function(instanceID) {
-  console.debug("getContentAPI for: [" + instanceID + "]");
-  var api = (contentInstances[instanceID]
-    ? contentInstances[instanceID]
-    : contentInstances[instanceID] = new contentAPI(instanceID));
+exports.getContentInfo = function(aInstanceID, aUrl) {
+  console.debug("getContentAPI for: [" + aInstanceID + "]");
+  
+  if (!contentInstances[aInstanceID]) {
+    if (aUrl && isExtensionPage(aUrl)) {
+      contentInstances[aInstanceID] = new fullAPI(aInstanceID);
+    } else {
+      contentInstances[aInstanceID] = new restrictedAPI(aInstanceID);
+    }
+  }
+  var api = contentInstances[aInstanceID];
   var scripts = (
     manifest.content_scripts instanceof Array
     && manifest.content_scripts.length > 0
@@ -146,17 +185,18 @@ exports.getContentAPI = function(instanceID) {
     ? manifest.content_scripts[0].js
     : []
   );
-  return { api: api, scripts: scripts };
+  return { api: api, scripts: scripts, console: console };
 };
 
 // Releases an instance of the content API for a certain tab.
 // The name of this method must match the one defined in anchocommons/strings.cpp
 // Called from the addon when a browser window or tab closes
-exports.releaseContentAPI = function(instanceID) {
+exports.releaseContentInfo = function(instanceID) {
   console.debug("Content API release requested for [" + instanceID + "]");
   if (contentInstances[instanceID]) {
-    require("extension.js").releaseAPI(instanceID);
-    require("i18n.js").releaseAPI(instanceID);
+    releaseAPISubset(instanceID, contentInstances[instanceID]);
+    //require("extension.js").releaseAPI(instanceID);
+    //require("i18n.js").releaseAPI(instanceID);
     delete contentInstances[instanceID];
     console.debug("Content API FOUND and released: [" + instanceID + "]");
   }

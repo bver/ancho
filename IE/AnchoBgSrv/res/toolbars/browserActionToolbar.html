@@ -33,10 +33,6 @@
     }
   </style>
   <script>
-    //--------------------------------------
-    //browserTabID is injected into the page
-
-
   function buttonOnMouseOver(aElement) {
     aElement.style.border = '#CCCCCC solid 1px';
   }
@@ -113,9 +109,14 @@
 		browserActions = actions;
     updateBrowserActions();
   }
-  var callbackID = external.setBrowserActionUpdateCallback(browserTabID, initBrowserActions);
+  var callbackID = undefined;
+  var browserTabID = undefined;
 
-	window.onload = initBrowserActions;
+  function initBrowserActionPage(aBrowserTabID) {
+    browserTabID = aBrowserTabID;
+    callbackID = external.setBrowserActionUpdateCallback(browserTabID, initBrowserActions);
+    window.onload = initBrowserActions;
+  }
   </script>
 </head>
 <body>

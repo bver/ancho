@@ -61,6 +61,11 @@ set_source_files_properties("${${PROJECT_NAME}_SRC_DIR}/stdafx.cpp" PROPERTIES C
 set (${PROJECT_NAME}_IDL_FILE
   "${${PROJECT_NAME}_SRC_DIR}/${PROJECT_NAME}.idl"
 )
+set_source_files_properties(
+  ${${PROJECT_NAME}_IDL_FILE}
+  PROPERTIES
+    HEADER_FILE_ONLY 1
+  )
 source_group("IDL" FILES ${${PROJECT_NAME}_IDL_FILE})
 
 ################# GENERATED FILES #########################
@@ -83,7 +88,6 @@ source_group("Generated files" FILES ${${PROJECT_NAME}_GENERATED_FILES})
 set_source_files_properties(
   ${${PROJECT_NAME}_MIDL_TLB_FILE}
   ${${PROJECT_NAME}_MIDL_I_H_FILE}
-  ${${PROJECT_NAME}_IDL_FILE}
   PROPERTIES
     HEADER_FILE_ONLY 1
     GENERATED 1
@@ -140,6 +144,7 @@ add_library(${PROJECT_NAME} SHARED
   ${${PROJECT_NAME}_GENERATED_FILES}
   ${${PROJECT_NAME}_RC_FILES}
   ${${PROJECT_NAME}_DEF_FILES}
+  ${${PROJECT_NAME}_IDL_FILE}
   )
 target_link_libraries(${PROJECT_NAME} libbhohelper anchocommons libprothandlers)
 

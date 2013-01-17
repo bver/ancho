@@ -35,6 +35,7 @@ library anchoLib
   {
     HRESULT Init([in] LPCOLESTR lpsExtensionID, [in] IAnchoAddonService * pService, [in] IWebBrowser2 * pWebBrowser);
     HRESULT InitializeContentScripting([in] IWebBrowser2 * pWebBrowser, [in] BSTR bstrUrl, documentLoadPhase aPhase);
+    HRESULT InitializeExtensionScripting([in] BSTR bstrUrl);
     HRESULT Shutdown();
 
     HRESULT executeScriptCode(BSTR aCode);

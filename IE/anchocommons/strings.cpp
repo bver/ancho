@@ -26,6 +26,10 @@ const wchar_t * s_AnchoExtensionsRegistryEntryPath =
 const wchar_t * s_AnchoProtocolHandlerScheme =
     L"chrome-extension";
 
+// URL prefix for extension protocol
+const wchar_t * s_AnchoProtocolHandlerPrefix =
+  L"chrome-extension://";
+
 // JS object name of the API in background scripts
 const wchar_t * s_AnchoGlobalAPIObjectName =
     L"addonAPI";
@@ -50,12 +54,12 @@ const wchar_t * s_AnchoBackgroundConsoleObjectName =
 
 // name of the exported function for getting a content API
 const wchar_t * s_AnchoFnGetContentAPI =
-    L"getContentAPI";
+    L"getContentInfo";
 
 
 // name of the exported function for releasing a content API
 const wchar_t * s_AnchoFnReleaseContentAPI =
-    L"releaseContentAPI";
+    L"releaseContentInfo";
 
 // name of the exported function for releasing a content API
 const wchar_t * s_AnchoTabIDPropertyName =

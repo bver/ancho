@@ -150,7 +150,7 @@ HRESULT CAnchoBackgroundAPI::GetLogWindow(CLogWindowComObject * & pLogWindow)
 
 //----------------------------------------------------------------------------
 //
-HRESULT CAnchoBackgroundAPI::GetContentAPI(ULONG ulInstanceID, LPDISPATCH* ppDisp)
+HRESULT CAnchoBackgroundAPI::GetContentInfo(ULONG ulInstanceID, BSTR bstrUrl, LPDISPATCH* ppDisp)
 {
   ENSURE_RETVAL(ppDisp);
   if (!m_Magpie)
@@ -161,8 +161,10 @@ HRESULT CAnchoBackgroundAPI::GetContentAPI(ULONG ulInstanceID, LPDISPATCH* ppDis
   CIDispatchHelper script;
   IF_FAILED_RET(GetMainModuleExportsScript(script));
 
-  CComVariant vtRet, vtInstanceID(ulInstanceID);
-  DISPPARAMS params = {&vtInstanceID, NULL, 1, 0};
+  CComVariant vtRet;
+  CComVariant paramVariants[2] = {CComVariant(bstrUrl), CComVariant(ulInstanceID)};
+
+  DISPPARAMS params = {paramVariants, NULL, 2, 0};
   IF_FAILED_RET(script.Call((LPOLESTR)s_AnchoFnGetContentAPI, &params, &vtRet));
   if (vtRet.vt != VT_DISPATCH)
   {

@@ -90,7 +90,7 @@ public:
   void UnInit();
 
   HRESULT GetLogWindow(CLogWindowComObject * & pLogWindow);
-  HRESULT GetContentAPI(ULONG ulInstanceID, LPDISPATCH* ppDisp);
+  HRESULT GetContentInfo(ULONG ulInstanceID, BSTR bstrUrl, LPDISPATCH* ppDisp);
   HRESULT ReleaseContentAPI(ULONG ulInstanceID);
 
   BOOL GetURL(/*in, out*/ CStringW & sURL);
