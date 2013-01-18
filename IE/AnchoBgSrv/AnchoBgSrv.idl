@@ -55,8 +55,8 @@ interface IAnchoAddonBackground : IUnknown
 {
   HRESULT AdviseInstance([out, retval] ULONG * pInstanceID);
   HRESULT UnadviseInstance([in] ULONG ulInstanceID);
-  HRESULT GetContentAPI([in] ULONG ulInstanceID, [out, retval] LPDISPATCH* ppDisp);
-  HRESULT ReleaseContentAPI([in] ULONG ulInstanceID);
+  HRESULT GetContentInfo([in] ULONG ulInstanceID, [in] BSTR bstrUrl, [out, retval] LPDISPATCH* ppDisp);
+  HRESULT ReleaseContentInfo([in] ULONG ulInstanceID);
 //  HRESULT GetManifest([out, retval] LPDISPATCH* ppDisp);
 };
 

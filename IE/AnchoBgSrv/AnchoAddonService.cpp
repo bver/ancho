@@ -400,11 +400,11 @@ STDMETHODIMP CAnchoAddonService::updateWindow(INT aWindowId, LPDISPATCH aPropert
   int left = winInfo.rcWindow.left;
   int width = winInfo.rcWindow.right - winInfo.rcWindow.left;
   int height = winInfo.rcWindow.bottom - winInfo.rcWindow.top;
-  if ( SUCCEEDED((properties.Get<int, VT_I4>(L"top", top)))
-    || SUCCEEDED((properties.Get<int, VT_I4>(L"left", left)))
-    || SUCCEEDED((properties.Get<int, VT_I4>(L"width", width)))
-    || SUCCEEDED((properties.Get<int, VT_I4>(L"height", height)))
-  ) {
+  bool shouldMove = SUCCEEDED((properties.Get<int, VT_I4>(L"top", top)));
+  shouldMove = shouldMove || SUCCEEDED((properties.Get<int, VT_I4>(L"left", left)));
+  shouldMove = shouldMove || SUCCEEDED((properties.Get<int, VT_I4>(L"width", width)));
+  shouldMove = shouldMove || SUCCEEDED((properties.Get<int, VT_I4>(L"height", height)));
+  if (shouldMove) {
     ::MoveWindow(hwnd, left, top, width, height, TRUE);
   }
   bool focused = false;

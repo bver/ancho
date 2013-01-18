@@ -54,7 +54,7 @@ public:
   // COM sink map
   BEGIN_SINK_MAP(CAnchoRuntime)
     SINK_ENTRY_EX(1, DIID_DWebBrowserEvents2, DISPID_BEFORENAVIGATE2, OnBrowserBeforeNavigate2)
-    SINK_ENTRY_EX(1, DIID_DWebBrowserEvents2, DISPID_NEWWINDOW3, OnNewWindow3)
+    SINK_ENTRY_EX(1, DIID_DWebBrowserEvents2, DISPID_NAVIGATECOMPLETE2, OnNavigateComplete)
     SINK_ENTRY_EX(2, IID_DAnchoBrowserEvents, 1, OnFrameStart)
     SINK_ENTRY_EX(2, IID_DAnchoBrowserEvents, 2, OnFrameEnd)
     SINK_ENTRY_EX(2, IID_DAnchoBrowserEvents, 3, OnFrameRedirect)
@@ -86,11 +86,17 @@ public:
   STDMETHOD(updateTab)(LPDISPATCH aProperties);
   STDMETHOD(fillTabInfo)(VARIANT* aInfo);
 
+  STDMETHOD_(void, OnNavigateComplete)(LPDISPATCH pDispatch, VARIANT *URL)
+   {
+    CComBSTR url(URL->bstrVal);
+    if (isExtensionPage(std::wstring(url))) {
+      InitializeExtensionScripting(url);
+    }
+  }
+
   // DWebBrowserEvents2 methods
   STDMETHOD_(void, OnBrowserBeforeNavigate2)(LPDISPATCH pDisp, VARIANT *pURL, VARIANT *Flags,
     VARIANT *TargetFrameName, VARIANT *PostData, VARIANT *Headers, BOOL *Cancel);
-
-  STDMETHOD_(void, OnNewWindow3)(IDispatch *pDisp, VARIANT_BOOL Cancel, DWORD dwFlags,	BSTR bstrUrlContext, BSTR bstrUrl);
 
   // -------------------------------------------------------------------------
   // DAnchoBrowserEvents methods.
@@ -106,6 +112,10 @@ private:
   HRESULT Init();
   HRESULT Cleanup();
   HRESULT InitializeContentScripting(BSTR bstrUrl, VARIANT_BOOL bIsRefreshingMainFrame, documentLoadPhase aPhase);
+  HRESULT InitializeExtensionScripting(BSTR bstrUrl);
+
+  bool isExtensionPage(const std::wstring &aUrl);
+  std::wstring getDomainName(const std::wstring &aUrl);
 
   HWND getTabWindow();
   HWND getFrameTabWindow()

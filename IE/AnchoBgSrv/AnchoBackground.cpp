@@ -139,18 +139,18 @@ STDMETHODIMP CAnchoAddonBackground::AdviseInstance(ULONG * pulInstanceID)
 //
 STDMETHODIMP CAnchoAddonBackground::UnadviseInstance(ULONG ulInstanceID)
 {
-  return ReleaseContentAPI(ulInstanceID);
+  return ReleaseContentInfo(ulInstanceID);
 }
 
 //----------------------------------------------------------------------------
 //
-STDMETHODIMP CAnchoAddonBackground::GetContentAPI(ULONG ulInstanceID, LPDISPATCH* ppDisp)
+STDMETHODIMP CAnchoAddonBackground::GetContentInfo(ULONG ulInstanceID, BSTR bstrUrl, LPDISPATCH* ppDisp)
 {
-  return m_BackgroundAPI.GetContentAPI(ulInstanceID, ppDisp);
+  return m_BackgroundAPI.GetContentInfo(ulInstanceID, bstrUrl, ppDisp);
 }
 //----------------------------------------------------------------------------
 //
-STDMETHODIMP CAnchoAddonBackground::ReleaseContentAPI(ULONG ulInstanceID)
+STDMETHODIMP CAnchoAddonBackground::ReleaseContentInfo(ULONG ulInstanceID)
 {
   return m_BackgroundAPI.ReleaseContentAPI(ulInstanceID);
 }

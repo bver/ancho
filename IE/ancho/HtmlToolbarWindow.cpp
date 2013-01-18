@@ -70,12 +70,19 @@ void CHtmlToolbarWindow::OnBrowserDocumentComplete(LPDISPATCH pDispatch, VARIANT
   CComVariant result;
   CComPtr<IWebBrowser2> pWebBrowser;
   if (SUCCEEDED(pDispatch->QueryInterface(&pWebBrowser))) {
+
     HRESULT hr = pWebBrowser->ExecWB(OLECMDID_OPTICAL_ZOOM, OLECMDEXECOPT_DONTPROMPTUSER, &zoom, &result);
 
     if (m_toolbarCallback)
     {
       m_toolbarCallback->ToolbarWindowReady(URL);
     }
+  }
+  CIDispatchHelper scriptDispatch = CIDispatchHelper::GetScriptDispatch(m_pWebBrowser);
+  if (scriptDispatch) {
+    CComVariant idVariant = mTabId;
+    DISPPARAMS params = {&idVariant, NULL, 1, 0};
+    scriptDispatch.Call((LPOLESTR)L"initBrowserActionPage", &params);
   }
 }
 
@@ -93,8 +100,6 @@ void CHtmlToolbarWindow::OnBrowserNavigateComplete(IDispatch *pDisp, VARIANT *UR
   {
     m_toolbarCallback->ToolbarWindowNavigateComplete(pDisp, URL);
   }
-  CIDispatchHelper script = CIDispatchHelper::GetScriptDispatch(m_pWebBrowser);
-  script.SetProperty((LPOLESTR)L"browserTabID", CComVariant(mTabId));
 }
 
 void CHtmlToolbarWindow::OnBrowserSetFocus()
