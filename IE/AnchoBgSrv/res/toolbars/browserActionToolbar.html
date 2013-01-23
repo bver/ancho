@@ -101,7 +101,8 @@
 	}
 
 	function initBrowserActions() {
-    var browserActionsArray = new VBArray(external.getBrowserActions()).toArray();
+	  var safeArray = external.getBrowserActions();
+	  var browserActionsArray = (new VBArray(safeArray)).toArray();
     var actions = {};
     for (var i = 0; i < browserActionsArray.length; ++i) {
 			actions[browserActionsArray[i].id] = browserActionsArray[i];

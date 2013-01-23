@@ -244,14 +244,10 @@ STDMETHODIMP CAnchoAddon::InitializeExtensionScripting(BSTR bstrUrl)
   IF_FAILED_RET((contentInfo.Get<CComVariant, VT_DISPATCH, IDispatch*>(L"api", api)));
 
   CIDispatchHelper script = CIDispatchHelper::GetScriptDispatch(m_pWebBrowser);
-  //CIDispatchHelper window;
-  //script.Get<CIDispatchHelper, VT_DISPATCH, IDispatch*>(L"window", window);
   IF_FAILED_RET(script.SetPropertyByRef(L"chrome", api));
   CComVariant console;
   IF_FAILED_RET((contentInfo.Get<CComVariant, VT_DISPATCH, IDispatch*>(L"console", console)));
   IF_FAILED_RET(script.SetPropertyByRef(L"console", console));
-
-  //HRESULT hr = window.Get<CComVariant, VT_DISPATCH, IDispatch*>(L"chrome", jsObj);
 
   return S_OK;
 }

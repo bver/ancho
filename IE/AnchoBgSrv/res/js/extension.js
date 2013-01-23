@@ -112,7 +112,12 @@ var MessageSender = function(aInstanceId) {
   this.id = addonAPI.id;
 
   if (aInstanceId > 0) { //we are in tab context
-    this.tab = serviceAPI.getTabInfo(aInstanceId, Object);
+    try {
+      this.tab = serviceAPI.getTabInfo(aInstanceId, Object);
+    } catch (e) {
+      console.error("Internal error: getTabInfo() failed! " + e.description + "; error code = " + e.number);
+      this.tab = { "id": aInstanceId };
+    }
   } else {
     this.tab = { //Dummy tab - reproducing chrome behavior
       "active": false,
