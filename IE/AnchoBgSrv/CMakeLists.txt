@@ -24,7 +24,6 @@ set(${PROJECT_NAME}_HEADERS
   "${${PROJECT_NAME}_INC_DIR}/AnchoBgSrvModule.h"
   "${${PROJECT_NAME}_INC_DIR}/BackgroundWindow.h"
   "${${PROJECT_NAME}_INC_DIR}/CommandQueue.h"
-  "${${PROJECT_NAME}_INC_DIR}/Exceptions.h"
   "${${PROJECT_NAME}_INC_DIR}/IECookie.h"
   "${${PROJECT_NAME}_INC_DIR}/IECookieManager.h"
   "${${PROJECT_NAME}_INC_DIR}/LogView.h"

@@ -8,10 +8,12 @@ include_directories(${${PROJECT_NAME}_INC_DIR})
 
 set(${PROJECT_NAME}_HEADERS
   "${${PROJECT_NAME}_INC_DIR}/anchocommons.h"
+  "${${PROJECT_NAME}_INC_DIR}/Exceptions.h"
   )
 
 set(${PROJECT_NAME}_SOURCES 
   "${${PROJECT_NAME}_SRC_DIR}/strings.cpp"
+  "${${PROJECT_NAME}_SRC_DIR}/utilities.cpp"
   )
 
 add_library(${PROJECT_NAME} STATIC ${${PROJECT_NAME}_HEADERS} ${${PROJECT_NAME}_SOURCES})

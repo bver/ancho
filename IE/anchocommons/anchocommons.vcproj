@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
+	Version="9.00"
 	Name="anchocommons"
 	ProjectGUID="{0FE0872C-8BDD-4D12-8025-0FE85C8A9631}"
 	RootNamespace="anchocommons"
@@ -152,6 +152,10 @@
 				RelativePath=".\strings.cpp"
 				>
 			</File>
+			<File
+				RelativePath=".\utilities.cpp"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -160,6 +164,10 @@
 			>
 			<File
 				RelativePath=".\anchocommons.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Exceptions.h"
 				>
 			</File>
 		</Filter>

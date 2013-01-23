@@ -137,6 +137,41 @@ HRESULT CAnchoRuntime::Init()
 }
 
 //----------------------------------------------------------------------------
+//
+STDMETHODIMP_(void) CAnchoRuntime::OnBrowserDownloadBegin()
+{
+  m_ExtensionPageAPIPrepared = false;
+}
+
+//----------------------------------------------------------------------------
+//
+STDMETHODIMP_(void) CAnchoRuntime::OnBrowserProgressChange(LONG Progress, LONG ProgressMax)
+{
+  if (m_IsExtensionPage && !m_ExtensionPageAPIPrepared && m_pWebBrowser) {
+    READYSTATE readyState;
+    m_pWebBrowser->get_ReadyState(&readyState);
+    if (readyState == READYSTATE_INTERACTIVE) {
+      CComBSTR url;
+      m_pWebBrowser->get_LocationURL(&url);
+      InitializeExtensionScripting(url);
+      m_ExtensionPageAPIPrepared = true;
+    }
+  }
+}
+
+//----------------------------------------------------------------------------
+//  OnNavigateComplete
+STDMETHODIMP_(void) CAnchoRuntime::OnNavigateComplete(LPDISPATCH pDispatch, VARIANT *URL)
+{
+  CComBSTR url(URL->bstrVal);
+  if (isExtensionPage(std::wstring(url))) {
+    m_IsExtensionPage = true;
+    InitializeExtensionScripting(url);
+    m_ExtensionPageAPIPrepared = true;
+  }
+}
+
+//----------------------------------------------------------------------------
 //  OnBrowserBeforeNavigate2
 STDMETHODIMP_(void) CAnchoRuntime::OnBrowserBeforeNavigate2(LPDISPATCH pDisp, VARIANT *pURL, VARIANT *Flags,
   VARIANT *TargetFrameName, VARIANT *PostData, VARIANT *Headers, BOOL *Cancel)
@@ -258,27 +293,6 @@ HRESULT CAnchoRuntime::InitializeExtensionScripting(BSTR bstrUrl)
     return it->second->InitializeExtensionScripting(bstrUrl);
   }
   return S_OK;
-}
-//----------------------------------------------------------------------------
-//
-bool CAnchoRuntime::isExtensionPage(const std::wstring &aUrl)
-{
-  return std::wstring::npos != aUrl.find(s_AnchoProtocolHandlerPrefix);
-}
-//----------------------------------------------------------------------------
-//
-std::wstring CAnchoRuntime::getDomainName(const std::wstring &aUrl)
-{
-  static const std::wstring protocolDelimiter = L"://";
-  size_t prefix = aUrl.find(protocolDelimiter);
-  if (prefix == std::wstring::npos) {
-    throw std::runtime_error("Wrong URL format");
-  }
-  size_t domainStart = prefix + protocolDelimiter.size();
-
-  size_t domainEnd = aUrl.find_first_of(L'/', domainStart);
-
-  return aUrl.substr(domainStart, domainEnd-domainStart);
 }
 
 //----------------------------------------------------------------------------

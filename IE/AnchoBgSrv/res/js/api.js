@@ -92,7 +92,7 @@ function releaseFullAPIInstance(aInstanceID) {
 }
 
 function fullAPI(aInstanceID) {
-  getChromeAPISubset(this, aInstanceID, API_NAMES); 
+  getChromeAPISubset(this, aInstanceID, API_NAMES);
   this.console = console;// TODO: remove
   console.debug("Full API created: [" + aInstanceID + "]");
 }
@@ -151,7 +151,7 @@ var contentInstances = {};
 // the content API gets composed here. Decide which methods and objects should
 // be part of the content API.
 function restrictedAPI(aInstanceID) {
-  getChromeAPISubset(this, aInstanceID, CONTENT_API_NAMES); 
+  getChromeAPISubset(this, aInstanceID, CONTENT_API_NAMES);
   this.console = console;// TODO: remove
   console.debug("Restricted API created: [" + aInstanceID + "]");
 }
@@ -161,7 +161,7 @@ function restrictedAPI(aInstanceID) {
 //------------------------------------------------------------------------------
 
 function isExtensionPage(aUrl) {
-  return typeof (aUrl) == 'string' && aUrl.match('chrome-extension://');  
+  return typeof (aUrl) == 'string' && aUrl.match('chrome-extension://');
 }
 
 // Creates a new instance of the content API for a certain tab.
@@ -169,7 +169,7 @@ function isExtensionPage(aUrl) {
 // Called from the addon when a new browser window or tab opens
 exports.getContentInfo = function(aInstanceID, aUrl) {
   console.debug("getContentAPI for: [" + aInstanceID + "]");
-  
+
   if (!contentInstances[aInstanceID]) {
     if (aUrl && isExtensionPage(aUrl)) {
       contentInstances[aInstanceID] = new fullAPI(aInstanceID);

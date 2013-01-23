@@ -323,10 +323,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\Exceptions.h"
-				>
-			</File>
-			<File
 				RelativePath=".\IECookie.h"
 				>
 			</File>
